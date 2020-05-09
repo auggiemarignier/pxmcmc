@@ -8,6 +8,7 @@ authors = ["Auggie Marignier <augustin.marignier.14@ucl.ac.uk>"]
 python = "^3.7"
 healpy = "^1.13.0"
 cython = "^0.29.17"
+scipy = "^1.4.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

@@ -265,18 +265,6 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 version = "2.4.7"
 
 [[package]]
-category = "main"
-description = ""
-name = "pys2let"
-optional = false
-python-versions = "*"
-version = "2.0"
-
-[package.source]
-reference = "e2ccbbfbe1cce66fa36331a278812006f196c0c2"
-type = "git"
-url = "https://github.com/astro-informatics/src_s2let"
-[[package]]
 category = "dev"
 description = "pytest: simple powerful testing with Python"
 name = "pytest"
@@ -378,7 +366,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "ae47e91decba00b364dda9809c437504ae435e0668cead64c95ac3f2a807833b"
+content-hash = "77d6c55820cddca0a8736599c988048c12a537cb5501572b339cc4225fc3af8f"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -582,7 +570,6 @@ pyparsing = [
     {file = "pyparsing-2.4.7-py2.py3-none-any.whl", hash = "sha256:ef9d7589ef3c200abe66653d3f1ab1033c3c419ae9b9bdb1240a85b024efc88b"},
     {file = "pyparsing-2.4.7.tar.gz", hash = "sha256:c203ec8783bf771a155b207279b9bccb8dea02d8f0c9e5f8ead507bc3246ecc1"},
 ]
-pys2let = []
 pytest = [
     {file = "pytest-5.4.1-py3-none-any.whl", hash = "sha256:0e5b30f5cb04e887b91b1ee519fa3d89049595f428c1db76e73bd7f17b09b172"},
     {file = "pytest-5.4.1.tar.gz", hash = "sha256:84dde37075b8805f3d1f392cc47e38a0e59518fb46a431cfdaf7cf1ce805f970"},
