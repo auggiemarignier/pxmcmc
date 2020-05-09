@@ -1,12 +1,3 @@
-from pxmcmc.mcmc import PxMCMC
-import pytest
-
-
-@pytest.fixture
-def mcmc():
-    return PxMCMC()
-
-
 def test_PxMCMCConstructor(mcmc):
     for attr in [
         "algo",

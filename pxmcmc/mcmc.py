@@ -31,10 +31,11 @@ class PxMCMCParams:
 
 
 class PxMCMC:
-    def __init__(self, mcmcparams=PxMCMCParams()):
+    def __init__(self, forward, mcmcparams=PxMCMCParams()):
         """
         Initialises proximal MCMC algorithm.  Sets up the wavelet basis functions.  Calculates prefactors of the gradg function which are constant throughout the chain.
         """
+        self.forward = forward
         for attr in mcmcparams.__dict__.keys():
             print(attr)
             setattr(self, attr, getattr(mcmcparams, attr))
@@ -104,7 +105,7 @@ class PxMCMC:
         )
         if self.hard:
             X_curr = hard(X_curr)
-        curr_preds = self.forward(X_curr)
+        curr_preds = self.forward.forward(X_curr)
         i = 0
         while i < self.nsamples:
             if i >= self.nburn:
@@ -112,12 +113,12 @@ class PxMCMC:
                     logPi[i] = self.logpi(X_curr, curr_preds)
                     preds[i] = curr_preds
                     chain[i] = X_curr
-            gradg = self.calc_gradg(curr_preds)
+            gradg = self.forward.calc_gradg(curr_preds)
             proxf = self.calc_proxf(X_curr)
             X_prop = self.chain_step(X_curr, proxf, gradg)
             if self.hard:
                 X_prop = hard(X_prop)
-            prop_preds = self.forward(X_prop)
+            prop_preds = self.forward.forward(X_prop)
 
             if self.algo == "PxMALA":
                 alpha = self.accept_prob(
