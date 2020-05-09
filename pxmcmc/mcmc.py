@@ -37,7 +37,6 @@ class PxMCMC:
         """
         self.forward = forward
         for attr in mcmcparams.__dict__.keys():
-            print(attr)
             setattr(self, attr, getattr(mcmcparams, attr))
 
     def calc_proxf(self, X):
@@ -85,10 +84,11 @@ class PxMCMC:
         assert not np.isnan(p)
         return p
 
-    def accept(self, alpha):
+    def MHaccept(self, X_curr, curr_preds, X_prop, prop_preds, proxf, gradg):
         """
         Metropolis-Hastings acceptance step.  Accept if the acceptance probability alpha is greater than a random number.
         """
+        alpha = self.accept_prob(X_curr, curr_preds, X_prop, prop_preds, proxf, gradg)
         u = np.log(np.random.rand())
         return True if u <= alpha else False
 
@@ -121,11 +121,7 @@ class PxMCMC:
             prop_preds = self.forward.forward(X_prop)
 
             if self.algo == "PxMALA":
-                alpha = self.accept_prob(
-                    X_curr, curr_preds, X_prop, prop_preds, proxf, gradg
-                )
-                print(alpha)
-                if self.accept(alpha):
+                if self.MHaccept(X_curr, curr_preds, X_prop, prop_preds, proxf, gradg):
                     X_curr = X_prop
                     curr_preds = prop_preds
                     # i += 1

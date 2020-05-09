@@ -7,6 +7,7 @@ class ForwardOperator:
     """
     Base Forward identity operator
     """
+
     def __init__(self, data, sig_d):
         self.data = data
         self.sig_d = sig_d
@@ -16,8 +17,6 @@ class ForwardOperator:
 
     def calc_gradg(self, preds):
         return (preds - self.data) / (self.sig_d ** 2)
-
-
 
 
 class PathIntegral:
@@ -52,6 +51,7 @@ class PathIntegral:
         diffYlmavs = np.concatenate(arrays)
         gradg = self.pf * diffYlmavs
         return gradg
+
     def _calc_prefactors(self):
         """
         Calculates prefactors of gradg which are constant throughout the chain, and so only need to be calculated once at the start.
