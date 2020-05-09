@@ -11,6 +11,7 @@ class ForwardOperator:
     def __init__(self, data, sig_d):
         self.data = data
         self.sig_d = sig_d
+        self.nparams = len(data)
 
     def forward(self, X):
         return X

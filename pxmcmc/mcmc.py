@@ -16,6 +16,7 @@ class PxMCMCParams:
         ngap=int(1e2),
         hard=False,
         nparams=1,
+        complex=False,
     ):
         self.algo = algo  # algorithm choice: MYULA or PxMALA
         self.lmda = lmda  # prox parameter. tuned to make proxf abritrarily close to f
@@ -28,6 +29,7 @@ class PxMCMCParams:
         self.ngap = ngap  # Thinning parameter=number of iterations between samples. reduces correlations between samples
         self.hard = hard  # if true, hard thresholds model parameters
         self.nparams = nparams
+        self.complex = complex
 
 
 class PxMCMC:
@@ -92,17 +94,19 @@ class PxMCMC:
         u = np.log(np.random.rand())
         return True if u <= alpha else False
 
-    def mcmc(self, data):
+    def mcmc(self):
         """
         Runs MCMC.  At present, logposteriors are becoming more and more negative and converging abnormally quickly.
         """
         logPi = np.zeros(self.nsamples + 1)
-        preds = np.zeros((self.nsamples + 1, len(data)))
-        chain = np.zeros((self.nsamples + 1, self.nparams), dtype=np.complex)
-        X_curr = (
-            np.random.normal(0, self.sig_m, self.nparams)
-            + np.random.normal(0, self.sig_m, self.nparams) * 1j
+        preds = np.zeros((self.nsamples + 1, len(self.forward.data)))
+        chain = np.zeros(
+            (self.nsamples + 1, self.nparams),
+            dtype=np.complex if self.complex else np.float,
         )
+        X_curr = np.random.normal(0, self.sig_m, self.nparams)
+        if self.complex:
+            X_curr += np.random.normal(0, self.sig_m, self.nparams) * 1j
         if self.hard:
             X_curr = hard(X_curr)
         curr_preds = self.forward.forward(X_curr)
@@ -110,7 +114,7 @@ class PxMCMC:
         while i < self.nsamples:
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
-                    logPi[i] = self.logpi(X_curr, curr_preds)
+                    logPi[i] = self.logpi(X_curr, self.forward.data, curr_preds)
                     preds[i] = curr_preds
                     chain[i] = X_curr
             gradg = self.forward.calc_gradg(curr_preds)
