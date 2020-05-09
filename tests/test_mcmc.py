@@ -1,15 +1,14 @@
 from pxmcmc.mcmc import PxMCMC
+import pytest
 
 
-def test_PxMCMCConstructor():
+@pytest.fixture
+def mcmc():
+    return PxMCMC()
+
+
+def test_PxMCMCConstructor(mcmc):
     for attr in [
-        "L",
-        "B",
-        "dirs",
-        "spin",
-        "J_min",
-        "J_max",
-        "nscales",
         "algo",
         "lmda",
         "delta",
@@ -20,6 +19,6 @@ def test_PxMCMCConstructor():
         "nburn",
         "ngap",
         "hard",
+        "nparams"
     ]:
-        mcmc = PxMCMC()
         assert hasattr(mcmc, attr)
