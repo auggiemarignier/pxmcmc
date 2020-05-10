@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 
 class Outfile:
@@ -8,6 +9,8 @@ class Outfile:
         """
         self.dictnry = {"logposterior": logpost, "predictions": preds, "chain": chain}
         self.outpath = outpath
+        if not os.path.exists(self.outpath):
+            os.mkdir(self.outpath)
         self.binary = binary
 
     def write_outfile(self, key):

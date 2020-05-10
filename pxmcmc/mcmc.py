@@ -45,7 +45,7 @@ class PxMCMC:
         """
         Calculates the prox of the sparsity regularisation term.
         """
-        return soft(X, self.lmda * self.mu / 2)
+        return soft(X, self.lmda * self.mu)
 
     def chain_step(self, X, proxf, gradg):
         """
@@ -98,15 +98,15 @@ class PxMCMC:
         """
         Runs MCMC.  At present, logposteriors are becoming more and more negative and converging abnormally quickly.
         """
-        logPi = np.zeros(self.nsamples + 1)
-        preds = np.zeros((self.nsamples + 1, len(self.forward.data)))
+        logPi = np.zeros(self.nsamples)
+        preds = np.zeros((self.nsamples, len(self.forward.data)))
         chain = np.zeros(
-            (self.nsamples + 1, self.nparams),
+            (self.nsamples, self.nparams),
             dtype=np.complex if self.complex else np.float,
         )
         X_curr = np.random.normal(0, self.sig_m, self.nparams)
         if self.complex:
-            X_curr += np.random.normal(0, self.sig_m, self.nparams) * 1j
+            X_curr = X_curr + np.random.normal(0, self.sig_m, self.nparams) * 1j
         if self.hard:
             X_curr = hard(X_curr)
         curr_preds = self.forward.forward(X_curr)
@@ -132,7 +132,7 @@ class PxMCMC:
             if self.algo == "MYULA":
                 X_curr = X_prop
                 curr_preds = prop_preds
-            print(f"{i+1}/{self.nsamples} - logposterior: {logPi[i]}")
+            print(f"\r{i+1}/{self.nsamples} - logposterior: {logPi[i]} - best:{np.max(logPi)}")
             i += 1
         self.logPi = logPi
         self.preds = preds
