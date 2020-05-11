@@ -1,6 +1,5 @@
 import numpy as np
 from .utils import hard, soft
-import time
 
 
 class PxMCMCParams:
@@ -17,7 +16,7 @@ class PxMCMCParams:
         ngap=int(1e2),
         hard=False,
         complex=False,
-        verbosity=100
+        verbosity=100,
     ):
         self.algo = algo  # algorithm choice: MYULA or PxMALA
         self.lmda = lmda  # prox parameter. tuned to make proxf abritrarily close to f
@@ -64,7 +63,10 @@ class PxMCMC:
         """
         Calculates the log(posterior) of a model X.  Takes in the predictions, preds, of X.
         """
-        return -self.mu * sum(abs(X)) - sum((data - preds) ** 2) / (2 * self.sig_d ** 2)
+        L2 = sum(abs((data - preds)) ** 2)
+        L1 = sum(abs(X))
+        logPi = -self.mu * L1 - L2 / (2 * self.sig_d ** 2)
+        return logPi, L2, L1
 
     def calc_logtransition(self, X1, X2, proxf, gradg):
         """
@@ -100,7 +102,10 @@ class PxMCMC:
         Runs MCMC.  At present, logposteriors are becoming more and more negative and converging abnormally quickly.
         """
         logPi = np.zeros(self.nsamples)
-        preds = np.zeros((self.nsamples, len(self.forward.data)))
+        preds = np.zeros(
+            (self.nsamples, len(self.forward.data)),
+            dtype=np.complex if self.complex else np.float,
+        )
         chain = np.zeros(
             (self.nsamples, self.forward.nparams),
             dtype=np.complex if self.complex else np.float,
@@ -111,11 +116,11 @@ class PxMCMC:
         if self.hard:
             X_curr = hard(X_curr)
         curr_preds = self.forward.forward(X_curr)
-        i = 1
+        i = 0
         while i <= self.nsamples:
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
-                    logPi[i] = self.logpi(X_curr, self.forward.data, curr_preds)
+                    logPi[i], L2, L1 = self.logpi(X_curr, self.forward.data, curr_preds)
                     preds[i] = curr_preds
                     chain[i] = X_curr
             gradg = self.forward.calc_gradg(curr_preds)
@@ -134,8 +139,11 @@ class PxMCMC:
                 X_curr = X_prop
                 curr_preds = prop_preds
             best = np.max(logPi[logPi != 0])
-            if i % self.verbosity == 0:
-                print(f"\r{i:,}/{self.nsamples:,} - logposterior: {logPi[i]:.8f} - best:{best:.8f} ({list(logPi).index(best):,})", end="")
+            if (i + 1) % self.verbosity == 0:
+                print(
+                    f"{i+1:,}/{self.nsamples:,} - logposterior: {logPi[i]:.8f} - L2: {L2:.8f} - L1: {L1:.8f} - best: {best:.8f} ({list(logPi).index(best):,})"
+                    ,
+                )
             i += 1
         self.logPi = logPi
         self.preds = preds
