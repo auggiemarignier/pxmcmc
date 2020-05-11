@@ -6,6 +6,7 @@ from .utils import expand_mlm
 class ForwardOperator:
     """
     Base Forward identity operator
+    Children of this class must define a forward and gradg function, and nparams
     """
 
     def __init__(self, data, sig_d):

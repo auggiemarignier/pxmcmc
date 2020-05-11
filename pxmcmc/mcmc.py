@@ -1,5 +1,6 @@
 import numpy as np
 from .utils import hard, soft
+import time
 
 
 class PxMCMCParams:
@@ -15,8 +16,8 @@ class PxMCMCParams:
         nburn=int(1e3),
         ngap=int(1e2),
         hard=False,
-        nparams=1,
         complex=False,
+        verbosity=100
     ):
         self.algo = algo  # algorithm choice: MYULA or PxMALA
         self.lmda = lmda  # prox parameter. tuned to make proxf abritrarily close to f
@@ -28,8 +29,8 @@ class PxMCMCParams:
         self.nburn = nburn  # burn-in size
         self.ngap = ngap  # Thinning parameter=number of iterations between samples. reduces correlations between samples
         self.hard = hard  # if true, hard thresholds model parameters
-        self.nparams = nparams
         self.complex = complex
+        self.verbosity = verbosity  # print every verbosity samples
 
 
 class PxMCMC:
@@ -51,7 +52,7 @@ class PxMCMC:
         """
         Takes a step in the chain.
         """
-        w = np.random.randn(self.nparams)
+        w = np.random.randn(self.forward.nparams)
         return (
             (1 - self.delta / self.lmda) * X
             + (self.delta / self.lmda) * proxf
@@ -101,17 +102,17 @@ class PxMCMC:
         logPi = np.zeros(self.nsamples)
         preds = np.zeros((self.nsamples, len(self.forward.data)))
         chain = np.zeros(
-            (self.nsamples, self.nparams),
+            (self.nsamples, self.forward.nparams),
             dtype=np.complex if self.complex else np.float,
         )
-        X_curr = np.random.normal(0, self.sig_m, self.nparams)
+        X_curr = np.random.normal(0, self.sig_m, self.forward.nparams)
         if self.complex:
-            X_curr = X_curr + np.random.normal(0, self.sig_m, self.nparams) * 1j
+            X_curr = X_curr + np.random.normal(0, self.sig_m, self.forward.nparams) * 1j
         if self.hard:
             X_curr = hard(X_curr)
         curr_preds = self.forward.forward(X_curr)
-        i = 0
-        while i < self.nsamples:
+        i = 1
+        while i <= self.nsamples:
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
                     logPi[i] = self.logpi(X_curr, self.forward.data, curr_preds)
@@ -132,8 +133,11 @@ class PxMCMC:
             if self.algo == "MYULA":
                 X_curr = X_prop
                 curr_preds = prop_preds
-            print(f"\r{i+1}/{self.nsamples} - logposterior: {logPi[i]:.8} - best:{np.max(logPi[logPi != 0]):.8}", end="")
+            best = np.max(logPi[logPi != 0])
+            if i % self.verbosity == 0:
+                print(f"\r{i:,}/{self.nsamples:,} - logposterior: {logPi[i]:.8f} - best:{best:.8f} ({list(logPi).index(best):,})", end="")
             i += 1
         self.logPi = logPi
         self.preds = preds
         self.chain = chain
+        print()
