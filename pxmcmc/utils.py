@@ -27,11 +27,8 @@ def soft(X, T=0.1):
     """
     Soft thresholding of a vector X with threshold T.  If Xi is less than T, then soft(Xi) = 0, otherwise soft(Xi) = Xi-T.
     """
-    t = np.zeros_like(X)
-    for i, x in enumerate(X):
-        if abs(x) == 0:
-            continue
-        t[i] = x * max(abs(x) - T, 0) / abs(x)
+    t = np.sign(X) * (np.abs(X) - T)
+    t[np.abs(X) <= T] = 0
     return t
 
 
