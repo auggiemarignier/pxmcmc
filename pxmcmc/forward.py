@@ -65,14 +65,15 @@ class ISWTOperator(ForwardOperator):
         clm_hp = pys2let.synthesis_axisym_lm_wav(
             wav_lm_hp, scal_lm_hp, self.B, self.L + 1, self.J_min
         )
-        return clm_hp
+        clm = pys2let.lm_hp2lm(clm_hp, self.L + 1)
+        return clm
 
     def calc_gradg(self, preds):
         """
         Calculates the gradient of the data fidelity term, which should guide the MCMC search.
         """
-        diff = np.sum((preds - self.data)) / (self.sig_d ** 2)
-        gradg = self.pf * diff
+        diff = np.concatenate([preds - self.data] * self.basis.shape[1])
+        gradg = self.pf * diff / (self.sig_d ** 2)
         return gradg
 
     def _calc_prefactors(self):

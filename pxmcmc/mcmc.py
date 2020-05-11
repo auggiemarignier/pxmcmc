@@ -132,7 +132,7 @@ class PxMCMC:
             if self.algo == "MYULA":
                 X_curr = X_prop
                 curr_preds = prop_preds
-            print(f"\r{i+1}/{self.nsamples} - logposterior: {logPi[i]} - best:{np.max(logPi)}")
+            print(f"\r{i+1}/{self.nsamples} - logposterior: {logPi[i]:.8} - best:{np.max(logPi[logPi != 0]):.8}", end="")
             i += 1
         self.logPi = logPi
         self.preds = preds
