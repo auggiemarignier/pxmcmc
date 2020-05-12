@@ -97,6 +97,11 @@ class PxMCMC:
         u = np.log(np.random.rand())
         return True if u <= alpha else False
 
+    def _print_progress(self, i, logpi, l2, l1, best_logpi, best_i):
+        print(
+            f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - L2: {l2:.8f} - L1: {l1:.8f} - best: {best_logpi:.8f} ({best_i:,})",
+        )
+
     def mcmc(self):
         """
         Runs MCMC.  At present, logposteriors are becoming more and more negative and converging abnormally quickly.
@@ -110,6 +115,8 @@ class PxMCMC:
             (self.nsamples, self.forward.nparams),
             dtype=np.complex if self.complex else np.float,
         )
+        L2s = np.zeros(self.nsamples, dtype=np.float)
+        L1s = np.zeros(self.nsamples, dtype=np.float)
         X_curr = np.random.normal(0, self.sig_m, self.forward.nparams)
         if self.complex:
             X_curr = X_curr + np.random.normal(0, self.sig_m, self.forward.nparams) * 1j
@@ -120,7 +127,7 @@ class PxMCMC:
         while i < self.nsamples:
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
-                    logPi[i], L2, L1 = self.logpi(X_curr, self.forward.data, curr_preds)
+                    logPi[i], L2s[i], L1s[i] = self.logpi(X_curr, self.forward.data, curr_preds)
                     preds[i] = curr_preds
                     chain[i] = X_curr
             gradg = self.forward.calc_gradg(curr_preds)
@@ -140,12 +147,11 @@ class PxMCMC:
                 curr_preds = prop_preds
             best = np.max(logPi[logPi != 0])
             if (i + 1) % self.verbosity == 0:
-                print(
-                    f"{i+1:,}/{self.nsamples:,} - logposterior: {logPi[i]:.8f} - L2: {L2:.8f} - L1: {L1:.8f} - best: {best:.8f} ({list(logPi).index(best):,})"
-                    ,
-                )
+                self._print_progress(i, logPi[i], L2s[i], L1s[i], best, list(logPi).index(best))
             i += 1
         self.logPi = logPi
         self.preds = preds
         self.chain = chain
+        self.L2s = L2s
+        self.L1s = L1s
         print()
