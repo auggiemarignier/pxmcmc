@@ -5,7 +5,7 @@ import argparse
 
 from pxmcmc.mcmc import PxMCMC, PxMCMCParams
 from pxmcmc.forward import ForwardOperator, ISWTOperator
-from pxmcmc.saving import Outfile
+from pxmcmc.saving import save_mcmc
 
 
 def simpledata(Nside, sig_d, complex=False):
@@ -52,5 +52,4 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError
 
-    writer = Outfile(mcmc.logPi, mcmc.preds, mcmc.chain, args.choice)
-    writer.write_outfiles()
+    save_mcmc(mcmc, params, args.choice)

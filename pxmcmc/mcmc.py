@@ -154,4 +154,4 @@ class PxMCMC:
         self.chain = chain
         self.L2s = L2s
         self.L1s = L1s
-        print()
+        print("DONE")

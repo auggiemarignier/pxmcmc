@@ -1,31 +1,16 @@
-import numpy as np
 import os
+import h5py
 
 
-class Outfile:
-    def __init__(self, logpost, preds, chain, outpath, binary=True):
-        """
-        Initialises required output values, path and whether or not to save as a binary.
-        """
-        self.dictnry = {"logposterior": logpost, "predictions": preds, "chain": chain}
-        self.outpath = outpath
-        if not os.path.exists(self.outpath):
-            os.mkdir(self.outpath)
-        self.binary = binary
+def save_mcmc(mcmc, params, outpath, **kwargs):
+    with h5py.File(os.path.join(outpath, "outputs.hdf5")) as f:
+        f.create_dataset("logposterior", data=mcmc.logPi)
+        f.create_dataset("predictions", data=mcmc.preds)
+        f.create_dataset("chain", data=mcmc.chain)
+        f.create_dataset("L2s", data=mcmc.L2s)
+        f.create_dataset("L1s", data=mcmc.L1s)
 
-    def write_outfile(self, key):
-        """
-        Writes out an output value identified by key.
-        """
-        outfile = f"{self.outpath}/{key}"
-        if self.binary:
-            np.save(outfile, self.dictnry[key])
-            print(f"{key} written to {outfile}.npy")
-        else:
-            np.savetxt(outfile, self.dictnry[key])
-            print(f"{key} written to {outfile}")
-
-    def write_outfiles(self):
-        "Writes out all the output files."
-        for key in self.dictnry:
-            self.write_outfile(key)
+        for attr in params.__dict__.keys():
+            f.attrs[attr] = getattr(params, attr)
+        for k, v in kwargs.items():
+            f.attrs[k] = v
