@@ -16,7 +16,16 @@ noise = np.random.normal(scale=sig_d, size=alms.shape)
 data = alms + noise
 
 forwardop = ISWTOperator(data, sig_d, L, B, J_min)
-params = PxMCMCParams(nsamples=int(5e5), nburn=0, ngap=0, verbosity=1000, complex=True)
+params = PxMCMCParams(
+    nsamples=int(5e5),
+    nburn=0,
+    ngap=0,
+    complex=True,
+    delta=1e-7,
+    lmda=3e-7,
+    mu=1e-7,
+    verbosity=1000,
+)
 mcmc = PxMCMC(forwardop, params)
 mcmc.mcmc()
 

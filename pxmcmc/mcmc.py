@@ -117,7 +117,7 @@ class PxMCMC:
             X_curr = hard(X_curr)
         curr_preds = self.forward.forward(X_curr)
         i = 0
-        while i <= self.nsamples:
+        while i < self.nsamples:
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
                     logPi[i], L2, L1 = self.logpi(X_curr, self.forward.data, curr_preds)
