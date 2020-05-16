@@ -2,8 +2,8 @@ import os
 import h5py
 
 
-def save_mcmc(mcmc, params, outpath, **kwargs):
-    with h5py.File(os.path.join(outpath, "outputs.hdf5")) as f:
+def save_mcmc(mcmc, params, outpath, filename="outputs", **kwargs):
+    with h5py.File(os.path.join(outpath, f"{filename}.hdf5"), "w") as f:
         f.create_dataset("logposterior", data=mcmc.logPi)
         f.create_dataset("predictions", data=mcmc.preds)
         f.create_dataset("chain", data=mcmc.chain)

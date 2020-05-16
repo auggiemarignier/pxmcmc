@@ -9,12 +9,11 @@ class PxMCMCParams:
         lmda=3e-5,
         delta=1e-5,
         mu=1,
-        sig_d=0.6718,
         sig_m=1,
         nsamples=int(1e6),
         nburn=int(1e3),
         ngap=int(1e2),
-        hard=False,
+        X_func=None,
         complex=False,
         verbosity=100,
     ):
@@ -22,12 +21,11 @@ class PxMCMCParams:
         self.lmda = lmda  # prox parameter. tuned to make proxf abritrarily close to f
         self.delta = delta  # Forward-Euler approximation step-size
         self.mu = mu  # regularization parameter
-        self.sig_d = sig_d  # data errors, could be estimated hierarchically
         self.sig_m = sig_m  # model parameter errors
         self.nsamples = nsamples  # number of desired samples
         self.nburn = nburn  # burn-in size
         self.ngap = ngap  # Thinning parameter=number of iterations between samples. reduces correlations between samples
-        self.hard = hard  # if true, hard thresholds model parameters
+        self.X_func = X_func  # function to preprocess model parameters e.g. hard thresholding, wavelet tiling
         self.complex = complex
         self.verbosity = verbosity  # print every verbosity samples
 
@@ -52,6 +50,8 @@ class PxMCMC:
         Takes a step in the chain.
         """
         w = np.random.randn(self.forward.nparams)
+        if self.complex:
+            w = w + np.random.randn(self.forward.nparams) * 1j
         return (
             (1 - self.delta / self.lmda) * X
             + (self.delta / self.lmda) * proxf
@@ -65,7 +65,7 @@ class PxMCMC:
         """
         L2 = sum(abs((data - preds)) ** 2)
         L1 = sum(abs(X))
-        logPi = -self.mu * L1 - L2 / (2 * self.sig_d ** 2)
+        logPi = -self.mu * L1 - L2 / (2 * self.forward.sig_d ** 2)
         return logPi, L2, L1
 
     def calc_logtransition(self, X1, X2, proxf, gradg):
@@ -99,7 +99,7 @@ class PxMCMC:
 
     def _print_progress(self, i, logpi, l2, l1, best_logpi, best_i):
         print(
-            f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - L2: {l2:.8f} - L1: {l1:.8f} - best: {best_logpi:.8f} ({best_i:,})",
+            f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - L2: {l2:.8f} - L1: {l1:.8f} - best: {best_logpi:.8f} ({best_i+1:,})",
         )
 
     def mcmc(self):
@@ -120,8 +120,8 @@ class PxMCMC:
         X_curr = np.random.normal(0, self.sig_m, self.forward.nparams)
         if self.complex:
             X_curr = X_curr + np.random.normal(0, self.sig_m, self.forward.nparams) * 1j
-        if self.hard:
-            X_curr = hard(X_curr)
+        if self.X_func is not None:
+            X_curr = self.X_func(X_curr)
         curr_preds = self.forward.forward(X_curr)
         i = 0
         while i < self.nsamples:
@@ -133,8 +133,8 @@ class PxMCMC:
             gradg = self.forward.calc_gradg(curr_preds)
             proxf = self.calc_proxf(X_curr)
             X_prop = self.chain_step(X_curr, proxf, gradg)
-            if self.hard:
-                X_prop = hard(X_prop)
+            if self.X_func is not None:
+                X_prop = self.X_func(X_prop)
             prop_preds = self.forward.forward(X_prop)
 
             if self.algo == "PxMALA":

@@ -6,3 +6,4 @@ __pycache__
 *.png
 *logging.txt
 *.hdf5
+*.ipynb*
