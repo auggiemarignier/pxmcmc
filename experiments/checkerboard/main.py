@@ -4,7 +4,7 @@ import pys2let
 
 from pxmcmc.mcmc import PxMCMC, PxMCMCParams
 from pxmcmc.forward import ISWTOperator
-from pxmcmc.saving import Outfile
+from pxmcmc.saving import save_mcmc
 
 L = 15
 B = 1.5
@@ -23,11 +23,13 @@ params = PxMCMCParams(
     complex=True,
     delta=1e-7,
     lmda=3e-7,
-    mu=1e-7,
+    mu=1e6,
     verbosity=1000,
+    X_func=forwardop.force_tiling
 )
 mcmc = PxMCMC(forwardop, params)
 mcmc.mcmc()
 
-writer = Outfile(mcmc.logPi, mcmc.preds, mcmc.chain, "ISWT")
-writer.write_outfiles()
+save_mcmc(
+    mcmc, params, "ISWT", L=L, B=B, J_min=J_min, sig_d=sig_d, nparams=forwardop.nparams
+)

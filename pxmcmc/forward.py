@@ -48,6 +48,7 @@ class ISWTOperator(ForwardOperator):
         self.nb = self.basis.shape[1]
         self.nparams = self.n_lm * self.nb
 
+        self._get_base_l0s()
         self._calc_prefactors()
 
     def forward(self, X):
@@ -77,15 +78,25 @@ class ISWTOperator(ForwardOperator):
         gradg = self.pf * diff / (self.sig_d ** 2)
         return gradg
 
+    def force_tiling(self, X):
+        """
+        Forces model parameter vector X to have zeros where wavelets have no support
+        """
+        return X * self.basis.flatten()
+
     def _calc_prefactors(self):
         """
         Calculates prefactors of gradg which are constant throughout the chain, and so only need to be calculated once at the start.
         """
         prefactors = np.zeros(self.nparams, dtype=np.complex)
         for i, base in enumerate(self.basis.T):
-            base_l0s = [base[l ** 2 + l] for l in range(self.L + 1)]
             for ell in range(self.L + 1):
                 prefactors[
                     i * len(base) + ell ** 2 : i * len(base) + (ell + 1) ** 2
-                ] = np.sqrt(4 * np.pi / (2 * ell + 1)) * base_l0s[ell]
+                ] = (np.sqrt(4 * np.pi / (2 * ell + 1)) * self.base_l0s[i, ell])
         self.pf = prefactors
+
+    def _get_base_l0s(self):
+        self.base_l0s = np.zeros((self.basis.shape[1], self.L + 1), dtype=np.complex)
+        for i, base in enumerate(self.basis.T):
+            self.base_l0s[i] = [base[l ** 2 + l] for l in range(self.L + 1)]
