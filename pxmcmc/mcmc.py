@@ -13,7 +13,6 @@ class PxMCMCParams:
         nsamples=int(1e6),
         nburn=int(1e3),
         ngap=int(1e2),
-        X_func=None,
         complex=False,
         verbosity=100,
     ):
@@ -25,17 +24,17 @@ class PxMCMCParams:
         self.nsamples = nsamples  # number of desired samples
         self.nburn = nburn  # burn-in size
         self.ngap = ngap  # Thinning parameter=number of iterations between samples. reduces correlations between samples
-        self.X_func = X_func  # function to preprocess model parameters e.g. hard thresholding, wavelet tiling
         self.complex = complex
         self.verbosity = verbosity  # print every verbosity samples
 
 
 class PxMCMC:
-    def __init__(self, forward, mcmcparams=PxMCMCParams()):
+    def __init__(self, forward, mcmcparams=PxMCMCParams(), X_func=None):
         """
         Initialises proximal MCMC algorithm.  Sets up the wavelet basis functions.  Calculates prefactors of the gradg function which are constant throughout the chain.
         """
         self.forward = forward
+        self.X_func = X_func
         for attr in mcmcparams.__dict__.keys():
             setattr(self, attr, getattr(mcmcparams, attr))
 

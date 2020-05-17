@@ -25,9 +25,8 @@ params = PxMCMCParams(
     lmda=3e-7,
     mu=1e6,
     verbosity=1000,
-    X_func=forwardop.force_tiling
 )
-mcmc = PxMCMC(forwardop, params)
+mcmc = PxMCMC(forwardop, params, X_func=forwardop.force_tiling)
 mcmc.mcmc()
 
 save_mcmc(
