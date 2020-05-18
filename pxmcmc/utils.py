@@ -27,7 +27,8 @@ def soft(X, T=0.1):
     """
     Soft thresholding of a vector X with threshold T.  If Xi is less than T, then soft(Xi) = 0, otherwise soft(Xi) = Xi-T.
     """
-    t = np.sign(X) * (np.abs(X) - T)
+    X = np.array(X)
+    t = _sign(X) * (np.abs(X) - T)
     t[np.abs(X) <= T] = 0
     return t
 
@@ -42,3 +43,10 @@ def hard(X, T=0.1):
     thresh_val = X_srt[-thresh_ind]
     X[abs(X) < thresh_val] = 0
     return X
+
+
+def _sign(z):
+    abs = np.abs(z)
+    z[abs == 0] = 0
+    abs[abs == 0] = 1
+    return z / abs
