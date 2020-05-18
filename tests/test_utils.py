@@ -17,7 +17,12 @@ def test_expandmlm():
 
 
 @pytest.mark.parametrize(
-    "ins,thresh,outs", [([1, 2, 3], 2, [0, 0, 1]), ([-1, -2, -3], 2, [0, 0, -1])]
+    "ins,thresh,outs",
+    [
+        ([1, 2, 3], 2, [0, 0, 1]),
+        ([-1, -2, -3], 2, [0, 0, -1]),
+        ([1 + 1j, 0.5 - 0.5j, 0], 1, [(1 + 1j) * (np.sqrt(2) - 1) / np.sqrt(2), 0, 0]),
+    ],
 )
 def test_soft(ins, thresh, outs):
     assert all(utils.soft(ins, T=thresh) == outs)
