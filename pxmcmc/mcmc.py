@@ -1,11 +1,10 @@
 import numpy as np
-from .utils import hard, soft
+from .utils import soft
 
 
 class PxMCMCParams:
     def __init__(
         self,
-        algo="MYULA",
         lmda=3e-5,
         delta=1e-5,
         mu=1,
@@ -16,7 +15,6 @@ class PxMCMCParams:
         complex=False,
         verbosity=100,
     ):
-        self.algo = algo  # algorithm choice: MYULA or PxMALA
         self.lmda = lmda  # prox parameter. tuned to make proxf abritrarily close to f
         self.delta = delta  # Forward-Euler approximation step-size
         self.mu = mu  # regularization parameter
@@ -37,6 +35,7 @@ class PxMCMC:
         self.X_func = X_func
         for attr in mcmcparams.__dict__.keys():
             setattr(self, attr, getattr(mcmcparams, attr))
+        self._initialise_tracking_arrays()
 
     def calc_proxf(self, X):
         """
@@ -58,44 +57,24 @@ class PxMCMC:
             + np.sqrt(2 * self.delta) * w
         )
 
-    def logpi(self, X, data, preds):
+    def logpi(self, X, preds):
         """
-        Calculates the log(posterior) of a model X.  Takes in the predictions, preds, of X.
+        Calculates the log(posterior), L2-norm and L1-norm of a model X.
         """
-        L2 = sum(abs((data - preds)) ** 2)
+        L2 = sum(abs((self.forward.data - preds)) ** 2)
         L1 = sum(abs(X))
         logPi = -self.mu * L1 - L2 / (2 * self.forward.sig_d ** 2)
         return logPi, L2, L1
 
     def calc_logtransition(self, X1, X2, proxf, gradg):
         """
-        Calculates the transition probability of stepping from model X1 to model X2 i.e. q(X2|X1).  TO BE REWRITTEN
+        Calculates the transition probability of stepping from model X1 to model X2 i.e. q(X2|X1).
         """
-        gradlogpiX1 = -((X1 - proxf) / self.lamda) - gradg
+        gradlogpiX1 = -((X1 - proxf) / self.lmda) - gradg
         return (
             -(1 / 2 * self.delta)
             * np.sum((X2 - X1 - (self.delta / 2) * gradlogpiX1) ** 2) ** 2
-        )  # not sure about sum of squares here
-
-    def accept_prob(self, X_curr, curr_preds, X_prop, prop_preds, proxf, gradg):
-        """
-        Calculates the acceptance probability of the propsed model X_pop, as a ratio of the transtion probabilities times the ratio of the posteriors.  Strictly speaking, the returned value should be min(0,p)=min(1,e^p) but this makes no difference in the MH acceptance step.
-        """
-        logtransXcXp = self.calc_logtransition(X_curr, X_prop, proxf, gradg)
-        logtransXpXc = self.calc_logtransition(X_prop, X_curr, proxf, gradg)
-        logpiXc = self.logpi(X_curr, curr_preds)
-        logpiXp = self.logpi(X_prop, prop_preds)
-        p = np.real(logtransXpXc + logpiXp - logtransXcXp + logpiXc)
-        assert not np.isnan(p)
-        return p
-
-    def MHaccept(self, X_curr, curr_preds, X_prop, prop_preds, proxf, gradg):
-        """
-        Metropolis-Hastings acceptance step.  Accept if the acceptance probability alpha is greater than a random number.
-        """
-        alpha = self.accept_prob(X_curr, curr_preds, X_prop, prop_preds, proxf, gradg)
-        u = np.log(np.random.rand())
-        return True if u <= alpha else False
+        )
 
     def _print_progress(self, i, logpi, l2, l1):
         if i < self.nburn:
@@ -115,22 +94,20 @@ class PxMCMC:
         curr_preds = self.forward.forward(X_curr)
         return X_curr, curr_preds
 
-    def mcmc(self):
-        """
-        Runs MCMC.  At present, logposteriors are becoming more and more negative and converging abnormally quickly.
-        """
-        logPi = np.zeros(self.nsamples)
-        preds = np.zeros(
+    def _initialise_tracking_arrays(self):
+        self.logPi = np.zeros(self.nsamples)
+        self.preds = np.zeros(
             (self.nsamples, len(self.forward.data)),
             dtype=np.complex if self.complex else np.float,
         )
-        chain = np.zeros(
+        self.chain = np.zeros(
             (self.nsamples, self.forward.nparams),
             dtype=np.complex if self.complex else np.float,
         )
-        L2s = np.zeros(self.nsamples, dtype=np.float)
-        L1s = np.zeros(self.nsamples, dtype=np.float)
+        self.L2s = np.zeros(self.nsamples, dtype=np.float)
+        self.L1s = np.zeros(self.nsamples, dtype=np.float)
 
+    def myula(self):
         i = 0  # total samples
         j = 0  # saved samples (excludes burn-in and thinned samples)
         X_curr, curr_preds = self._initial_sample()
@@ -142,29 +119,66 @@ class PxMCMC:
                 X_prop = self.X_func(X_prop)
             prop_preds = self.forward.forward(X_prop)
 
-            if self.algo == "PxMALA":
-                if self.MHaccept(X_curr, curr_preds, X_prop, prop_preds, proxf, gradg):
-                    X_curr = X_prop
-                    curr_preds = prop_preds
-            if self.algo == "MYULA":
-                X_curr = X_prop
-                curr_preds = prop_preds
+            X_curr = X_prop
+            curr_preds = prop_preds
 
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
-                    logPi[j], L2s[j], L1s[j] = self.logpi(
-                        X_curr, self.forward.data, curr_preds
+                    self.logPi[j], self.L2s[j], self.L1s[j] = self.logpi(
+                        X_curr, curr_preds
                     )
-                    preds[j] = curr_preds
-                    chain[j] = X_curr
+                    self.preds[j] = curr_preds
+                    self.chain[j] = X_curr
                     j += 1
             if (i + 1) % self.verbosity == 0:
-                self._print_progress(j - 1, logPi[j - 1], L2s[j - 1], L1s[j - 1])
+                self._print_progress(
+                    j - 1, self.logPi[j - 1], self.L2s[j - 1], self.L1s[j - 1]
+                )
             i += 1
 
-        self.logPi = logPi
-        self.preds = preds
-        self.chain = chain
-        self.L2s = L2s
-        self.L1s = L1s
         print(f"\nDONE")
+
+    def pxmala(self):
+        i = 0
+        j = 0
+        X_curr, curr_preds = self._initial_sample()
+        gradg_curr = self.forward.calc_gradg(curr_preds)
+        proxf_curr = self.calc_proxf(X_curr)
+        logpiXc, L2Xc, L1Xc = self.logpi(X_curr, curr_preds)
+        while j < self.nsamples:
+            X_prop = self.chain_step(X_curr, proxf_curr, gradg_curr)
+            if self.X_func is not None:
+                X_prop = self.X_func(X_prop)
+            prop_preds = self.forward.forward(X_prop)
+            gradg_prop = self.forward.calc_gradg(prop_preds)
+            proxf_prop = self.calc_proxf(X_prop)
+
+            logtransXcXp = self.calc_logtransition(
+                X_curr, X_prop, proxf_curr, gradg_curr
+            )
+            logtransXpXc = self.calc_logtransition(
+                X_prop, X_curr, proxf_prop, gradg_prop
+            )
+            logpiXp, L2Xp, L1Xp = self.logpi(X_prop, prop_preds)
+
+            logalpha = logtransXpXc + logpiXp - logtransXcXp - logpiXc
+            if np.log(np.random.rand()) < logalpha:
+                X_curr = X_prop
+                curr_preds = prop_preds
+                gradg_curr = gradg_prop
+                proxf_curr = proxf_prop
+                logpiXc = logpiXp
+                L2Xc = L2Xp
+                L1Xc = L1Xp
+                j += 1
+
+            if i >= self.nburn:
+                if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
+                    self.logPi[j - 1] = logpiXc
+                    self.L2s[j - 1] = L2Xc
+                    self.L1s[j - 1] = L1Xc
+                    self.preds[j - 1] = curr_preds
+                    self.chain[j - 1] = X_curr
+            if (i + 1) % self.verbosity == 0:
+                self._print_progress(j - 1, logpiXc, L2Xc, L1Xc)
+            i += 1
