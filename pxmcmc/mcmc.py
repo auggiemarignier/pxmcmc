@@ -71,9 +71,10 @@ class PxMCMC:
         """
         Calculates the transition probability of stepping from model X1 to model X2 i.e. q(X2|X1).  TO BE REWRITTEN
         """
-        gradlogpiX1 = -(1 / self.lmda) * (X1 - proxf) - gradg
-        return -(1 / 2 * self.delta) * sum(
-            (X2 - X1 - (self.delta / 2) * gradlogpiX1) ** 2
+        gradlogpiX1 = -((X1 - proxf) / self.lamda) - gradg
+        return (
+            -(1 / 2 * self.delta)
+            * np.sum((X2 - X1 - (self.delta / 2) * gradlogpiX1) ** 2) ** 2
         )  # not sure about sum of squares here
 
     def accept_prob(self, X_curr, curr_preds, X_prop, prop_preds, proxf, gradg):
@@ -96,10 +97,23 @@ class PxMCMC:
         u = np.log(np.random.rand())
         return True if u <= alpha else False
 
-    def _print_progress(self, i, logpi, l2, l1, best_logpi, best_i):
-        print(
-            f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - L2: {l2:.8f} - L1: {l1:.8f} - best: {best_logpi:.8f} ({best_i+1:,})",
-        )
+    def _print_progress(self, i, logpi, l2, l1):
+        if i < self.nburn:
+            print(f"\rBurning in", end="")
+        else:
+            print(
+                f"\r{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - L2: {l2:.8f} - L1: {l1:.8f}",
+                end="",
+            )
+
+    def _initial_sample(self):
+        X_curr = np.random.normal(0, self.sig_m, self.forward.nparams)
+        if self.complex:
+            X_curr = X_curr + np.random.normal(0, self.sig_m, self.forward.nparams) * 1j
+        if self.X_func is not None:
+            X_curr = self.X_func(X_curr)
+        curr_preds = self.forward.forward(X_curr)
+        return X_curr, curr_preds
 
     def mcmc(self):
         """
@@ -116,19 +130,11 @@ class PxMCMC:
         )
         L2s = np.zeros(self.nsamples, dtype=np.float)
         L1s = np.zeros(self.nsamples, dtype=np.float)
-        X_curr = np.random.normal(0, self.sig_m, self.forward.nparams)
-        if self.complex:
-            X_curr = X_curr + np.random.normal(0, self.sig_m, self.forward.nparams) * 1j
-        if self.X_func is not None:
-            X_curr = self.X_func(X_curr)
-        curr_preds = self.forward.forward(X_curr)
-        i = 0
-        while i < self.nsamples:
-            if i >= self.nburn:
-                if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
-                    logPi[i], L2s[i], L1s[i] = self.logpi(X_curr, self.forward.data, curr_preds)
-                    preds[i] = curr_preds
-                    chain[i] = X_curr
+
+        i = 0  # total samples
+        j = 0  # saved samples (excludes burn-in and thinned samples)
+        X_curr, curr_preds = self._initial_sample()
+        while j < self.nsamples:
             gradg = self.forward.calc_gradg(curr_preds)
             proxf = self.calc_proxf(X_curr)
             X_prop = self.chain_step(X_curr, proxf, gradg)
@@ -140,17 +146,25 @@ class PxMCMC:
                 if self.MHaccept(X_curr, curr_preds, X_prop, prop_preds, proxf, gradg):
                     X_curr = X_prop
                     curr_preds = prop_preds
-                    # i += 1
             if self.algo == "MYULA":
                 X_curr = X_prop
                 curr_preds = prop_preds
-            best = np.max(logPi[logPi != 0])
+
+            if i >= self.nburn:
+                if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
+                    logPi[j], L2s[j], L1s[j] = self.logpi(
+                        X_curr, self.forward.data, curr_preds
+                    )
+                    preds[j] = curr_preds
+                    chain[j] = X_curr
+                    j += 1
             if (i + 1) % self.verbosity == 0:
-                self._print_progress(i, logPi[i], L2s[i], L1s[i], best, list(logPi).index(best))
+                self._print_progress(j - 1, logPi[j - 1], L2s[j - 1], L1s[j - 1])
             i += 1
+
         self.logPi = logPi
         self.preds = preds
         self.chain = chain
         self.L2s = L2s
         self.L1s = L1s
-        print("DONE")
+        print(f"\nDONE")
