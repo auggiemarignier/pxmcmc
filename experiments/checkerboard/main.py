@@ -21,7 +21,7 @@ data = alms
 forwardop = ISWTOperator(data, sig_d, L, B, J_min)
 params = PxMCMCParams(
     nsamples=int(1e6),
-    nburn=int(1e4),
+    nburn=0,
     ngap=0,
     complex=True,
     delta=1e-7,
@@ -30,7 +30,7 @@ params = PxMCMCParams(
     verbosity=1000,
 )
 mcmc = PxMCMC(forwardop, params, X_func=None)
-mcmc.mcmc()
+mcmc.pxmala()
 
 save_mcmc(
     mcmc, params, "/Volumes/Elements", L=L, B=B, J_min=J_min, sig_d=sig_d, nparams=forwardop.nparams

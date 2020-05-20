@@ -76,12 +76,13 @@ class PxMCMC:
             * np.sum((X2 - X1 - (self.delta / 2) * gradlogpiX1) ** 2) ** 2
         )
 
-    def _print_progress(self, i, logpi, l2, l1):
+    def _print_progress(self, i, logpi, **kwargs):
         if i < self.nburn:
             print(f"\rBurning in", end="")
         else:
             print(
-                f"\r{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - L2: {l2:.8f} - L1: {l1:.8f}",
+                f"\r{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - "
+                + " - ".join([f"{k}: {kwargs[k]:.8f}" for k in kwargs]),
                 end="",
             )
 
@@ -132,13 +133,14 @@ class PxMCMC:
                     j += 1
             if (i + 1) % self.verbosity == 0:
                 self._print_progress(
-                    j - 1, self.logPi[j - 1], self.L2s[j - 1], self.L1s[j - 1]
+                    j - 1, self.logPi[j - 1], L2=self.L2s[j - 1], L1=self.L1s[j - 1]
                 )
             i += 1
 
         print(f"\nDONE")
 
     def pxmala(self):
+        self.acceptance_trace = []
         i = 0
         j = 0
         X_curr, curr_preds = self._initial_sample()
@@ -171,6 +173,9 @@ class PxMCMC:
                 L2Xc = L2Xp
                 L1Xc = L1Xp
                 j += 1
+                self.acceptance_trace.append(1)
+            else:
+                self.acceptance_trace.append(0)
 
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
@@ -180,5 +185,11 @@ class PxMCMC:
                     self.preds[j - 1] = curr_preds
                     self.chain[j - 1] = X_curr
             if (i + 1) % self.verbosity == 0:
-                self._print_progress(j - 1, logpiXc, L2Xc, L1Xc)
+                self._print_progress(
+                    j - 1,
+                    logpiXc,
+                    L2=L2Xc,
+                    L1=L1Xc,
+                    acceptanceRate=np.mean(self.acceptance_trace),
+                )
             i += 1
