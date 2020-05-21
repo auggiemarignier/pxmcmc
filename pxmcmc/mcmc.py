@@ -108,6 +108,10 @@ class PxMCMC:
         self.L2s = np.zeros(self.nsamples, dtype=np.float)
         self.L1s = np.zeros(self.nsamples, dtype=np.float)
 
+    def _tune_delta(self, i):
+        delta = self.delta * (1 + (self.acceptance_trace[i] - 0.5) / ((i + 1) ** 0.75))
+        self.delta = min(max(delta, self.lmda * 1e-8), self.lmda / 2)
+
     def myula(self):
         i = 0  # total samples
         j = 0  # saved samples (excludes burn-in and thinned samples)
@@ -177,6 +181,8 @@ class PxMCMC:
             else:
                 self.acceptance_trace.append(0)
 
+            self._tune_delta(i)
+
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
                     self.logPi[j - 1] = logpiXc
@@ -193,3 +199,4 @@ class PxMCMC:
                     acceptanceRate=np.mean(self.acceptance_trace),
                 )
             i += 1
+        print(f"\nDONE")
