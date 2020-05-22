@@ -2,6 +2,7 @@ import pys2let
 import numpy as np
 import healpy as hp
 from .utils import expand_mlm
+from scipy.special import sph_harm
 
 
 class ForwardOperator:
@@ -105,8 +106,8 @@ class ISWTOperator(ForwardOperator):
 
 class SWC2PixOperator(ISWTOperator):
     def __init__(self, data, sig_d, Nside, L, B, J_min, dirs=1, spin=0):
-        super().__init__(data, sig_d, L, B, J_min, dirs, spin)
         self.Nside = Nside
+        super().__init__(data, sig_d, L, B, J_min, dirs, spin)
         self.nparams = hp.nside2npix(Nside)
 
     def forward(self, X):
@@ -114,3 +115,23 @@ class SWC2PixOperator(ISWTOperator):
         clm_hp = pys2let.lm2lm_hp(clm, self.L + 1)
         c = hp.alm2map(clm_hp, self.Nside)
         return c
+
+    def calc_gradg(self, preds):
+        diff = preds - self.data
+        product = diff * self.pf.T
+        sum_over_pixels = np.sum(product, axis=1)
+        return sum_over_pixels / (self.sig_d ** 2)
+
+    def _calc_prefactors(self):
+        """
+        This will be prohibitively large at high Nside or high L
+        """
+        super()._calc_prefactors()
+        theta, phi = hp.pix2ang(self.Nside, np.arange(hp.nside2npix(self.Nside)))
+        Ylms = np.zeros(
+            ((self.L + 1) ** 2, hp.nside2npix(self.Nside)), dtype=np.complex
+        )
+        for el in range(self.L + 1):
+            for em in range(-el, el + 1):
+                Ylms[el ** 2 + el + em] = sph_harm(em, el, phi, theta)
+        self.pf = self.pf * np.concatenate([Ylms] * self.basis.shape[1]).T
