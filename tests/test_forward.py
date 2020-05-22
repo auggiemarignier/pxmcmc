@@ -44,7 +44,7 @@ def test_ISWTForward(iswtoperator, Nside):
     f = np.ones(hp.nside2npix(Nside))
     flm_hp = hp.map2alm(f, L)
     f_wav_lm_hp, f_scal_lm_hp = pys2let.analysis_axisym_lm_wav(flm_hp, B, L + 1, J_min)
-    f_wav_lm = np.zeros(((L + 1) ** 2, f_wav_lm_hp.shape[1]))
+    f_wav_lm = np.zeros(((L + 1) ** 2, f_wav_lm_hp.shape[1]), dtype=np.complex)
     for j in range(iswtoperator.nscales):
         f_wav_lm[:, j] = pys2let.lm_hp2lm(
             np.ascontiguousarray(f_wav_lm_hp[:, j]), L + 1
@@ -62,3 +62,24 @@ def test_ISWTGradg(iswtoperator):
     preds = np.ones(len(iswtoperator.data))
     expected = np.concatenate([1 - iswtoperator.data] * iswtoperator.basis.shape[1])
     assert np.allclose(iswtoperator.calc_gradg(preds), expected)
+
+
+def test_SWC2PixForward(swc2pixoperator):
+    from pxmcmc.utils import flatten_mlm
+
+    L = swc2pixoperator.L
+    B = swc2pixoperator.B
+    J_min = swc2pixoperator.J_min
+    Nside = swc2pixoperator.Nside
+    f = np.ones(hp.nside2npix(Nside))
+    flm_hp = hp.map2alm(f, L)
+    f_wav_lm_hp, f_scal_lm_hp = pys2let.analysis_axisym_lm_wav(flm_hp, B, L + 1, J_min)
+    f_wav_lm = np.zeros(((L + 1) ** 2, f_wav_lm_hp.shape[1]), dtype=np.complex)
+    for j in range(swc2pixoperator.nscales):
+        f_wav_lm[:, j] = pys2let.lm_hp2lm(
+            np.ascontiguousarray(f_wav_lm_hp[:, j]), L + 1
+        )
+    f_scal_lm = pys2let.lm_hp2lm(f_scal_lm_hp, L + 1)
+    X = flatten_mlm(f_wav_lm, f_scal_lm)
+
+    assert np.allclose(swc2pixoperator.forward(X), f)
