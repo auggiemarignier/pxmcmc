@@ -54,3 +54,11 @@ def test_ISWTForward(iswtoperator, Nside):
 
     flm = pys2let.lm_hp2lm(flm_hp, L + 1)
     assert np.allclose(iswtoperator.forward(X), flm)
+
+
+def test_ISWTGradg(iswtoperator):
+    iswtoperator.sig_d = 1
+    iswtoperator.pf = np.ones(iswtoperator.nparams)
+    preds = np.ones(len(iswtoperator.data))
+    expected = np.concatenate([1 - iswtoperator.data] * iswtoperator.basis.shape[1])
+    assert np.allclose(iswtoperator.calc_gradg(preds), expected)
