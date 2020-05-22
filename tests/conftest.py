@@ -34,9 +34,7 @@ def J_min():
 
 @pytest.fixture
 def simpledata(Nside, sig_d):
-    simple = np.ones(hp.nside2npix(Nside))
-    noise = np.random.normal(scale=sig_d, size=simple.shape)
-    return simple + noise
+    return np.ones(hp.nside2npix(Nside))
 
 
 @pytest.fixture
