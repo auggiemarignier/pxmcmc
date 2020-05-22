@@ -1,4 +1,8 @@
 import numpy as np
+import healpy as hp
+from contextlib import contextmanager
+import os
+import sys
 
 
 def flatten_mlm(wav_lm, scal_lm):
@@ -50,3 +54,27 @@ def _sign(z):
     z[abs == 0] = 0
     abs[abs == 0] = 1
     return z / abs
+
+
+@contextmanager
+def suppress_stdout():
+    """
+    Suppresses stdout from some healpy functions
+    """
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
+
+
+def map2alm(image, lmax, **kwargs):
+    with suppress_stdout():
+        return hp.map2alm(image, lmax, **kwargs)
+
+
+def alm2map(alm, nside, **kwargs):
+    with suppress_stdout():
+        return hp.alm2map(alm, nside, **kwargs)
