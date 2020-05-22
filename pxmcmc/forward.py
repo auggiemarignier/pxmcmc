@@ -1,5 +1,6 @@
 import pys2let
 import numpy as np
+import healpy as hp
 from .utils import expand_mlm
 
 
@@ -100,3 +101,16 @@ class ISWTOperator(ForwardOperator):
         self.base_l0s = np.zeros((self.basis.shape[1], self.L + 1), dtype=np.complex)
         for i, base in enumerate(self.basis.T):
             self.base_l0s[i] = [base[l ** 2 + l] for l in range(self.L + 1)]
+
+
+class SWC2PixOperator(ISWTOperator):
+    def __init__(self, data, sig_d, Nside, L, B, J_min, dirs=1, spin=0):
+        super().__init__(data, sig_d, L, B, J_min, dirs, spin)
+        self.Nside = Nside
+        self.nparams = hp.nside2npix(Nside)
+
+    def forward(self, X):
+        clm = super().forward(X)
+        clm_hp = pys2let.lm2lm_hp(clm, self.L + 1)
+        c = hp.alm2map(clm_hp, self.Nside)
+        return c
