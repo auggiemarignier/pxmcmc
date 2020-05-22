@@ -6,13 +6,11 @@ from pxmcmc.mcmc import PxMCMC, PxMCMCParams
 from pxmcmc.forward import ISWTOperator
 from pxmcmc.saving import save_mcmc
 
-root_dir = "/Users/auggiemarignier/Documents/PhD/PxMCMC/experiments/checkerboard"
-
 L = 15
 B = 1.5
 J_min = 2
 sig_d = 0.03
-true_model = hp.read_map(f"{root_dir}/chkrbrd30.fits", verbose=False)
+true_model = hp.read_map(f"chkrbrd30.fits", verbose=False)
 alms = pys2let.lm_hp2lm(hp.map2alm(true_model, lmax=L), L + 1)
 noise = np.random.normal(scale=sig_d, size=alms.shape)
 data = alms + noise

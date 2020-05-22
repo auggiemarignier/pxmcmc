@@ -1,8 +1,8 @@
 import pys2let
 import numpy as np
 import healpy as hp
-from .utils import expand_mlm
 from scipy.special import sph_harm
+from pxmcmc.utils import expand_mlm, alm2map
 
 
 class ForwardOperator:
@@ -108,12 +108,11 @@ class SWC2PixOperator(ISWTOperator):
     def __init__(self, data, sig_d, Nside, L, B, J_min, dirs=1, spin=0):
         self.Nside = Nside
         super().__init__(data, sig_d, L, B, J_min, dirs, spin)
-        self.nparams = hp.nside2npix(Nside)
 
     def forward(self, X):
         clm = super().forward(X)
         clm_hp = pys2let.lm2lm_hp(clm, self.L + 1)
-        c = hp.alm2map(clm_hp, self.Nside)
+        c = alm2map(clm_hp, self.Nside)
         return c
 
     def calc_gradg(self, preds):

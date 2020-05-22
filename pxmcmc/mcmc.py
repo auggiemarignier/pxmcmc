@@ -201,4 +201,3 @@ class PxMCMC:
     def _tune_delta(self, i):
         delta = self.delta * (1 + (self.acceptance_trace[i] - 0.5) / ((i + 1) ** 0.75))
         self.delta = min(max(delta, self.lmda * 1e-8), self.lmda / 2)
-
