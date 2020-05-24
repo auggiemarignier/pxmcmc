@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import laplace
 from .utils import soft
 
 
@@ -8,7 +9,6 @@ class PxMCMCParams:
         lmda=3e-5,
         delta=1e-5,
         mu=1,
-        sig_m=1,
         nsamples=int(1e6),
         nburn=int(1e3),
         ngap=int(1e2),
@@ -18,7 +18,6 @@ class PxMCMCParams:
         self.lmda = lmda  # prox parameter. tuned to make proxf abritrarily close to f
         self.delta = delta  # Forward-Euler approximation step-size
         self.mu = mu  # regularization parameter
-        self.sig_m = sig_m  # model parameter errors
         self.nsamples = nsamples  # number of desired samples
         self.nburn = nburn  # burn-in size
         self.ngap = ngap  # Thinning parameter=number of iterations between samples. reduces correlations between samples
@@ -177,9 +176,9 @@ class PxMCMC:
             )
 
     def _initial_sample(self):
-        X_curr = np.random.normal(0, self.sig_m, self.forward.nparams)
+        X_curr = laplace(size=self.forward.nparams)
         if self.complex:
-            X_curr = X_curr + np.random.normal(0, self.sig_m, self.forward.nparams) * 1j
+            X_curr = X_curr + laplace(size=self.forward.nparams) * 1j
         if self.X_func is not None:
             X_curr = self.X_func(X_curr)
         curr_preds = self.forward.forward(X_curr)
