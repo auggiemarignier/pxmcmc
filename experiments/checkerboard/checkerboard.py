@@ -3,21 +3,17 @@ import healpy as hp
 from scipy.stats import multivariate_normal
 import matplotlib.pyplot as plt
 from pylab import cm
+from astropy.coordinates import spherical_to_cartesian
 
 
-def pixels_in_range(lat, lon, lat_range, lon_range, Nside=32):
-    pixels = []
-    for lt in np.arange(lat - lat_range / 2, lat + lat_range / 2):
-        if lt < -90:
-            lt = -90
-        if lt > 90:
-            lt = 90
-        for ln in np.arange(lon - lon_range / 2, lon + lon_range / 2):
-            if ln < -180:
-                ln += 360
-            if ln > 180:
-                ln -= 360
-            pixels.append(hp.ang2pix(Nside, ln, lt, lonlat=True))
+def pixels_in_range(lat, lon, lat_range, lon_range, Nside=32, step=1):
+    min_lat, max_lat = (lat - lat_range / 2, lat + lat_range / 2)
+    min_lon, max_lon = (lon - lon_range / 2, lon + lon_range / 2)
+    lats = np.deg2rad((min_lat, max_lat, max_lat, min_lat))
+    lons = np.deg2rad((max_lon, max_lon, min_lon, min_lon))
+    poly_xyz = np.array(spherical_to_cartesian(1, lats, lons)).T
+    pixels = hp.query_polygon(Nside, poly_xyz)
+
     return pixels
 
 
@@ -92,19 +88,19 @@ class CheckerBoard:
                         base_board[pixels] = -1
         self.board = base_board
 
-    def add_feature(self, feature, lat, lon):
+    def add_feature(self, value, lat, lon, lat_range, lon_range):
         """
-        Feature is an array of shape (lat_step, lon_step)
-        TODO: see if this works with different Nsides
+        Feature is centred at (lat, lon) with size (lat_range, lon_range).
+        All the pixels in this range take the value value
+        TODO: More complex features
         """
-        lat_step, lon_step = feature.shape
-        pixels = pixels_in_range(lat, lon, lat_step, lon_step, Nside=self.Nside)
-        self.board[pixels] = feature
+        pixels = pixels_in_range(lat, lon, lat_range, lon_range, Nside=self.Nside)
+        self.board[pixels] = value
 
 
 if __name__ == "__main__":
     gaussian_board = CheckerBoard(
-        base_size=15, Nside=512, mean=[0.0, 0.0], cov=np.eye(2) * 0.15
+        base_size=30, Nside=512, mean=[0.0, 0.0], cov=np.eye(2) * 0.15
     )
     gaussian_board.build_base_board()
     hp.write_map(
