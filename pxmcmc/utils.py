@@ -3,6 +3,7 @@ import healpy as hp
 from contextlib import contextmanager
 import os
 import sys
+import pys2let
 
 
 def flatten_mlm(wav_lm, scal_lm):
@@ -78,3 +79,22 @@ def map2alm(image, lmax, **kwargs):
 def alm2map(alm, nside, **kwargs):
     with suppress_stdout():
         return hp.alm2map(alm, nside, **kwargs)
+
+
+def get_parameter_from_chain(chain, L, base, el, em):
+    assert np.abs(em) <= el
+    base_start = base * (L + 1) ** 2
+    index_in_base = el * el + el + em
+    return chain[:, base_start + index_in_base]
+
+
+def wavelet_basis(L, B, J_min):
+    phi_l, psi_lm = pys2let.wavelet_tiling(
+        B, L + 1, 1, 0, J_min
+    )  # phi_l = 0, bug in pys2let?
+    psi_lm = psi_lm[:, J_min:]
+    phi_lm = np.zeros(((L + 1) ** 2, 1), dtype=np.complex)
+    for ell in range(L + 1):
+        phi_lm[ell * ell + ell] = phi_l[ell]
+    basis = np.concatenate((phi_lm, psi_lm), axis=1)
+    return basis
