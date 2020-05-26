@@ -7,3 +7,4 @@ __pycache__
 *logging.txt
 *.hdf5
 *.ipynb*
+*nohup.out

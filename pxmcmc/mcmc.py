@@ -176,9 +176,9 @@ class PxMCMC:
             )
 
     def _initial_sample(self):
-        X_curr = laplace(size=self.forward.nparams)
+        X_curr = laplace.rvs(size=self.forward.nparams)
         if self.complex:
-            X_curr = X_curr + laplace(size=self.forward.nparams) * 1j
+            X_curr = X_curr + laplace.rvs(size=self.forward.nparams) * 1j
         if self.X_func is not None:
             X_curr = self.X_func(X_curr)
         curr_preds = self.forward.forward(X_curr)
