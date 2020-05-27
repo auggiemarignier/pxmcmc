@@ -91,10 +91,28 @@ def get_parameter_from_chain(chain, L, base, el, em):
 def wavelet_basis(L, B, J_min):
     phi_l, psi_lm = pys2let.wavelet_tiling(
         B, L + 1, 1, 0, J_min
-    )  # phi_l = 0, bug in pys2let?
+    )
     psi_lm = psi_lm[:, J_min:]
-    phi_lm = np.zeros(((L + 1) ** 2, 1), dtype=np.complex)
-    for ell in range(L + 1):
-        phi_lm[ell * ell + ell] = phi_l[ell]
+    phi_lm = _fix_phi(L, B, J_min)
     basis = np.concatenate((phi_lm, psi_lm), axis=1)
     return basis
+
+
+def _fix_phi(L, B, J_min):
+    J_max = pys2let.pys2let_j_max(B, L, J_min)
+    nscales = J_max - J_min + 1
+    dummy_psilm = np.zeros(((L + 1) ** 2, nscales), dtype=np.complex)
+    dummy_philm = np.zeros(((L + 1) ** 2, 1), dtype=np.complex)
+    for ell in range(L + 1):
+        for em in range(-ell, ell + 1):
+            dummy_philm[ell * ell + ell + em] = np.sqrt((2 * ell + 1) / (4 * np.pi))
+
+    dummy_psilm_hp = np.zeros(
+        ((L + 1) * (L + 2) // 2, dummy_psilm.shape[1]), dtype=np.complex
+    )
+    dummy_philm_hp = pys2let.lm2lm_hp(dummy_philm.flatten(), L + 1)
+    dummy_lm_hp = pys2let.synthesis_axisym_lm_wav(
+        dummy_psilm_hp, dummy_philm_hp, B, L + 1, J_min
+    )
+    phi_lm = pys2let.lm_hp2lm(dummy_lm_hp, L + 1)
+    return phi_lm

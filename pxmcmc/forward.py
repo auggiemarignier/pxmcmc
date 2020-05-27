@@ -2,7 +2,7 @@ import pys2let
 import numpy as np
 import healpy as hp
 from scipy.special import sph_harm
-from pxmcmc.utils import expand_mlm, alm2map
+from pxmcmc.utils import expand_mlm, alm2map, wavelet_basis
 
 
 class ForwardOperator:
@@ -36,16 +36,10 @@ class ISWTOperator(ForwardOperator):
         self.J_min = J_min
         self.J_max = pys2let.pys2let_j_max(self.B, self.L, self.J_min)
         self.nscales = self.J_max - self.J_min + 1
+        self.dirs = dirs
+        self.spin = spin
 
-        phi_l, psi_lm = pys2let.wavelet_tiling(
-            B, L + 1, dirs, spin, J_min
-        )  # phi_l = 0, bug in pys2let?
-        psi_lm = psi_lm[:, J_min:]
-        phi_lm = np.zeros(((L + 1) ** 2, 1), dtype=np.complex)
-        for ell in range(L + 1):
-            phi_lm[ell * ell + ell] = phi_l[ell]
-        self.basis = np.concatenate((phi_lm, psi_lm), axis=1)
-
+        self.basis = wavelet_basis(self.L, self.B, self.J_min)
         self.nparams = np.prod(self.basis.shape)
 
         self._get_base_l0s()
@@ -78,6 +72,11 @@ class ISWTOperator(ForwardOperator):
         gradg = self.pf * diff / (self.sig_d ** 2)
         return gradg
 
+    def _get_base_l0s(self):
+        self.base_l0s = np.zeros((self.basis.shape[1], self.L + 1), dtype=np.complex)
+        for i, base in enumerate(self.basis.T):
+            self.base_l0s[i] = [base[l ** 2 + l] for l in range(self.L + 1)]
+
     def _calc_prefactors(self):
         """
         Calculates prefactors of gradg which are constant throughout the chain, and so only need to be calculated once at the start.
@@ -89,11 +88,6 @@ class ISWTOperator(ForwardOperator):
                     i * len(base) + ell ** 2 : i * len(base) + (ell + 1) ** 2
                 ] = (np.sqrt(4 * np.pi / (2 * ell + 1)) * self.base_l0s[i, ell])
         self.pf = prefactors
-
-    def _get_base_l0s(self):
-        self.base_l0s = np.zeros((self.basis.shape[1], self.L + 1), dtype=np.complex)
-        for i, base in enumerate(self.basis.T):
-            self.base_l0s[i] = [base[l ** 2 + l] for l in range(self.L + 1)]
 
 
 class SWC2PixOperator(ISWTOperator):
