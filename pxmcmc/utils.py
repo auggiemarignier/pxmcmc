@@ -102,7 +102,7 @@ def _fix_phi(L, B, J_min):
     J_max = pys2let.pys2let_j_max(B, L, J_min)
     nscales = J_max - J_min + 1
     dummy_psilm = np.zeros(((L + 1) ** 2, nscales), dtype=np.complex)
-    dummy_philm = np.zeros(((L + 1) ** 2, 1), dtype=np.complex)
+    dummy_philm = np.zeros(((L + 1) ** 2), dtype=np.complex)
     for ell in range(L + 1):
         for em in range(-ell, ell + 1):
             dummy_philm[ell * ell + ell + em] = np.sqrt((2 * ell + 1) / (4 * np.pi))
@@ -115,4 +115,4 @@ def _fix_phi(L, B, J_min):
         dummy_psilm_hp, dummy_philm_hp, B, L + 1, J_min
     )
     phi_lm = pys2let.lm_hp2lm(dummy_lm_hp, L + 1)
-    return phi_lm
+    return np.expand_dims(phi_lm, axis=1)
