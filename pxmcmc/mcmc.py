@@ -170,15 +170,14 @@ class PxMCMC:
             print(f"\rBurning in", end="")
         else:
             print(
-                f"\r{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - "
+                f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - "
                 + " - ".join([f"{k}: {kwargs[k]:.8f}" for k in kwargs]),
-                end="",
             )
 
     def _initial_sample(self):
-        X_curr = laplace(size=self.forward.nparams)
+        X_curr = laplace.rvs(size=self.forward.nparams)
         if self.complex:
-            X_curr = X_curr + laplace(size=self.forward.nparams) * 1j
+            X_curr = X_curr + laplace.rvs(size=self.forward.nparams) * 1j
         if self.X_func is not None:
             X_curr = self.X_func(X_curr)
         curr_preds = self.forward.forward(X_curr)
