@@ -101,7 +101,6 @@ class PxMCMC:
                 logpiXc = logpiXp
                 L2Xc = L2Xp
                 L1Xc = L1Xp
-                j += 1
                 self.acceptance_trace.append(1)
             else:
                 self.acceptance_trace.append(0)
@@ -115,6 +114,7 @@ class PxMCMC:
                     self.L1s[j - 1] = L1Xc
                     self.preds[j - 1] = curr_preds
                     self.chain[j - 1] = X_curr
+                    j += 1
             if (i + 1) % self.verbosity == 0:
                 self._print_progress(
                     j - 1,
@@ -197,5 +197,5 @@ class PxMCMC:
         self.L1s = np.zeros(self.nsamples, dtype=np.float)
 
     def _tune_delta(self, i):
-        delta = self.delta * (1 + (self.acceptance_trace[i] - 0.5) / ((i + 1) ** 0.75))
+        delta = self.delta * (1 + (self.acceptance_trace[i] - 0.75) / ((i + 1) ** 0.75))
         self.delta = min(max(delta, self.lmda * 1e-8), self.lmda / 2)
