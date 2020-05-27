@@ -78,12 +78,6 @@ class ISWTOperator(ForwardOperator):
         gradg = self.pf * diff / (self.sig_d ** 2)
         return gradg
 
-    def force_tiling(self, X):
-        """
-        Forces model parameter vector X to have zeros where wavelets have no support
-        """
-        return X * self.basis.flatten()
-
     def _calc_prefactors(self):
         """
         Calculates prefactors of gradg which are constant throughout the chain, and so only need to be calculated once at the start.
