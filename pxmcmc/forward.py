@@ -46,9 +46,7 @@ class ISWTOperator(ForwardOperator):
             phi_lm[ell * ell + ell] = phi_l[ell]
         self.basis = np.concatenate((phi_lm, psi_lm), axis=1)
 
-        self.n_lm = self.basis.shape[0]
-        self.nb = self.basis.shape[1]
-        self.nparams = self.n_lm * self.nb
+        self.nparams = np.prod(self.basis.shape)
 
         self._get_base_l0s()
         self._calc_prefactors()
