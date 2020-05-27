@@ -40,6 +40,7 @@ class ISWTOperator(ForwardOperator):
         self.spin = spin
 
         self.basis = wavelet_basis(self.L, self.B, self.J_min)
+        self.n_bases = self.basis.shape[1]
         self.nparams = np.prod(self.basis.shape)
 
         self._get_base_l0s()
@@ -68,12 +69,12 @@ class ISWTOperator(ForwardOperator):
         """
         Calculates the gradient of the data fidelity term, which should guide the MCMC search.
         """
-        diff = np.concatenate([preds - self.data] * self.basis.shape[1])
+        diff = np.concatenate([preds - self.data] * self.n_bases)
         gradg = self.pf * diff / (self.sig_d ** 2)
         return gradg
 
     def _get_base_l0s(self):
-        self.base_l0s = np.zeros((self.basis.shape[1], self.L + 1), dtype=np.complex)
+        self.base_l0s = np.zeros((self.n_bases, self.L + 1), dtype=np.complex)
         for i, base in enumerate(self.basis.T):
             self.base_l0s[i] = [base[l ** 2 + l] for l in range(self.L + 1)]
 
@@ -119,4 +120,4 @@ class SWC2PixOperator(ISWTOperator):
         for el in range(self.L + 1):
             for em in range(-el, el + 1):
                 Ylms[el ** 2 + el + em] = sph_harm(em, el, phi, theta)
-        self.pf = self.pf * np.concatenate([Ylms] * self.basis.shape[1]).T
+        self.pf = self.pf * np.concatenate([Ylms] * self.n_bases).T
