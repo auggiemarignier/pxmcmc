@@ -170,9 +170,8 @@ class PxMCMC:
             print(f"\rBurning in", end="")
         else:
             print(
-                f"\r{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - "
+                f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - "
                 + " - ".join([f"{k}: {kwargs[k]:.8f}" for k in kwargs]),
-                end="",
             )
 
     def _initial_sample(self):

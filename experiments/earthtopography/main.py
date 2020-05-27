@@ -1,6 +1,5 @@
 import healpy as hp
-import numpy as np
-import pys2let
+import datetime
 
 from pxmcmc.mcmc import PxMCMC, PxMCMCParams
 from pxmcmc.forward import SWC2PixOperator
@@ -16,18 +15,20 @@ Nside = 32
 topo_d = hp.ud_grade(topo, Nside)
 forwardop = SWC2PixOperator(topo_d, sig_d, Nside, L, B, J_min)
 params = PxMCMCParams(
-    nsamples=int(5e5),
+    nsamples=int(1e5),
     nburn=0,
-    ngap=0,
+    ngap=10,
     complex=True,
     delta=1e-10,
     lmda=3e-8,
-    mu=1e8,
-    verbosity=1,
+    mu=1e4,
+    verbosity=1000,
 )
 
 print(f"Number of data points: {len(topo_d)}")
 print(f"Number of model parameters: {forwardop.nparams}")
+
+NOW = datetime.datetime.now()
 
 mcmc = PxMCMC(forwardop, params)
 mcmc.myula()
@@ -35,8 +36,8 @@ mcmc.myula()
 save_mcmc(
     mcmc,
     params,
-    "/Volumes/Elements/PxMCMCoutputs/earthtopography",
-    filename="myula",
+    ".",
+    filename=f"myula_{NOW.strftime('%d%m%y_%H%M%S')}",
     L=L,
     B=B,
     J_min=J_min,
