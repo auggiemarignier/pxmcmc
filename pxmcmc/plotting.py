@@ -67,14 +67,14 @@ def plot_posterior_marginals(
 
 
 def plot_basis_els(
-    chain, L, B, J_min, ylim=[-0.03, 0.03], figsize=(20, 20), realpart=True
+    chain, L, B, J_min, ylim=None, figsize=(20, 20), realpart=True, inflate_mads=1
 ):
     from pxmcmc.utils import get_parameter_from_chain, wavelet_basis
 
     basis = wavelet_basis(L, B, J_min)
     fig = plt.figure(figsize=figsize)
     for b, base in enumerate(basis.T):
-        medians = np.zeros((L + 1), dtype=np.complex)
+        medians = np.zeros(L + 1)
         mads = np.zeros(L + 1)
         for el in range(L + 1):
             try:
@@ -88,12 +88,12 @@ def plot_basis_els(
             median = np.median(X)
             mad = np.mean(np.abs(X - median))
             medians[el] = median
-            mads[el] = mad
+            mads[el] = mad * inflate_mads
 
         ax = fig.add_subplot(basis.shape[1], 1, b + 1)
         ax.plot(medians.real if realpart else medians.imag, c="blue")
         ax.fill_between(
-            np.arange(L + 1), median + mads, median - mads, alpha=0.5, color="blue"
+            np.arange(L + 1), medians + mads, medians - mads, alpha=0.5, color="blue"
         )
         ax.set_ylim(ylim)
         ax.set_xlim([0, L])
