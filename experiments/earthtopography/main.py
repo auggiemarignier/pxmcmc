@@ -15,14 +15,14 @@ Nside = 32
 topo_d = hp.ud_grade(topo, Nside)
 forwardop = SWC2PixOperator(topo_d, sig_d, Nside, L, B, J_min)
 params = PxMCMCParams(
-    nsamples=int(1e5),
+    nsamples=int(1e3),
     nburn=0,
     ngap=10,
     complex=True,
     delta=1e-10,
-    lmda=3e-8,
-    mu=1e4,
-    verbosity=1000,
+    lmda=3e-9,
+    mu=1,
+    verbosity=100,
 )
 
 print(f"Number of data points: {len(topo_d)}")
@@ -31,13 +31,13 @@ print(f"Number of model parameters: {forwardop.nparams}")
 NOW = datetime.datetime.now()
 
 mcmc = PxMCMC(forwardop, params)
-mcmc.myula()
+mcmc.pxmala()
 
 save_mcmc(
     mcmc,
     params,
     ".",
-    filename=f"myula_{NOW.strftime('%d%m%y_%H%M%S')}",
+    filename=f"pxmala_{NOW.strftime('%d%m%y_%H%M%S')}",
     L=L,
     B=B,
     J_min=J_min,

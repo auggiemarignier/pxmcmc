@@ -197,5 +197,5 @@ class PxMCMC:
         self.L1s = np.zeros(self.nsamples, dtype=np.float)
 
     def _tune_delta(self, i):
-        delta = self.delta * (1 + (self.acceptance_trace[i] - 0.75) / ((i + 1) ** 0.75))
+        delta = self.delta * (1 + (self.acceptance_trace[i] - 0.8) / ((i + 1) ** 0.75))
         self.delta = min(max(delta, self.lmda * 1e-8), self.lmda / 2)
