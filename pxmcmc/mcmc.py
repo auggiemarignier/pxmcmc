@@ -26,6 +26,11 @@ class PxMCMCParams:
 
 
 class PxMCMC:
+    """
+    Base class with general PxMCMC functions.
+    Children of this class must implement a run function.
+    """
+
     def __init__(self, forward, mcmcparams=PxMCMCParams()):
         """
         Initialises proximal MCMC algorithm.
@@ -35,13 +40,18 @@ class PxMCMC:
             setattr(self, attr, getattr(mcmcparams, attr))
         self._initialise_tracking_arrays()
 
+    def run(self):
+        raise NotImplementedError
+
     def calc_proxf(self, X):
+        # TODO: make separate prox module similar to forward
         """
         Calculates the prox of the sparsity regularisation term.
         """
         return soft(X, self.lmda * self.mu)
 
     def logpi(self, X, preds):
+        # TODO: flexibility for different priors
         """
         Calculates the log(posterior), L2-norm and L1-norm of a model X.
         """
@@ -60,6 +70,7 @@ class PxMCMC:
             )
 
     def _initial_sample(self):
+        # TODO: flexibility for different priors
         X_curr = laplace.rvs(size=self.forward.nparams)
         if self.complex:
             X_curr = X_curr + laplace.rvs(size=self.forward.nparams) * 1j
@@ -67,6 +78,7 @@ class PxMCMC:
         return X_curr, curr_preds
 
     def _initialise_tracking_arrays(self):
+        # TODO: make these optional to save memory
         self.logPi = np.zeros(self.nsamples)
         self.preds = np.zeros(
             (self.nsamples, len(self.forward.data)),
@@ -83,8 +95,8 @@ class PxMCMC:
 class MYULA(PxMCMC):
     def __init__(self, forward, mcmcparams=PxMCMCParams()):
         super().__init__(forward, mcmcparams)
-    
-    def myula(self):
+
+    def run(self):
         i = 0  # total samples
         j = 0  # saved samples (excludes burn-in and thinned samples)
         X_curr, curr_preds = self._initial_sample()
@@ -132,7 +144,7 @@ class PxMALA(MYULA):
     def __init__(self, forward, mcmcparams=PxMCMCParams()):
         super().__init__(forward, mcmcparams)
 
-    def pxmala(self):
+    def run(self):
         self.acceptance_trace = []
         i = 0
         j = 0

@@ -1,7 +1,7 @@
 import healpy as hp
 import datetime
 
-from pxmcmc.mcmc import PxMCMC, PxMCMCParams
+from pxmcmc.mcmc import MYULA, PxMALA, PxMCMCParams
 from pxmcmc.forward import SWC2PixOperator
 from pxmcmc.saving import save_mcmc
 
@@ -30,14 +30,14 @@ print(f"Number of model parameters: {forwardop.nparams}")
 
 NOW = datetime.datetime.now()
 
-mcmc = PxMCMC(forwardop, params)
-mcmc.pxmala()
+mcmc = MYULA(forwardop, params)
+mcmc.run()
 
 save_mcmc(
     mcmc,
     params,
     ".",
-    filename=f"pxmala_{NOW.strftime('%d%m%y_%H%M%S')}",
+    filename=f"myula_{NOW.strftime('%d%m%y_%H%M%S')}",
     L=L,
     B=B,
     J_min=J_min,
