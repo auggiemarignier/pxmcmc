@@ -213,3 +213,9 @@ class PxMALA(MYULA):
             -(1 / 2 * self.delta)
             * np.sum((X2 - X1 - (self.delta / 2) * gradlogpiX1) ** 2) ** 2
         )
+
+
+class SKROCK(PxMCMC):
+    def __init__(self, forward, mcmcparams=PxMCMCParams()):
+        super().__init__(forward, mcmcparams=mcmcparams)
+        raise NotImplementedError
