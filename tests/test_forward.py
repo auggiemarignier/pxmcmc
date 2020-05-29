@@ -18,25 +18,6 @@ def test_BaseGradg(forwardop):
     assert np.allclose(gradg, np.zeros(forwardop.data.shape), atol=1e-1)
 
 
-def test_ISWTForceTiling(iswtoperator):
-
-    L = iswtoperator.L
-    B = iswtoperator.B
-    J_min = iswtoperator.J_min
-    X = np.ones(iswtoperator.nparams) + 1j * np.ones(iswtoperator.nparams)
-    phi_l, psi_lm = pys2let.wavelet_tiling(
-        B, L + 1, 1, 0, J_min
-    )  # phi_l = 0, bug in pys2let?
-    psi_lm = psi_lm[:, J_min:]
-    phi_lm = np.zeros(((L + 1) ** 2, 1), dtype=np.complex)
-    for ell in range(L + 1):
-        phi_lm[ell * ell + ell] = phi_l[ell]
-    basis = np.concatenate((phi_lm, psi_lm), axis=1)
-    expected = X * basis.flatten()
-
-    assert np.array_equal(iswtoperator.force_tiling(X), expected)
-
-
 def test_ISWTForward(iswtoperator, Nside):
     from pxmcmc.utils import flatten_mlm
 

@@ -26,13 +26,11 @@ class PxMCMCParams:
 
 
 class PxMCMC:
-    def __init__(self, forward, mcmcparams=PxMCMCParams(), X_func=None):
+    def __init__(self, forward, mcmcparams=PxMCMCParams()):
         """
         Initialises proximal MCMC algorithm.
-        X_func is an optional function that can be applied to the model parameter vector e.g. hard thresholding
         """
         self.forward = forward
-        self.X_func = X_func
         for attr in mcmcparams.__dict__.keys():
             setattr(self, attr, getattr(mcmcparams, attr))
         self._initialise_tracking_arrays()
@@ -65,8 +63,6 @@ class PxMCMC:
         X_curr = laplace.rvs(size=self.forward.nparams)
         if self.complex:
             X_curr = X_curr + laplace.rvs(size=self.forward.nparams) * 1j
-        if self.X_func is not None:
-            X_curr = self.X_func(X_curr)
         curr_preds = self.forward.forward(X_curr)
         return X_curr, curr_preds
 
@@ -96,8 +92,6 @@ class MYULA(PxMCMC):
             gradg = self.forward.calc_gradg(curr_preds)
             proxf = self.calc_proxf(X_curr)
             X_prop = self.chain_step(X_curr, proxf, gradg)
-            if self.X_func is not None:
-                X_prop = self.X_func(X_prop)
             prop_preds = self.forward.forward(X_prop)
 
             X_curr = X_prop
@@ -148,8 +142,6 @@ class PxMALA(MYULA):
         logpiXc, L2Xc, L1Xc = self.logpi(X_curr, curr_preds)
         while j < self.nsamples:
             X_prop = self.chain_step(X_curr, proxf_curr, gradg_curr)
-            if self.X_func is not None:
-                X_prop = self.X_func(X_prop)
             prop_preds = self.forward.forward(X_prop)
             gradg_prop = self.forward.calc_gradg(prop_preds)
             proxf_prop = self.calc_proxf(X_prop)
