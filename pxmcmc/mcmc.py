@@ -37,6 +37,57 @@ class PxMCMC:
             setattr(self, attr, getattr(mcmcparams, attr))
         self._initialise_tracking_arrays()
 
+    def calc_proxf(self, X):
+        """
+        Calculates the prox of the sparsity regularisation term.
+        """
+        return soft(X, self.lmda * self.mu)
+
+    def logpi(self, X, preds):
+        """
+        Calculates the log(posterior), L2-norm and L1-norm of a model X.
+        """
+        L2 = sum(abs((self.forward.data - preds)) ** 2)
+        L1 = sum(abs(X))
+        logPi = -self.mu * L1 - L2 / (2 * self.forward.sig_d ** 2)
+        return logPi, L2, L1
+
+    def _print_progress(self, i, logpi, **kwargs):
+        if i < self.nburn:
+            print(f"\rBurning in", end="")
+        else:
+            print(
+                f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - "
+                + " - ".join([f"{k}: {kwargs[k]:.8f}" for k in kwargs]),
+            )
+
+    def _initial_sample(self):
+        X_curr = laplace.rvs(size=self.forward.nparams)
+        if self.complex:
+            X_curr = X_curr + laplace.rvs(size=self.forward.nparams) * 1j
+        if self.X_func is not None:
+            X_curr = self.X_func(X_curr)
+        curr_preds = self.forward.forward(X_curr)
+        return X_curr, curr_preds
+
+    def _initialise_tracking_arrays(self):
+        self.logPi = np.zeros(self.nsamples)
+        self.preds = np.zeros(
+            (self.nsamples, len(self.forward.data)),
+            dtype=np.complex if self.complex else np.float,
+        )
+        self.chain = np.zeros(
+            (self.nsamples, self.forward.nparams),
+            dtype=np.complex if self.complex else np.float,
+        )
+        self.L2s = np.zeros(self.nsamples, dtype=np.float)
+        self.L1s = np.zeros(self.nsamples, dtype=np.float)
+
+
+class MYULA(PxMCMC):
+    def __init__(self, forward, mcmcparams=PxMCMCParams()):
+        super().__init__(forward, mcmcparams)
+    
     def myula(self):
         i = 0  # total samples
         j = 0  # saved samples (excludes burn-in and thinned samples)
@@ -67,6 +118,25 @@ class PxMCMC:
             i += 1
 
         print(f"\nDONE")
+
+    def chain_step(self, X, proxf, gradg):
+        """
+        Takes a step in the chain.
+        """
+        w = np.random.randn(self.forward.nparams)
+        if self.complex:
+            w = w + np.random.randn(self.forward.nparams) * 1j
+        return (
+            (1 - self.delta / self.lmda) * X
+            + (self.delta / self.lmda) * proxf
+            - self.delta * gradg
+            + np.sqrt(2 * self.delta) * w
+        )
+
+
+class PxMALA(MYULA):
+    def __init__(self, forward, mcmcparams=PxMCMCParams()):
+        super().__init__(forward, mcmcparams)
 
     def pxmala(self):
         self.acceptance_trace = []
@@ -126,34 +196,9 @@ class PxMCMC:
             i += 1
         print(f"\nDONE")
 
-    def calc_proxf(self, X):
-        """
-        Calculates the prox of the sparsity regularisation term.
-        """
-        return soft(X, self.lmda * self.mu)
-
-    def chain_step(self, X, proxf, gradg):
-        """
-        Takes a step in the chain.
-        """
-        w = np.random.randn(self.forward.nparams)
-        if self.complex:
-            w = w + np.random.randn(self.forward.nparams) * 1j
-        return (
-            (1 - self.delta / self.lmda) * X
-            + (self.delta / self.lmda) * proxf
-            - self.delta * gradg
-            + np.sqrt(2 * self.delta) * w
-        )
-
-    def logpi(self, X, preds):
-        """
-        Calculates the log(posterior), L2-norm and L1-norm of a model X.
-        """
-        L2 = sum(abs((self.forward.data - preds)) ** 2)
-        L1 = sum(abs(X))
-        logPi = -self.mu * L1 - L2 / (2 * self.forward.sig_d ** 2)
-        return logPi, L2, L1
+    def _tune_delta(self, i):
+        delta = self.delta * (1 + (self.acceptance_trace[i] - 0.8) / ((i + 1) ** 0.75))
+        self.delta = min(max(delta, self.lmda * 1e-8), self.lmda / 2)
 
     def calc_logtransition(self, X1, X2, proxf, gradg):
         """
@@ -164,38 +209,3 @@ class PxMCMC:
             -(1 / 2 * self.delta)
             * np.sum((X2 - X1 - (self.delta / 2) * gradlogpiX1) ** 2) ** 2
         )
-
-    def _print_progress(self, i, logpi, **kwargs):
-        if i < self.nburn:
-            print(f"\rBurning in", end="")
-        else:
-            print(
-                f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - "
-                + " - ".join([f"{k}: {kwargs[k]:.8f}" for k in kwargs]),
-            )
-
-    def _initial_sample(self):
-        X_curr = laplace.rvs(size=self.forward.nparams)
-        if self.complex:
-            X_curr = X_curr + laplace.rvs(size=self.forward.nparams) * 1j
-        if self.X_func is not None:
-            X_curr = self.X_func(X_curr)
-        curr_preds = self.forward.forward(X_curr)
-        return X_curr, curr_preds
-
-    def _initialise_tracking_arrays(self):
-        self.logPi = np.zeros(self.nsamples)
-        self.preds = np.zeros(
-            (self.nsamples, len(self.forward.data)),
-            dtype=np.complex if self.complex else np.float,
-        )
-        self.chain = np.zeros(
-            (self.nsamples, self.forward.nparams),
-            dtype=np.complex if self.complex else np.float,
-        )
-        self.L2s = np.zeros(self.nsamples, dtype=np.float)
-        self.L1s = np.zeros(self.nsamples, dtype=np.float)
-
-    def _tune_delta(self, i):
-        delta = self.delta * (1 + (self.acceptance_trace[i] - 0.8) / ((i + 1) ** 0.75))
-        self.delta = min(max(delta, self.lmda * 1e-8), self.lmda / 2)
