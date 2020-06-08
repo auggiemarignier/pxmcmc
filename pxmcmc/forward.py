@@ -7,20 +7,40 @@ from pxmcmc.utils import expand_mlm, alm2map, wavelet_basis
 
 class ForwardOperator:
     """
-    Base Forward identity operator
-    Children of this class must define a forward and gradg function, and nparams
+    Base Forward operator
+    Children of this class must define analysis/synthesis forward and gradg functions
+    Children must also take data and sig_d in the constructor
     """
 
-    def __init__(self, data, sig_d):
+    def __init__(self, data, sig_d, setting="analysis"):
         self.data = data
         self.sig_d = sig_d
-        self.nparams = len(data)
+        assert setting in ["analysis", "synthesis"]
+        self.setting = setting
 
     def forward(self, X):
-        return X
+        if self.setting == "analysis":
+            return self._forward_analysis(X)
+        else:
+            return self._forward_synthesis(X)
 
     def calc_gradg(self, preds):
-        return (preds - self.data) / (self.sig_d ** 2)
+        if self.setting == "analysis":
+            return self._gradg_analysis(preds)
+        else:
+            return self._gradg_synthesis(preds)
+
+    def _forward_analysis(self, X):
+        raise NotImplementedError
+
+    def _forward_synthesis(self, X):
+        raise NotImplementedError
+
+    def _gradg_analysis(self, X):
+        raise NotImplementedError
+
+    def _gradg_synthesis(self, X):
+        raise NotImplementedError
 
 
 class ISWTOperator(ForwardOperator):

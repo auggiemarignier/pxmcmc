@@ -7,15 +7,14 @@ import pytest
 
 def test_BaseForward(forwardop):
     mcmc_sample = np.ones(forwardop.data.shape)
-    assert np.allclose(forwardop.forward(mcmc_sample), forwardop.data, atol=1e-1)
+    with pytest.raises(NotImplementedError):
+        forwardop.forward(mcmc_sample)
 
 
 def test_BaseGradg(forwardop):
-    mcmc_sample = np.ones(forwardop.data.shape)
-    forwardop.sig_d = 1  # hack
-    preds = forwardop.forward(mcmc_sample)
-    gradg = forwardop.calc_gradg(preds)
-    assert np.allclose(gradg, np.zeros(forwardop.data.shape), atol=1e-1)
+    preds = np.ones(forwardop.data.shape)
+    with pytest.raises(NotImplementedError):
+        forwardop.calc_gradg(preds)
 
 
 def test_ISWTForward(iswtoperator, Nside):
