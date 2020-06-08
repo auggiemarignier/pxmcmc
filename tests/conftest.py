@@ -32,6 +32,11 @@ def J_min():
     return 2
 
 
+@pytest.fixture(params=["analysis", "synthesis"])
+def setting(request):
+    return request.param
+
+
 @pytest.fixture
 def simpledata(Nside, sig_d):
     return np.ones(hp.nside2npix(Nside))
@@ -43,18 +48,13 @@ def simpledata_lm(simpledata, L, B, J_min):
 
 
 @pytest.fixture
-def forwardop(simpledata, sig_d):
-    return ForwardOperator(simpledata, sig_d, "analysis")
+def forwardop(simpledata, sig_d, setting):
+    return ForwardOperator(simpledata, sig_d, setting)
 
 
 @pytest.fixture
-def iswtoperator_a(simpledata_lm, sig_d, L, B, J_min):
-    return ISWTOperator(simpledata_lm, sig_d, L, B, J_min, setting="analysis")
-
-
-@pytest.fixture
-def iswtoperator_s(simpledata_lm, sig_d, L, B, J_min):
-    return ISWTOperator(simpledata_lm, sig_d, L, B, J_min, setting="synthesis")
+def iswtoperator(simpledata_lm, sig_d, L, B, J_min, setting):
+    return ISWTOperator(simpledata_lm, sig_d, L, B, J_min, setting)
 
 
 @pytest.fixture
@@ -63,10 +63,5 @@ def mcmc(forwardop):
 
 
 @pytest.fixture
-def swc2pixoperator_a(simpledata, sig_d, Nside, L, B, J_min):
-    return SWC2PixOperator(simpledata, sig_d, Nside, L, B, J_min, setting="analysis")
-
-
-@pytest.fixture
-def swc2pixoperator_s(simpledata, sig_d, Nside, L, B, J_min):
-    return SWC2PixOperator(simpledata, sig_d, Nside, L, B, J_min, setting="synthesis")
+def swc2pixoperator(simpledata, sig_d, Nside, L, B, J_min, setting):
+    return SWC2PixOperator(simpledata, sig_d, Nside, L, B, J_min, setting)
