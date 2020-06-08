@@ -44,12 +44,17 @@ def simpledata_lm(simpledata, L, B, J_min):
 
 @pytest.fixture
 def forwardop(simpledata, sig_d):
-    return ForwardOperator(simpledata, sig_d)
+    return ForwardOperator(simpledata, sig_d, "analysis")
 
 
 @pytest.fixture
-def iswtoperator(simpledata_lm, sig_d, L, B, J_min):
-    return ISWTOperator(simpledata_lm, sig_d, L, B, J_min)
+def iswtoperator_a(simpledata_lm, sig_d, L, B, J_min):
+    return ISWTOperator(simpledata_lm, sig_d, L, B, J_min, setting="analysis")
+
+
+@pytest.fixture
+def iswtoperator_s(simpledata_lm, sig_d, L, B, J_min):
+    return ISWTOperator(simpledata_lm, sig_d, L, B, J_min, setting="synthesis")
 
 
 @pytest.fixture
@@ -58,5 +63,10 @@ def mcmc(forwardop):
 
 
 @pytest.fixture
-def swc2pixoperator(simpledata, sig_d, Nside, L, B, J_min):
-    return SWC2PixOperator(simpledata, sig_d, Nside, L, B, J_min)
+def swc2pixoperator_a(simpledata, sig_d, Nside, L, B, J_min):
+    return SWC2PixOperator(simpledata, sig_d, Nside, L, B, J_min, setting="analysis")
+
+
+@pytest.fixture
+def swc2pixoperator_s(simpledata, sig_d, Nside, L, B, J_min):
+    return SWC2PixOperator(simpledata, sig_d, Nside, L, B, J_min, setting="synthesis")
