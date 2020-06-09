@@ -14,7 +14,7 @@ def Nside():
 
 @pytest.fixture
 def sig_d():
-    return 0.01
+    return 1
 
 
 @pytest.fixture

@@ -1,8 +1,7 @@
 import pys2let
 import numpy as np
 import healpy as hp
-from scipy.special import sph_harm
-from pxmcmc.utils import expand_mlm, flatten_mlm, alm2map
+from pxmcmc.utils import expand_mlm, flatten_mlm, alm2map, map2alm
 
 
 class ForwardOperator:
@@ -47,7 +46,9 @@ class ForwardOperator:
 class ISWTOperator(ForwardOperator):
     """
     Inverse spherical wavelet transfrom operator.
-    Returns the spherical harmonic coefficients from the sampled harmonic wavelet coeffs
+    Returns the spherical harmonic coefficients.
+    Analysis: sample pixel values
+    Synthesis: sample harmonic wavelet coefficeints
     """
 
     def __init__(self, data, sig_d, L, B, J_min, setting, dirs=1, spin=0):
@@ -90,7 +91,7 @@ class ISWTOperator(ForwardOperator):
         """
         Takes in predictions of harmonic coefficients and computes the gradient wrt pixel values
         """
-        return (preds - self.data) / self.sig_d
+        return (preds - self.data) / (self.sig_d**2)
 
     def _gradg_synthesis(self, preds):
         """
@@ -110,10 +111,16 @@ class ISWTOperator(ForwardOperator):
             f_wav_lm[:, j] = pys2let.map2alm_mw(
                 f_wav[j * vlen : (j + 1) * vlen + 1], self.L + 1, 0
             )
-        return flatten_mlm(f_wav_lm, f_scal_lm) / self.sig_d
+        return flatten_mlm(f_wav_lm, f_scal_lm) / (self.sig_d **2)
 
 
 class SWC2PixOperator(ISWTOperator):
+    """
+    Inverse spherical wavelet transfrom operator.
+    Returns pixel valyes.
+    Analysis: sample pixel values
+    Synthesis: sample harmonic wavelet coefficeints
+    """
     def __init__(self, data, sig_d, Nside, L, B, J_min, setting, dirs=1, spin=0):
         self.Nside = Nside
         super().__init__(data, sig_d, L, B, J_min, setting, dirs, spin)
@@ -126,3 +133,22 @@ class SWC2PixOperator(ISWTOperator):
 
     def _forward_analysis(self, X):
         return X
+
+    def _gradg_analysis(self, preds):
+        return super()._gradg_analysis(preds)
+
+    def _gradg_synthesis(self, preds):
+        diff_hp = preds - self.data
+        diff_lm_hp = map2alm(diff_hp, self.L)
+        diff_lm_mw = pys2let.lm_hp2lm(diff_lm_hp, self.L + 1)
+        diff_mw = pys2let.alm2map_mw(diff_lm_mw, self.L + 1, self.spin)
+
+        f_wav, f_scal = pys2let.synthesis_adjoint_axisym_wav_mw(diff_mw, self.B, self.L + 1, self.J_min)
+        f_scal_lm = pys2let.map2alm_mw(f_scal, self.L + 1, 0)
+        f_wav_lm = np.zeros(((self.L + 1) ** 2, self.nscales), dtype=np.complex)
+        vlen = pys2let.mw_size(self.L + 1)
+        for j in range(self.nscales):
+            f_wav_lm[:, j] = pys2let.map2alm_mw(
+                f_wav[j * vlen : (j + 1) * vlen + 1], self.L + 1, 0
+            )
+        return flatten_mlm(f_wav_lm, f_scal_lm) / (self.sig_d**2)

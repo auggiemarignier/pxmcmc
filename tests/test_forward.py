@@ -1,7 +1,6 @@
 import numpy as np
 import healpy as hp
 import pys2let
-from scipy.special import sph_harm
 import pytest
 
 
@@ -17,7 +16,6 @@ def test_BaseGradg(forwardop):
         forwardop.calc_gradg(preds)
 
 
-@pytest.mark.parametrzie("setting", ["analysis", "synthesis"], indirect=["setting"])
 def test_ISWTForward(iswtoperator, Nside):
     from pxmcmc.utils import flatten_mlm
 
@@ -45,12 +43,10 @@ def test_ISWTForward(iswtoperator, Nside):
     assert np.allclose(iswtoperator.forward(X), flm)
 
 
-@pytest.mark.parametrzie("setting", ["analysis", "synthesis"], indirect=["setting"])
 def test_ISWTGradg(iswtoperator):
     # TODO: Come up with a better test; this just tests implementation
     from pxmcmc.utils import flatten_mlm
 
-    iswtoperator.sig_d = 1
     preds = np.ones(len(iswtoperator.data))
     diff = preds - iswtoperator.data
 
@@ -63,7 +59,7 @@ def test_ISWTGradg(iswtoperator):
         f_wav_lm = np.zeros(
             [(iswtoperator.L + 1) ** 2, iswtoperator.nscales], dtype=np.complex
         )
-        vlen = (iswtoperator.L + 1) * (2 * (iswtoperator.L + 1) - 1)
+        vlen = pys2let.mw_size(iswtoperator.L + 1)
         for j in range(iswtoperator.nscales):
             f_wav_lm[:, j] = pys2let.map2alm_mw(
                 f_wav[j * vlen : (j + 1) * vlen + 1], iswtoperator.L + 1, 0
@@ -99,17 +95,28 @@ def test_SWC2PixForward(swc2pixoperator):
     assert np.allclose(swc2pixoperator.forward(X), f)
 
 
-# @pytest.mark.parametrize("l,m", [(0, 0), (1, -1), (1, 0), (1, 1)])
-# def test_SWC2PixGradg(swc2pixoperator, l, m):
-#     swc2pixoperator.sid_d = 1
-#     swc2pixoperator.pf = np.ones(swc2pixoperator.pf.shape)
-#     preds = np.ones(len(swc2pixoperator.data))
-#     theta, phi = hp.pix2ang(
-#         swc2pixoperator.Nside, np.arange(hp.nside2npix(swc2pixoperator.Nside))
-#     )
-#     expected = np.sum(sph_harm(m, l, phi, theta) * (preds - swc2pixoperator.data))
-#     L = swc2pixoperator.L
-#     nb = swc2pixoperator.basis.shape[1]
-#     lm_idxs = [n * ((L + 1) ** 2) + l ** 2 + l + m for n in range(nb)]
-#     gradg = swc2pixoperator.calc_gradg(preds)
-#     assert np.allclose(np.take(gradg, lm_idxs), expected)
+def test_SWC2PixGradg(swc2pixoperator):
+    from pxmcmc.utils import flatten_mlm
+
+    L = swc2pixoperator.L
+    B = swc2pixoperator.B
+    J_min = swc2pixoperator.J_min
+    Nside = swc2pixoperator.Nside
+
+    preds = 1 + swc2pixoperator.data
+    if swc2pixoperator.setting == "analysis":
+        expected = np.ones(hp.nside2npix(Nside), dtype=np.complex)
+    else:
+        diff = np.ones(pys2let.mw_size(L + 1), dtype=np.complex)
+        f_wav, f_scal = pys2let.synthesis_adjoint_axisym_wav_mw(diff, B, L + 1, J_min)
+        f_scal_lm = pys2let.map2alm_mw(f_scal, L + 1, 0)
+        f_wav_lm = np.zeros(((L + 1) ** 2, swc2pixoperator.nscales), dtype=np.complex)
+        vlen = pys2let.mw_size(L + 1)
+        for j in range(swc2pixoperator.nscales):
+            f_wav_lm[:, j] = pys2let.map2alm_mw(
+                f_wav[j * vlen : (j + 1) * vlen + 1], L + 1, 0
+            )
+        expected = flatten_mlm(f_wav_lm, f_scal_lm)
+
+    result = swc2pixoperator.calc_gradg(preds)
+    assert np.allclose(result, expected)
