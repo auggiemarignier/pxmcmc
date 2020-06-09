@@ -91,22 +91,25 @@ def test_SWC2PixForward(swc2pixoperator):
             np.ascontiguousarray(f_wav_lm_hp[:, j]), L + 1
         )
     f_scal_lm = pys2let.lm_hp2lm(f_scal_lm_hp, L + 1)
-    X = flatten_mlm(f_wav_lm, f_scal_lm)
+    if swc2pixoperator.setting == "synthesis":
+        X = flatten_mlm(f_wav_lm, f_scal_lm)
+    else:
+        X = np.copy(f)
 
     assert np.allclose(swc2pixoperator.forward(X), f)
 
 
-@pytest.mark.parametrize("l,m", [(0, 0), (1, -1), (1, 0), (1, 1)])
-def test_SWC2PixGradg(swc2pixoperator, l, m):
-    swc2pixoperator.sid_d = 1
-    swc2pixoperator.pf = np.ones(swc2pixoperator.pf.shape)
-    preds = np.ones(len(swc2pixoperator.data))
-    theta, phi = hp.pix2ang(
-        swc2pixoperator.Nside, np.arange(hp.nside2npix(swc2pixoperator.Nside))
-    )
-    expected = np.sum(sph_harm(m, l, phi, theta) * (preds - swc2pixoperator.data))
-    L = swc2pixoperator.L
-    nb = swc2pixoperator.basis.shape[1]
-    lm_idxs = [n * ((L + 1) ** 2) + l ** 2 + l + m for n in range(nb)]
-    gradg = swc2pixoperator.calc_gradg(preds)
-    assert np.allclose(np.take(gradg, lm_idxs), expected)
+# @pytest.mark.parametrize("l,m", [(0, 0), (1, -1), (1, 0), (1, 1)])
+# def test_SWC2PixGradg(swc2pixoperator, l, m):
+#     swc2pixoperator.sid_d = 1
+#     swc2pixoperator.pf = np.ones(swc2pixoperator.pf.shape)
+#     preds = np.ones(len(swc2pixoperator.data))
+#     theta, phi = hp.pix2ang(
+#         swc2pixoperator.Nside, np.arange(hp.nside2npix(swc2pixoperator.Nside))
+#     )
+#     expected = np.sum(sph_harm(m, l, phi, theta) * (preds - swc2pixoperator.data))
+#     L = swc2pixoperator.L
+#     nb = swc2pixoperator.basis.shape[1]
+#     lm_idxs = [n * ((L + 1) ** 2) + l ** 2 + l + m for n in range(nb)]
+#     gradg = swc2pixoperator.calc_gradg(preds)
+#     assert np.allclose(np.take(gradg, lm_idxs), expected)

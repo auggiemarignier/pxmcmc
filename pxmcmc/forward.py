@@ -118,8 +118,11 @@ class SWC2PixOperator(ISWTOperator):
         self.Nside = Nside
         super().__init__(data, sig_d, L, B, J_min, setting, dirs, spin)
 
-    def forward(self, X):
-        clm = super().forward(X)
+    def _forward_synthesis(self, X):
+        clm = super()._forward_synthesis(X)
         clm_hp = pys2let.lm2lm_hp(clm, self.L + 1)
         c = alm2map(clm_hp, self.Nside)
         return c
+
+    def _forward_analysis(self, X):
+        return X
