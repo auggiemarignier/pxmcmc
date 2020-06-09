@@ -5,8 +5,11 @@ import pytest
 
 def test_flattenmlm():
     f_wav_lm = np.ones((861, 9))
-    f_scal_lm = np.ones((861,))
-    assert all(utils.flatten_mlm(f_wav_lm, f_scal_lm) == np.ones((8610,)))
+    for i in range(f_wav_lm.shape[1]):
+        f_wav_lm[:, i] += i
+    f_scal_lm = np.zeros((861,))
+    expected = np.concatenate([[i] * 861 for i in range(10)])
+    assert all(utils.flatten_mlm(f_wav_lm, f_scal_lm) == expected)
 
 
 def test_expandmlm():
