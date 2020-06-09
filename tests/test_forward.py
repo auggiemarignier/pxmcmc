@@ -47,27 +47,32 @@ def test_ISWTForward(iswtoperator, Nside):
 
 @pytest.mark.parametrzie("setting", ["analysis", "synthesis"], indirect=["setting"])
 def test_ISWTGradg(iswtoperator):
+    # TODO: Come up with a better test; this just tests implementation
     from pxmcmc.utils import flatten_mlm
+
     iswtoperator.sig_d = 1
     preds = np.ones(len(iswtoperator.data))
     diff = preds - iswtoperator.data
 
     if iswtoperator.setting == "synthesis":
-        f = pys2let.alm2map_mw(diff, iswtoperator.L, 0)
+        f = pys2let.alm2map_mw(diff, iswtoperator.L + 1, 0)
         f_wav, f_scal = pys2let.synthesis_adjoint_axisym_wav_mw(
-            f, iswtoperator.B, iswtoperator.L, iswtoperator.J_min
+            f, iswtoperator.B, iswtoperator.L + 1, iswtoperator.J_min
         )
-        f_scal_lm = pys2let.map2alm_mw(f_scal, iswtoperator.L, 0)
+        f_scal_lm = pys2let.map2alm_mw(f_scal, iswtoperator.L + 1, 0)
         f_wav_lm = np.zeros(
             [(iswtoperator.L + 1) ** 2, iswtoperator.nscales], dtype=np.complex
         )
-        vlen = iswtoperator.L * (2 * iswtoperator.L - 1)
+        vlen = (iswtoperator.L + 1) * (2 * (iswtoperator.L + 1) - 1)
         for j in range(iswtoperator.nscales):
-            f_wav_lm[:, j] = pys2let.map2alm_mw(f_wav[j * vlen : (j + 1) * vlen + 1])
+            f_wav_lm[:, j] = pys2let.map2alm_mw(
+                f_wav[j * vlen : (j + 1) * vlen + 1], iswtoperator.L + 1, 0
+            )
         expected = flatten_mlm(f_wav_lm, f_scal_lm)
     else:
         expected = np.copy(diff)
-    assert np.allclose(iswtoperator.calc_gradg(preds), expected)
+    result = iswtoperator.calc_gradg(preds)
+    assert np.allclose(result, expected)
 
 
 def test_SWC2PixForward(swc2pixoperator):

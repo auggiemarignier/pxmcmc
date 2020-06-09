@@ -2,7 +2,7 @@ import pys2let
 import numpy as np
 import healpy as hp
 from scipy.special import sph_harm
-from pxmcmc.utils import expand_mlm, alm2map, wavelet_basis
+from pxmcmc.utils import expand_mlm, flatten_mlm, alm2map, wavelet_basis
 
 
 class ForwardOperator:
@@ -91,7 +91,30 @@ class ISWTOperator(ForwardOperator):
         return pys2let.lm_hp2lm(X_lm_hp, self.L + 1)
 
     def _gradg_analysis(self, preds):
+        """
+        Takes in predictions of harmonic coefficients and computes the gradient wrt pixel values
+        """
         return (preds - self.data) / self.sig_d
+
+    def _gradg_synthesis(self, preds):
+        """
+        Takes in predictions of harmonic coefficients and calculates gradients wrt scaling/wavelet coefficients
+        """
+        diff_lm = preds - self.data
+        f = pys2let.alm2map_mw(diff_lm, self.L + 1, 0)
+        f_wav, f_scal = pys2let.synthesis_adjoint_axisym_wav_mw(
+            f, self.B, self.L + 1, self.J_min
+        )
+        f_scal_lm = pys2let.map2alm_mw(f_scal, self.L + 1, 0)
+        f_wav_lm = np.zeros(
+            [(self.L + 1) ** 2, self.nscales], dtype=np.complex
+        )
+        vlen = (self.L + 1) * (2 * (self.L + 1) - 1)
+        for j in range(self.nscales):
+            f_wav_lm[:, j] = pys2let.map2alm_mw(
+                f_wav[j * vlen : (j + 1) * vlen + 1], self.L + 1, 0
+            )
+        return flatten_mlm(f_wav_lm, f_scal_lm) / self.sig_d
 
 
 class SWC2PixOperator(ISWTOperator):
@@ -104,4 +127,3 @@ class SWC2PixOperator(ISWTOperator):
         clm_hp = pys2let.lm2lm_hp(clm, self.L + 1)
         c = alm2map(clm_hp, self.Nside)
         return c
-
