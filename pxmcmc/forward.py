@@ -2,7 +2,7 @@ import pys2let
 import numpy as np
 import healpy as hp
 from scipy.special import sph_harm
-from pxmcmc.utils import expand_mlm, flatten_mlm, alm2map, wavelet_basis
+from pxmcmc.utils import expand_mlm, flatten_mlm, alm2map
 
 
 class ForwardOperator:
@@ -59,10 +59,6 @@ class ISWTOperator(ForwardOperator):
         self.nscales = self.J_max - self.J_min + 1
         self.dirs = dirs
         self.spin = spin
-
-        self.basis = wavelet_basis(self.L, self.B, self.J_min)
-        self.n_bases = self.basis.shape[1]
-        self.nparams = np.prod(self.basis.shape)
 
     def _forward_synthesis(self, X):
         """
