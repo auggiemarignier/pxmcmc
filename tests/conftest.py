@@ -44,7 +44,7 @@ def simpledata(Nside, sig_d):
 
 @pytest.fixture
 def simpledata_lm(simpledata, L, B, J_min):
-    return pys2let.lm_hp2lm(hp.map2alm(simpledata, L), L + 1)
+    return pys2let.lm_hp2lm(hp.map2alm(simpledata, L), L)
 
 
 @pytest.fixture

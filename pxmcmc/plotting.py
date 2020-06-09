@@ -74,9 +74,9 @@ def plot_basis_els(
     basis = wavelet_basis(L, B, J_min)
     fig = plt.figure(figsize=figsize)
     for b, base in enumerate(basis.T):
-        medians = np.zeros(L + 1)
-        mads = np.zeros(L + 1)
-        for el in range(L + 1):
+        medians = np.zeros(L)
+        mads = np.zeros(L)
+        for el in range(L):
             try:
                 if realpart:
                     X = get_parameter_from_chain(chain, L, b, el, 0).real
@@ -93,13 +93,13 @@ def plot_basis_els(
         ax = fig.add_subplot(basis.shape[1], 1, b + 1)
         ax.plot(medians.real if realpart else medians.imag, c="blue")
         ax.fill_between(
-            np.arange(L + 1), medians + mads, medians - mads, alpha=0.5, color="blue"
+            np.arange(L), medians + mads, medians - mads, alpha=0.5, color="blue"
         )
         ax.set_ylim(ylim)
         ax.set_xlim([0, L])
         ax.tick_params(axis="y", colors="blue")
 
-        base_l0s = [base[l ** 2 + l].real for l in range(L + 1)]
+        base_l0s = [base[l ** 2 + l].real for l in range(L)]
         base_l0s /= np.max(base_l0s)
         ax1 = ax.twinx()
         ax1.plot(base_l0s, c="red")

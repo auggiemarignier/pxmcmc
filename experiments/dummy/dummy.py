@@ -19,8 +19,8 @@ def simpledata(Nside, sig_d, complex=False):
 
 def simpledata_lm(Nside, sig_d, L, complex=False):
     realspace = simpledata(Nside, sig_d, complex=complex)
-    alm = hp.map2alm(realspace, lmax=L)
-    alm = pys2let.lm_hp2lm(alm, L + 1)
+    alm = hp.map2alm(realspace, lmax=L - 1)
+    alm = pys2let.lm_hp2lm(alm, L)
     return alm
 
 

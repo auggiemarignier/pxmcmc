@@ -83,15 +83,13 @@ def alm2map(alm, nside, **kwargs):
 
 def get_parameter_from_chain(chain, L, base, el, em):
     assert np.abs(em) <= el
-    base_start = base * (L + 1) ** 2
+    base_start = base * (L) ** 2
     index_in_base = el * el + el + em
     return chain[:, base_start + index_in_base]
 
 
 def wavelet_basis(L, B, J_min):
-    phi_l, psi_lm = pys2let.wavelet_tiling(
-        B, L + 1, 1, 0, J_min
-    )
+    phi_l, psi_lm = pys2let.wavelet_tiling(B, L, 1, 0, J_min)
     psi_lm = psi_lm[:, J_min:]
     phi_lm = _fix_phi(L, B, J_min)
     basis = np.concatenate((phi_lm, psi_lm), axis=1)
@@ -101,18 +99,18 @@ def wavelet_basis(L, B, J_min):
 def _fix_phi(L, B, J_min):
     J_max = pys2let.pys2let_j_max(B, L, J_min)
     nscales = J_max - J_min + 1
-    dummy_psilm = np.zeros(((L + 1) ** 2, nscales), dtype=np.complex)
-    dummy_philm = np.zeros(((L + 1) ** 2), dtype=np.complex)
-    for ell in range(L + 1):
+    dummy_psilm = np.zeros(((L) ** 2, nscales), dtype=np.complex)
+    dummy_philm = np.zeros(((L) ** 2), dtype=np.complex)
+    for ell in range(L):
         for em in range(-ell, ell + 1):
             dummy_philm[ell * ell + ell + em] = np.sqrt((2 * ell + 1) / (4 * np.pi))
 
     dummy_psilm_hp = np.zeros(
-        ((L + 1) * (L + 2) // 2, dummy_psilm.shape[1]), dtype=np.complex
+        (L * (L + 1) // 2, dummy_psilm.shape[1]), dtype=np.complex
     )
-    dummy_philm_hp = pys2let.lm2lm_hp(dummy_philm.flatten(), L + 1)
+    dummy_philm_hp = pys2let.lm2lm_hp(dummy_philm.flatten(), L)
     dummy_lm_hp = pys2let.synthesis_axisym_lm_wav(
-        dummy_psilm_hp, dummy_philm_hp, B, L + 1, J_min
+        dummy_psilm_hp, dummy_philm_hp, B, L, J_min
     )
-    phi_lm = pys2let.lm_hp2lm(dummy_lm_hp, L + 1)
+    phi_lm = pys2let.lm_hp2lm(dummy_lm_hp, L)
     return np.expand_dims(phi_lm, axis=1)
