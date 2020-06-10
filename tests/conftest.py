@@ -5,6 +5,7 @@ import pys2let
 
 from pxmcmc.mcmc import PxMCMC
 from pxmcmc.forward import ForwardOperator, ISWTOperator, SWC2PixOperator
+from pxmcmc.prox import L1
 
 
 @pytest.fixture
@@ -65,3 +66,13 @@ def mcmc(forwardop):
 @pytest.fixture
 def swc2pixoperator(simpledata, sig_d, Nside, L, B, J_min, setting):
     return SWC2PixOperator(simpledata, sig_d, Nside, L, B, J_min, setting)
+
+
+@pytest.fixture
+def L1regulariser(setting):
+    T = 50
+
+    def identity(X):
+        return np.matmul(np.eye(100), X)
+
+    return L1(setting, identity, identity, T)
