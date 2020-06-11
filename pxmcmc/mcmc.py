@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.stats import laplace
-from .utils import soft
 
 
 class PxMCMCParams:
@@ -31,24 +30,15 @@ class PxMCMC:
     Children of this class must implement a run function.
     """
 
-    def __init__(self, forward, mcmcparams=PxMCMCParams()):
+    def __init__(self, forward, prox, mcmcparams=PxMCMCParams()):
         """
         Initialises proximal MCMC algorithm.
         """
         self.forward = forward
+        self.prox = prox
         for attr in mcmcparams.__dict__.keys():
             setattr(self, attr, getattr(mcmcparams, attr))
         self._initialise_tracking_arrays()
-
-    def run(self):
-        raise NotImplementedError
-
-    def calc_proxf(self, X):
-        # TODO: make separate prox module similar to forward
-        """
-        Calculates the prox of the sparsity regularisation term.
-        """
-        return soft(X, self.lmda * self.mu)
 
     def logpi(self, X, preds):
         # TODO: flexibility for different priors
@@ -102,7 +92,7 @@ class MYULA(PxMCMC):
         X_curr, curr_preds = self._initial_sample()
         while j < self.nsamples:
             gradg = self.forward.calc_gradg(curr_preds)
-            proxf = self.calc_proxf(X_curr)
+            proxf = self.prox.proxf(X_curr)
             X_prop = self.chain_step(X_curr, proxf, gradg)
             prop_preds = self.forward.forward(X_prop)
 
@@ -150,13 +140,13 @@ class PxMALA(MYULA):
         j = 0
         X_curr, curr_preds = self._initial_sample()
         gradg_curr = self.forward.calc_gradg(curr_preds)
-        proxf_curr = self.calc_proxf(X_curr)
+        proxf_curr = self.prox.proxf(X_curr)
         logpiXc, L2Xc, L1Xc = self.logpi(X_curr, curr_preds)
         while j < self.nsamples:
             X_prop = self.chain_step(X_curr, proxf_curr, gradg_curr)
             prop_preds = self.forward.forward(X_prop)
             gradg_prop = self.forward.calc_gradg(prop_preds)
-            proxf_prop = self.calc_proxf(X_prop)
+            proxf_prop = self.prox.proxf(X_prop)
 
             logtransXcXp = self.calc_logtransition(
                 X_curr, X_prop, proxf_curr, gradg_curr
