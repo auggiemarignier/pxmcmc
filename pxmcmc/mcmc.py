@@ -40,6 +40,9 @@ class PxMCMC:
             setattr(self, attr, getattr(mcmcparams, attr))
         self._initialise_tracking_arrays()
 
+    def run(self):
+        raise NotImplementedError
+
     def logpi(self, X, preds):
         # TODO: flexibility for different priors
         """
@@ -83,8 +86,8 @@ class PxMCMC:
 
 
 class MYULA(PxMCMC):
-    def __init__(self, forward, mcmcparams=PxMCMCParams()):
-        super().__init__(forward, mcmcparams)
+    def __init__(self, forward, prox, mcmcparams=PxMCMCParams()):
+        super().__init__(forward, prox, mcmcparams)
 
     def run(self):
         i = 0  # total samples
@@ -131,8 +134,8 @@ class MYULA(PxMCMC):
 
 
 class PxMALA(MYULA):
-    def __init__(self, forward, mcmcparams=PxMCMCParams()):
-        super().__init__(forward, mcmcparams)
+    def __init__(self, forward, prox, mcmcparams=PxMCMCParams()):
+        super().__init__(forward, prox, mcmcparams)
 
     def run(self):
         self.acceptance_trace = []
