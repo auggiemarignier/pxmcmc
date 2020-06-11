@@ -88,8 +88,8 @@ def get_parameter_from_chain(chain, L, base, el, em):
     return chain[:, base_start + index_in_base]
 
 
-def wavelet_basis(L, B, J_min):
-    phi_l, psi_lm = pys2let.wavelet_tiling(B, L, 1, 0, J_min)
+def wavelet_basis(L, B, J_min, dirs=1, spin=0):
+    phi_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, spin, J_min)
     psi_lm = psi_lm[:, J_min:]
     phi_lm = _fix_phi(L, B, J_min)
     basis = np.concatenate((phi_lm, psi_lm), axis=1)
