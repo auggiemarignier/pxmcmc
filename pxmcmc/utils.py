@@ -197,3 +197,37 @@ class GreatCirclePath:
             np.cos(alpha1) ** 2 + (np.sin(alpha1) ** 2) * (np.cos(theta1) ** 2)
         )
         return np.arctan2(numerator, denominator)
+
+    def _epicentral_distance(self):
+        """
+        Calculates the epicentral distance between the start and stop points
+        """
+        theta1 = self.start[0]
+        theta2 = self.stop[0]
+        phi12 = self.stop[1] - self.start[1]
+        if phi12 > 180:
+            phi12 -= 360
+        elif phi12 < -180:
+            phi12 += 360
+        else:
+            pass
+
+        numerator = np.sqrt(
+            (
+                np.sin(theta1) * np.cos(theta2)
+                - np.cos(theta1) * np.sin(theta2) * np.cos(phi12)
+            )
+            ** 2
+            + (np.sin(theta2) * np.sin(phi12)) ** 2
+        )
+        denominator = np.cos(theta1) * np.cos(theta2) + np.sin(theta1) * np.sin(
+            theta2
+        ) * np.cos(phi12)
+        return np.arctan2(numerator, denominator)
+
+    def _node_to_start(self):
+        alpha1 = self._course_at_start()
+        theta1 = self.start[0]
+        numerator = np.tan(np.pi / 2 - theta1)
+        denominator = np.cos(alpha1)
+        return np.arctan2(numerator, denominator)

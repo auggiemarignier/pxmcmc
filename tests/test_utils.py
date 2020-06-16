@@ -65,8 +65,9 @@ def test_gcp_course(start, stop, course_at_start, course_at_end, course_at_node,
 
 
 @pytest.mark.parametrize(
-    "start,stop,epic_dist", [((-33, -71.6), (31.4, 121.8), 168.56)]
+    "start,stop,epic_dist,node2start", [((-33, -71.6), (31.4, 121.8), 168.56, -96.76)]
 )
-def test_gcp_epicentral_distance(start, stop, epic_dist, Nside):
+def test_gcp_epicentral_distance(start, stop, epic_dist, node2start, Nside):
     path = utils.GreatCirclePath(start, stop, Nside)
-    assert np.round(np.rad2deg(path._epicentral_distance())) == epic_dist
+    assert np.round(np.rad2deg(path._epicentral_distance()), 2) == epic_dist
+    assert np.round(np.rad2deg(path._node_to_start()), 2) == node2start
