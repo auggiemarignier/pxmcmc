@@ -56,4 +56,4 @@ def test_pixels_on_gcp(start, stop, Nside):
 @pytest.mark.parametrize("start,stop,course", [((-33, -71.6), (31.4, 121.8), -94.41)])
 def test_gcp_course(start, stop, course, Nside):
     path = utils.GreatCirclePath(start, stop, Nside)
-    assert path._course() == course
+    assert np.round(np.rad2deg(path._course()), 2) == course

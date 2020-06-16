@@ -114,3 +114,57 @@ def _fix_phi(L, B, J_min):
     )
     phi_lm = pys2let.lm_hp2lm(dummy_lm_hp, L)
     return np.expand_dims(phi_lm, axis=1)
+
+
+class GreatCirclePath:
+    def __init__(self, start, stop, Nside):
+        """
+        Finds all the points along a great circle path and the corresponding healpix pixels
+        start/stop are tuples (lat, lon) in degrees
+        """
+        self.start = start
+        self.stop = stop
+        self.Nside = Nside
+        self.map = np.zeros(hp.nside2npix(Nside))
+
+        self._endpoints2rad()
+
+    def fill(self):
+        pixels = [hp.ang2pix(self.Nside, *point) for point in self.points]
+        self.map[pixels] = 1
+
+    def _get_points(self):
+        pass
+
+    def _endpoints2rad(self):
+        """
+        Converts endpoints to radians
+        Latitudes become colatitudes
+        """
+        # start_lt, start_ln = self.start
+        # stop_lt, stop_ln = self.stop
+        # start_clt = 90 - start_lt
+        # stop_clt = 90 - stop_lt
+        # self.start = tuple(np.deg2rad((start_clt, start_ln)))
+        # self.stop = tuple(np.deg2rad((stop_clt, stop_ln)))
+        self.start = tuple(np.deg2rad(self.start))
+        self.stop = tuple(np.deg2rad(self.stop))
+
+    def _course(self):
+        """
+        Calculates course from start point to stop point
+        """
+        phi1 = self.start[0]
+        phi2 = self.stop[0]
+        lmda12 = self.stop[1] - self.start[1]
+        if lmda12 > 180:
+            lmda12 -= 360
+        elif lmda12 < -180:
+            lmda12 += 360
+        else:
+            pass
+        numerator = np.cos(phi2) * np.sin(lmda12)
+        denominator = np.cos(phi1) * np.sin(phi2) - np.sin(phi1) * np.cos(
+            phi2
+        ) * np.cos(lmda12)
+        return np.arctan2(numerator, denominator)
