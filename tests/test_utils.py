@@ -53,8 +53,20 @@ def test_pixels_on_gcp(start, stop, Nside):
     assert all(pix == 0 or pix == 1 for pix in path.map)
 
 
-@pytest.mark.parametrize("start,stop,course,course_at_node", [((-33, -71.6), (31.4, 121.8), -94.41, -56.74)])
-def test_gcp_course(start, stop, course, course_at_node, Nside):
+@pytest.mark.parametrize(
+    "start,stop,course_at_start,course_at_end,course_at_node",
+    [((-33, -71.6), (31.4, 121.8), -94.41, -78.42, -56.74)],
+)
+def test_gcp_course(start, stop, course_at_start, course_at_end, course_at_node, Nside):
     path = utils.GreatCirclePath(start, stop, Nside)
-    assert np.round(np.rad2deg(path._course_at_start()), 2) == course
+    assert np.round(np.rad2deg(path._course_at_start()), 2) == course_at_start
+    assert np.round(np.rad2deg(path._course_at_end()), 2) == course_at_end
     assert np.round(np.rad2deg(path._course_at_node()), 2) == course_at_node
+
+
+@pytest.mark.parametrize(
+    "start,stop,epic_dist", [((-33, -71.6), (31.4, 121.8), 168.56)]
+)
+def test_gcp_epicentral_distance(start, stop, epic_dist, Nside):
+    path = utils.GreatCirclePath(start, stop, Nside)
+    assert np.round(np.rad2deg(path._epicentral_distance())) == epic_dist

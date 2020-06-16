@@ -154,17 +154,36 @@ class GreatCirclePath:
         """
         theta1 = self.start[0]
         theta2 = self.stop[0]
-        phi = self.stop[1] - self.start[1]
-        if phi > 180:
-            phi -= 360
-        elif phi < -180:
-            phi += 360
+        phi12 = self.stop[1] - self.start[1]
+        if phi12 > 180:
+            phi12 -= 360
+        elif phi12 < -180:
+            phi12 += 360
         else:
             pass
-        numerator = np.sin(theta2) * np.sin(phi)
+        numerator = np.sin(theta2) * np.sin(phi12)
         denominator = np.sin(theta1) * np.cos(theta2) - np.cos(theta1) * np.sin(
             theta2
-        ) * np.cos(phi)
+        ) * np.cos(phi12)
+        return np.arctan2(numerator, denominator)
+
+    def _course_at_end(self):
+        """
+        Calculates course at endpoint
+        """
+        theta1 = self.start[0]
+        theta2 = self.stop[0]
+        phi12 = self.stop[1] - self.start[1]
+        if phi12 > 180:
+            phi12 -= 360
+        elif phi12 < -180:
+            phi12 += 360
+        else:
+            pass
+        numerator = np.sin(theta1) * np.sin(phi12)
+        denominator = np.cos(theta2) * np.sin(theta1) * np.cos(phi12) - np.cos(
+            theta1
+        ) * np.sin(theta2)
         return np.arctan2(numerator, denominator)
 
     def _course_at_node(self):
