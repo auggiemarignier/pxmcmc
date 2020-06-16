@@ -133,8 +133,11 @@ class GreatCirclePath:
         pixels = [hp.ang2pix(self.Nside, *point) for point in self.points]
         self.map[pixels] = 1
 
-    def _get_points(self):
-        pass
+    def get_points(self):
+        # TODO: figure out how to choose npoints based on pathlength and Nside
+        npoints = 1800
+        fracs = np.linspace(0, 1, npoints)
+        self.points = [self._point_at_fraction(frac) for frac in fracs]
 
     def _endpoints2rad(self):
         """
