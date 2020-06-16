@@ -25,6 +25,7 @@ def test_gcp_epicentral_distance(path):
 
 
 def test_gcp_midpoint(path):
-    assert all(
-        np.round(np.rad2deg(path._point_at_fraction(0.5)), 2) == (-6.81, -159.18)
-    )
+    colat, lon = np.rad2deg(path._point_at_fraction(0.5))
+    lat = 90 - colat
+    assert np.round(lat, 2) == -6.81
+    assert np.round(lon, 2) == -159.18

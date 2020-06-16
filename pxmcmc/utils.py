@@ -231,3 +231,33 @@ class GreatCirclePath:
         numerator = np.tan(np.pi / 2 - theta1)
         denominator = np.cos(alpha1)
         return np.arctan2(numerator, denominator)
+
+    def _node_lon(self):
+        alpha0 = self._course_at_node()
+        sig01 = self._node_to_start()
+        phi01 = np.arctan2(np.sin(alpha0) * np.sin(sig01), np.cos(sig01))
+        return self.start[1] - phi01
+
+    def _point_at_fraction(self, frac):
+        """
+        Returns (colat, lon) in radians of a point a fraction frac along the minor arc of the GCP
+        """
+        dist = self._node_to_start() + frac * self._epicentral_distance()
+        colat = self._colat_at_fraction(dist)
+        lon = self._lon_at_fraction(dist)
+        return (colat, lon)
+
+    def _colat_at_fraction(self, dist):
+        alpha0 = self._course_at_node()
+        numerator = np.cos(alpha0) * np.sin(dist)
+        denominator = np.sqrt(
+            np.cos(dist) ** 2 + np.sin(alpha0) ** 2 * np.sin(dist) ** 2
+        )
+        return np.pi / 2 - np.arctan2(numerator, denominator)
+
+    def _lon_at_fraction(self, dist):
+        alpha0 = self._course_at_node()
+        phi0 = self._node_lon()
+        numerator = np.sin(alpha0) * np.sin(dist)
+        denominator = np.cos(dist)
+        return np.arctan2(numerator, denominator) + phi0
