@@ -89,31 +89,31 @@ def get_parameter_from_chain(chain, L, base, el, em):
 
 
 def wavelet_basis(L, B, J_min, dirs=1, spin=0):
-    phi_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, spin, J_min)
+    theta_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, spin, J_min)
     psi_lm = psi_lm[:, J_min:]
-    phi_lm = _fix_phi(L, B, J_min)
-    basis = np.concatenate((phi_lm, psi_lm), axis=1)
+    theta_lm = _fix_theta(L, B, J_min)
+    basis = np.concatenate((theta_lm, psi_lm), axis=1)
     return basis
 
 
-def _fix_phi(L, B, J_min):
+def _fix_theta(L, B, J_min):
     J_max = pys2let.pys2let_j_max(B, L, J_min)
     nscales = J_max - J_min + 1
     dummy_psilm = np.zeros(((L) ** 2, nscales), dtype=np.complex)
-    dummy_philm = np.zeros(((L) ** 2), dtype=np.complex)
+    dummy_thetalm = np.zeros(((L) ** 2), dtype=np.complex)
     for ell in range(L):
         for em in range(-ell, ell + 1):
-            dummy_philm[ell * ell + ell + em] = np.sqrt((2 * ell + 1) / (4 * np.pi))
+            dummy_thetalm[ell * ell + ell + em] = np.sqrt((2 * ell + 1) / (4 * np.pi))
 
     dummy_psilm_hp = np.zeros(
         (L * (L + 1) // 2, dummy_psilm.shape[1]), dtype=np.complex
     )
-    dummy_philm_hp = pys2let.lm2lm_hp(dummy_philm.flatten(), L)
+    dummy_thetalm_hp = pys2let.lm2lm_hp(dummy_thetalm.flatten(), L)
     dummy_lm_hp = pys2let.synthesis_axisym_lm_wav(
-        dummy_psilm_hp, dummy_philm_hp, B, L, J_min
+        dummy_psilm_hp, dummy_thetalm_hp, B, L, J_min
     )
-    phi_lm = pys2let.lm_hp2lm(dummy_lm_hp, L)
-    return np.expand_dims(phi_lm, axis=1)
+    theta_lm = pys2let.lm_hp2lm(dummy_lm_hp, L)
+    return np.expand_dims(theta_lm, axis=1)
 
 
 class GreatCirclePath:
@@ -141,30 +141,28 @@ class GreatCirclePath:
         Converts endpoints to radians
         Latitudes become colatitudes
         """
-        # start_lt, start_ln = self.start
-        # stop_lt, stop_ln = self.stop
-        # start_clt = 90 - start_lt
-        # stop_clt = 90 - stop_lt
-        # self.start = tuple(np.deg2rad((start_clt, start_ln)))
-        # self.stop = tuple(np.deg2rad((stop_clt, stop_ln)))
-        self.start = tuple(np.deg2rad(self.start))
-        self.stop = tuple(np.deg2rad(self.stop))
+        start_lt, start_ln = self.start
+        stop_lt, stop_ln = self.stop
+        start_clt = 90 - start_lt
+        stop_clt = 90 - stop_lt
+        self.start = tuple(np.deg2rad((start_clt, start_ln)))
+        self.stop = tuple(np.deg2rad((stop_clt, stop_ln)))
 
     def _course(self):
         """
         Calculates course from start point to stop point
         """
-        phi1 = self.start[0]
-        phi2 = self.stop[0]
-        lmda12 = self.stop[1] - self.start[1]
-        if lmda12 > 180:
-            lmda12 -= 360
-        elif lmda12 < -180:
-            lmda12 += 360
+        theta1 = self.start[0]
+        theta2 = self.stop[0]
+        phi = self.stop[1] - self.start[1]
+        if phi > 180:
+            phi -= 360
+        elif phi < -180:
+            phi += 360
         else:
             pass
-        numerator = np.cos(phi2) * np.sin(lmda12)
-        denominator = np.cos(phi1) * np.sin(phi2) - np.sin(phi1) * np.cos(
-            phi2
-        ) * np.cos(lmda12)
+        numerator = np.sin(theta2) * np.sin(phi)
+        denominator = np.sin(theta1) * np.cos(theta2) - np.cos(theta1) * np.sin(
+            theta2
+        ) * np.cos(phi)
         return np.arctan2(numerator, denominator)
