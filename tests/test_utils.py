@@ -1,5 +1,6 @@
 from pxmcmc import utils
 import numpy as np
+import healpy as hp
 import pytest
 
 
@@ -36,3 +37,17 @@ def test_soft(ins, thresh, outs):
 )
 def test_hard(ins, thresh, outs):
     assert all(utils.hard(ins, T=thresh) == outs)
+
+
+@pytest.mark.parametrize("start,stop,point", [((0, 0), (90, 0), (45, 0))])
+def test_point_on_gcp(start, stop, point, Nside):
+    path = utils.GreatCirclePath(start, stop, Nside)
+    path._get_points()
+    assert point in path.points
+
+
+@pytest.mark.parametrize("start,stop", [((60, 60), (0, 0))])
+def test_pixels_on_gcp(start, stop, Nside):
+    path = utils.GreatCirclePath(start, stop, Nside)
+    path.fill()
+    assert all(pix == 0 or pix == 1 for pix in path.map)
