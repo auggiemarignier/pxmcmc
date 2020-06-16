@@ -148,7 +148,7 @@ class GreatCirclePath:
         self.start = tuple(np.deg2rad((start_clt, start_ln)))
         self.stop = tuple(np.deg2rad((stop_clt, stop_ln)))
 
-    def _course(self):
+    def _course_at_start(self):
         """
         Calculates course from start point to stop point
         """
@@ -165,4 +165,16 @@ class GreatCirclePath:
         denominator = np.sin(theta1) * np.cos(theta2) - np.cos(theta1) * np.sin(
             theta2
         ) * np.cos(phi)
+        return np.arctan2(numerator, denominator)
+
+    def _course_at_node(self):
+        """
+        Calculates course at node (i.e. point at which GC crosses equator northwards)
+        """
+        alpha1 = self._course_at_start()
+        theta1 = self.start[0]
+        numerator = np.sin(alpha1) * np.sin(theta1)
+        denominator = np.sqrt(
+            np.cos(alpha1) ** 2 + (np.sin(alpha1) ** 2) * (np.cos(theta1) ** 2)
+        )
         return np.arctan2(numerator, denominator)
