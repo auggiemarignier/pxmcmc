@@ -205,13 +205,13 @@ class GCPIntegralOperator(ForwardOperator):
         TODO: Check what happens when each data point has a different error
         TODO: Figure out what to do with minor/major and nsim
         """
-        all_data = np.np.loadtxt(datafile)
+        all_data = np.loadtxt(datafile)
         start_lat = all_data[:, 0]
         start_lon = all_data[:, 1]
-        self.start = np.stack([start_lon, start_lat], axis=1)
+        self.start = np.stack([start_lat, start_lon], axis=1)
         stop_lat = all_data[:, 2]
         stop_lon = all_data[:, 3]
-        self.stop = np.stack([stop_lon, stop_lat], axis=1)
+        self.stop = np.stack([stop_lat, stop_lon], axis=1)
         self.data = all_data[:, 4]
         sig_d = all_data[:, 5]
         self.sig_d = np.max(sig_d)
