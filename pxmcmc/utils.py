@@ -128,6 +128,18 @@ class GreatCirclePath:
         self.map = np.zeros(hp.nside2npix(Nside))
 
         self._endpoints2rad()
+        self.theta1 = self.start[0]
+        self.theta2 = self.stop[0]
+        self.phi12 = self.stop[1] - self.start[1]
+        if self.phi12 > 180:
+            self.phi12 -= 360
+        elif self.phi12 < -180:
+            self.phi12 += 360
+        else:
+            pass
+        self.alpha1 = self._course_at_start()
+        self.alpha0 = self._course_at_node()
+        self.sig01 = self._node_to_start()
 
     def fill(self):
         pixels = [hp.ang2pix(self.Nside, *point) for point in self.points]
@@ -154,49 +166,29 @@ class GreatCirclePath:
         """
         Calculates course from start point to stop point
         """
-        theta1 = self.start[0]
-        theta2 = self.stop[0]
-        phi12 = self.stop[1] - self.start[1]
-        if phi12 > 180:
-            phi12 -= 360
-        elif phi12 < -180:
-            phi12 += 360
-        else:
-            pass
-        numerator = np.sin(theta2) * np.sin(phi12)
-        denominator = np.sin(theta1) * np.cos(theta2) - np.cos(theta1) * np.sin(
-            theta2
-        ) * np.cos(phi12)
+        numerator = np.sin(self.theta2) * np.sin(self.phi12)
+        denominator = np.sin(self.theta1) * np.cos(self.theta2) - np.cos(self.theta1) * np.sin(
+            self.theta2
+        ) * np.cos(self.phi12)
         return np.arctan2(numerator, denominator)
 
     def _course_at_end(self):
         """
         Calculates course at endpoint
         """
-        theta1 = self.start[0]
-        theta2 = self.stop[0]
-        phi12 = self.stop[1] - self.start[1]
-        if phi12 > 180:
-            phi12 -= 360
-        elif phi12 < -180:
-            phi12 += 360
-        else:
-            pass
-        numerator = np.sin(theta1) * np.sin(phi12)
-        denominator = np.cos(theta2) * np.sin(theta1) * np.cos(phi12) - np.cos(
-            theta1
-        ) * np.sin(theta2)
+        numerator = np.sin(self.theta1) * np.sin(self.phi12)
+        denominator = np.cos(self.theta2) * np.sin(self.theta1) * np.cos(self.phi12) - np.cos(
+            self.theta1
+        ) * np.sin(self.theta2)
         return np.arctan2(numerator, denominator)
 
     def _course_at_node(self):
         """
         Calculates course at node (i.e. point at which GC crosses equator northwards)
         """
-        alpha1 = self._course_at_start()
-        theta1 = self.start[0]
-        numerator = np.sin(alpha1) * np.sin(theta1)
+        numerator = np.sin(self.alpha1) * np.sin(self.theta1)
         denominator = np.sqrt(
-            np.cos(alpha1) ** 2 + (np.sin(alpha1) ** 2) * (np.cos(theta1) ** 2)
+            np.cos(self.alpha1) ** 2 + (np.sin(self.alpha1) ** 2) * (np.cos(self.theta1) ** 2)
         )
         return np.arctan2(numerator, denominator)
 
@@ -204,62 +196,46 @@ class GreatCirclePath:
         """
         Calculates the epicentral distance between the start and stop points
         """
-        theta1 = self.start[0]
-        theta2 = self.stop[0]
-        phi12 = self.stop[1] - self.start[1]
-        if phi12 > 180:
-            phi12 -= 360
-        elif phi12 < -180:
-            phi12 += 360
-        else:
-            pass
-
         numerator = np.sqrt(
             (
-                np.sin(theta1) * np.cos(theta2)
-                - np.cos(theta1) * np.sin(theta2) * np.cos(phi12)
+                np.sin(self.theta1) * np.cos(self.theta2)
+                - np.cos(self.theta1) * np.sin(self.theta2) * np.cos(self.phi12)
             )
             ** 2
-            + (np.sin(theta2) * np.sin(phi12)) ** 2
+            + (np.sin(self.theta2) * np.sin(self.phi12)) ** 2
         )
-        denominator = np.cos(theta1) * np.cos(theta2) + np.sin(theta1) * np.sin(
-            theta2
-        ) * np.cos(phi12)
+        denominator = np.cos(self.theta1) * np.cos(self.theta2) + np.sin(self.theta1) * np.sin(
+            self.theta2
+        ) * np.cos(self.phi12)
         return np.arctan2(numerator, denominator)
 
     def _node_to_start(self):
-        alpha1 = self._course_at_start()
-        theta1 = self.start[0]
-        numerator = np.tan(np.pi / 2 - theta1)
-        denominator = np.cos(alpha1)
+        numerator = np.tan(np.pi / 2 - self.theta1)
+        denominator = np.cos(self.alpha1)
         return np.arctan2(numerator, denominator)
 
     def _node_lon(self):
-        alpha0 = self._course_at_node()
-        sig01 = self._node_to_start()
-        phi01 = np.arctan2(np.sin(alpha0) * np.sin(sig01), np.cos(sig01))
+        phi01 = np.arctan2(np.sin(self.alpha0) * np.sin(self.sig01), np.cos(self.sig01))
         return self.start[1] - phi01
 
     def _point_at_fraction(self, frac):
         """
         Returns (colat, lon) in radians of a point a fraction frac along the minor arc of the GCP
         """
-        dist = self._node_to_start() + frac * self._epicentral_distance()
+        dist = self.sig01 + frac * self._epicentral_distance()
         colat = self._colat_at_fraction(dist)
         lon = self._lon_at_fraction(dist)
         return (colat, lon)
 
     def _colat_at_fraction(self, dist):
-        alpha0 = self._course_at_node()
-        numerator = np.cos(alpha0) * np.sin(dist)
+        numerator = np.cos(self.alpha0) * np.sin(dist)
         denominator = np.sqrt(
-            np.cos(dist) ** 2 + np.sin(alpha0) ** 2 * np.sin(dist) ** 2
+            np.cos(dist) ** 2 + np.sin(self.alpha0) ** 2 * np.sin(dist) ** 2
         )
         return np.pi / 2 - np.arctan2(numerator, denominator)
 
     def _lon_at_fraction(self, dist):
-        alpha0 = self._course_at_node()
         phi0 = self._node_lon()
-        numerator = np.sin(alpha0) * np.sin(dist)
+        numerator = np.sin(self.alpha0) * np.sin(dist)
         denominator = np.cos(dist)
         return np.arctan2(numerator, denominator) + phi0
