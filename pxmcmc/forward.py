@@ -228,12 +228,12 @@ class GCPIntegralOperator(ForwardOperator):
         self.path_matrix = sparse.load_npz(path_martix_file)
 
     def _build_path_matrix_file(self, path_matrix_file):
-        from pxmcmc.utils import GreatCirclePath
+        from greatcirclepaths import GreatCirclePath
         from multiprocessing import Pool
 
         def build_path(start, stop):
             path = GreatCirclePath(start, stop, self.Nside)
-            path.get_points(2000)
+            path.get_points(1000)
             path.fill()
             return path.map
 
