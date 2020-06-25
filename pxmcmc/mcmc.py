@@ -160,7 +160,8 @@ class PxMALA(MYULA):
             logpiXp, L2Xp, L1Xp = self.logpi(X_prop, prop_preds)
 
             logalpha = logtransXpXc + logpiXp - logtransXcXp - logpiXc
-            if np.log(np.random.rand()) < logalpha:
+            accept = np.log(np.random.rand()) < logalpha
+            if accept:
                 X_curr = X_prop
                 curr_preds = prop_preds
                 gradg_curr = gradg_prop
@@ -175,12 +176,12 @@ class PxMALA(MYULA):
             self._tune_delta(i)
 
             if i >= self.nburn:
-                if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
-                    self.logPi[j - 1] = logpiXc
-                    self.L2s[j - 1] = L2Xc
-                    self.L1s[j - 1] = L1Xc
-                    self.preds[j - 1] = curr_preds
-                    self.chain[j - 1] = X_curr
+                if (self.ngap == 0 or (i - self.nburn) % self.ngap == 0) and accept:
+                    self.logPi[j] = logpiXc
+                    self.L2s[j] = L2Xc
+                    self.L1s[j] = L1Xc
+                    self.preds[j] = curr_preds
+                    self.chain[j] = X_curr
                     j += 1
             if (i + 1) % self.verbosity == 0:
                 self._print_progress(
