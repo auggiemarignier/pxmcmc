@@ -11,6 +11,8 @@ def save_mcmc(mcmc, params, outpath, filename="outputs", **kwargs):
         f.create_dataset("L1s", data=mcmc.L1s)
         if hasattr(mcmc, "acceptance_trace"):
             f.create_dataset("acceptances", data=mcmc.acceptance_trace, dtype="i1")
+        if hasattr(mcmc, "deltas_trace"):
+            f.create_dataset("deltas", data=mcmc.deltas_trace)
 
         for attr in params.__dict__.keys():
             f.attrs[attr] = getattr(params, attr)
