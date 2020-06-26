@@ -36,7 +36,7 @@ def test_ISWTForward(iswtoperator, Nside):
         f_scal_lm = pys2let.lm_hp2lm(f_scal_lm_hp, L)
         X = flatten_mlm(f_wav_lm, f_scal_lm)
     else:
-        X = np.copy(f)
+        X = np.copy(flm)
 
     assert np.allclose(iswtoperator.forward(X), flm)
 
