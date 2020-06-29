@@ -42,6 +42,7 @@ print(f"Number of model parameters: {forwardop.nparams}")
 NOW = datetime.datetime.now()
 
 mcmc = PxMALA(forwardop, regulariser, params)
+print("Hello")
 mcmc.run()
 
 save_mcmc(
