@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import laplace
+from pxmcmc.utils import chebyshev1, cheb1der
 
 
 class PxMCMCParams:
@@ -7,6 +8,7 @@ class PxMCMCParams:
         self,
         lmda=3e-5,
         delta=1e-5,
+        s=1,
         mu=1,
         nsamples=int(1e6),
         nburn=int(1e3),
@@ -17,6 +19,7 @@ class PxMCMCParams:
         self.lmda = lmda  # prox parameter. tuned to make proxf abritrarily close to f
         self.delta = delta  # Forward-Euler approximation step-size
         self.mu = mu  # regularization parameter
+        self.s = s  # max order of Chebyshev polynomials
         self.nsamples = nsamples  # number of desired samples
         self.nburn = nburn  # burn-in size
         self.ngap = ngap  # Thinning parameter=number of iterations between samples. reduces correlations between samples
@@ -213,6 +216,50 @@ class PxMALA(MYULA):
 
 
 class SKROCK(PxMCMC):
-    def __init__(self, forward, mcmcparams=PxMCMCParams()):
-        super().__init__(forward, mcmcparams=mcmcparams)
-        raise NotImplementedError
+    def __init__(self, forward, prox, mcmcparams=PxMCMCParams()):
+
+        super().__init__(forward, prox, mcmcparams=mcmcparams)
+        self.eta = 0.05
+        self.omega_0 = 1 + self.eta / (self.s * self.s)
+        self.omega_1 = chebyshev1(self.omega_0, self.s) / cheb1der(self.omega_0, self.s)
+        self._recursion_coefs()
+
+    def chain_step(self, X):
+        Z = np.random.randn(len(X))
+        if self.complex:
+            Z = Z + np.random.randn(len(X)) * 1j
+        return self._K_recursion(X, self.s, Z)
+
+    def _K_recursion(self, X, s, Z):
+        if s == 0:
+            return X
+        elif s == 1:
+            return (
+                X
+                + self.mus[1]
+                * self.delta
+                * gradlogpi(X + self.nus[1] * np.sqrt(2 * self.delta) * Z)
+                + self.ks[1] * np.sqrt(2 * self.delta) * Z
+            )
+        else:
+            return (
+                self.mus[s] * self.delta * gradlogpi(self._K_recursion(X, s - 1, Z))
+                + self.nus[s] * self._K_recursion(X, s - 1, Z)
+                + self.ks[s]
+                - self._K_recursion(X, s - 2, Z)
+            )
+
+    def _recursion_coefs(self):
+        self.mus = np.zeros(self.s)
+        self.nus = np.zeros(self.s)
+        self.ks = np.zeros(self.s)
+
+        self.mus[1] = self.omega_1 / self.omega_0
+        self.nus[1] = self.s * self.omega_1 / 2
+        self.ks[1] = self.s * self.omega_1 / self.omega_0
+
+        for j in range(2, self.s + 1):
+            cheb_ratio = chebyshev1(self.omega_0, j - 1) / chebyshev1(self.omega_1, j)
+            self.mus[j] = 2 * self.omega_1 * cheb_ratio
+            self.nus[j] = 2 * self.omega_0 * cheb_ratio
+            self.ks[j] = 1 - self.nus[0]
