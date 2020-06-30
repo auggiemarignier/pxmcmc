@@ -37,3 +37,8 @@ def test_soft(ins, thresh, outs):
 )
 def test_hard(ins, thresh, outs):
     assert all(utils.hard(ins, T=thresh) == outs)
+
+
+@pytest.mark.parametrize("order,X,expected", [(0, 5, 1), (1, 2, 2), (5, 3, 3363)])
+def test_chebyshev(order, X, expected):
+    assert utils.chebyshev(X, order=order) == expected

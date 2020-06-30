@@ -114,3 +114,19 @@ def _fix_theta(L, B, J_min):
     )
     theta_lm = pys2let.lm_hp2lm(dummy_lm_hp, L)
     return np.expand_dims(theta_lm, axis=1)
+
+
+def chebyshev(X, order):
+    """
+    Calculates the Chebyshev polynomial of the first kind of the given order at point X.
+    Uses the recurrence relation
+            T_{k+1}(X) = 2XT_{k}(X) - t_{k-1}(X)
+            T_{1}(X) = X
+            T_{0}(X) = 1
+    """
+    if order == 0:
+        return 1
+    elif order == 1:
+        return X
+    else:
+        return 2 * X * chebyshev(X, order - 1) - chebyshev(X, order - 2)
