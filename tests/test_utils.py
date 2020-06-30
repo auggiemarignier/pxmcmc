@@ -40,5 +40,15 @@ def test_hard(ins, thresh, outs):
 
 
 @pytest.mark.parametrize("order,X,expected", [(0, 5, 1), (1, 2, 2), (5, 3, 3363)])
-def test_chebyshev(order, X, expected):
-    assert utils.chebyshev(X, order=order) == expected
+def test_chebyshev1(order, X, expected):
+    assert utils.chebyshev1(X, order=order) == expected
+
+
+@pytest.mark.parametrize("order,X,expected", [(0, 5, 1), (1, 2, 4), (5, 3, 6930)])
+def test_chebyshev2(order, X, expected):
+    assert utils.chebyshev2(X, order=order) == expected
+
+
+@pytest.mark.parametrize("order,X,expected", [(0, 5, 0), (1, 2, 1), (5, 3, 5945)])
+def test_cheb1der(order, X, expected):
+    assert utils.cheb1der(X, order=order) == expected
