@@ -56,6 +56,13 @@ class PxMCMC:
         logPi = -self.mu * L1 - L2 / (2 * self.forward.sig_d ** 2)
         return logPi, L2, L1
 
+    def _gradlogpi(self, X, preds=None):
+        gradf = (X - self.prox.proxf(X)) / self.lmda
+        if preds is None:
+            preds = self.forward.forward(X)
+        gradg = self.forward.calc_gradg(preds)
+        return - gradf - gradg
+
     def _print_progress(self, i, logpi, **kwargs):
         if i < self.nburn:
             print(f"\rBurning in", end="")
@@ -238,12 +245,12 @@ class SKROCK(PxMCMC):
                 X
                 + self.mus[1]
                 * self.delta
-                * gradlogpi(X + self.nus[1] * np.sqrt(2 * self.delta) * Z)
+                * self._gradlogpi(X + self.nus[1] * np.sqrt(2 * self.delta) * Z)
                 + self.ks[1] * np.sqrt(2 * self.delta) * Z
             )
         else:
             return (
-                self.mus[s] * self.delta * gradlogpi(self._K_recursion(X, s - 1, Z))
+                self.mus[s] * self.delta * self._gradlogpi(self._K_recursion(X, s - 1, Z))
                 + self.nus[s] * self._K_recursion(X, s - 1, Z)
                 + self.ks[s]
                 - self._K_recursion(X, s - 2, Z)
