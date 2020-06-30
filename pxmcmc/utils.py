@@ -116,17 +116,51 @@ def _fix_theta(L, B, J_min):
     return np.expand_dims(theta_lm, axis=1)
 
 
-def chebyshev(X, order):
+def chebyshev1(X, order):
     """
     Calculates the Chebyshev polynomial of the first kind of the given order at point X.
     Uses the recurrence relation
-            T_{k+1}(X) = 2XT_{k}(X) - t_{k-1}(X)
+            T_{k+1}(X) = 2XT_{k}(X) - T_{k-1}(X)
             T_{1}(X) = X
             T_{0}(X) = 1
     """
-    if order == 0:
+    if order < 0:
+        raise ValueError("order must be >= 0")
+    elif order == 0:
         return 1
     elif order == 1:
         return X
     else:
-        return 2 * X * chebyshev(X, order - 1) - chebyshev(X, order - 2)
+        return 2 * X * chebyshev1(X, order - 1) - chebyshev1(X, order - 2)
+
+
+def chebyshev2(X, order):
+    """
+    Calculates the Chebyshev polynomial of the second kind of the given order at point X.
+    Uses the recurrence relation
+            U_{k+1}(X) = 2XU_{k}(X) - U_{k-1}(X)
+            U_{1}(X) = 2X
+            U_{0}(X) = 1
+    """
+    if order < 0:
+        raise ValueError("order must be >= 0")
+    elif order == 0:
+        return 1
+    elif order == 1:
+        return 2 * X
+    else:
+        return 2 * X * chebyshev2(X, order - 1) - chebyshev2(X, order - 2)
+
+
+def cheb1der(X, order):
+    """
+    Evaluates the derivative of the Chebyshev polynomial of the first kind of the given order at point X.
+    Uses the relation
+            dT_{n}/dx = nU_{n-1}
+    """
+    if order < 0:
+        raise ValueError("order must be > 0")
+    elif order == 0:
+        return 0
+    else:
+        return order * chebyshev2(X, order - 1)
