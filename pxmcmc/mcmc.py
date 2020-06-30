@@ -231,6 +231,33 @@ class SKROCK(PxMCMC):
         self.omega_1 = chebyshev1(self.omega_0, self.s) / cheb1der(self.omega_0, self.s)
         self._recursion_coefs()
 
+    def run(self):
+        i = 0  # total samples
+        j = 0  # saved samples (excludes burn-in and thinned samples)
+        X_curr, curr_preds = self._initial_sample()
+        while j < self.nsamples:
+            X_prop = self.chain_step(X_curr)
+            prop_preds = self.forward.forward(X_prop)
+
+            X_curr = X_prop
+            curr_preds = prop_preds
+
+            if i >= self.nburn:
+                if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
+                    self.logPi[j], self.L2s[j], self.L1s[j] = self.logpi(
+                        X_curr, curr_preds
+                    )
+                    self.preds[j] = curr_preds
+                    self.chain[j] = X_curr
+                    j += 1
+            if (i + 1) % self.verbosity == 0:
+                self._print_progress(
+                    j - 1, self.logPi[j - 1], L2=self.L2s[j - 1], L1=self.L1s[j - 1]
+                )
+            i += 1
+
+        print(f"\nDONE")
+
     def chain_step(self, X):
         Z = np.random.randn(len(X))
         if self.complex:
