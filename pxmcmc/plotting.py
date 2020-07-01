@@ -7,9 +7,9 @@ from pxmcmc.utils import suppress_stdout
 
 
 def mollview(image, figsize=(10, 8), **kwargs):
-    fig = plt.figure(num=0, figsize=figsize)
+    fig = plt.figure(num=50, figsize=figsize)  # this figure number thing is a bit hacky...
     with suppress_stdout():
-        hp.mollview(image, fig=0, **kwargs)
+        hp.mollview(image, fig=50, **kwargs)
         hp.graticule(30)
     return fig
 
