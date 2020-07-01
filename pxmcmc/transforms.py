@@ -55,6 +55,23 @@ class WaveletTransform(Transform):
         else:
             return alm2map(clm_hp, self.Nside)
 
+    def inverse_adjoint(self, f):
+        """
+        f is a MW map
+        Returns harmonic wavelet coefficients in MW format
+        """
+        f_wav, f_scal = pys2let.synthesis_adjoint_axisym_wav_mw(
+            f, self.B, self.L, self.J_min
+        )
+        f_scal_lm = pys2let.map2alm_mw(f_scal, self.L, self.spin)
+        f_wav_lm = np.zeros([self.L ** 2, self.nscales], dtype=np.complex)
+        vlen = self.L * (2 * self.L - 1)
+        for j in range(self.nscales):
+            f_wav_lm[:, j] = pys2let.map2alm_mw(
+                f_wav[j * vlen : (j + 1) * vlen + 1], self.L, self.spin
+            )
+        return f_wav_lm, f_scal_lm
+
     def _mw_wav_lm2hp_lm(self, X):
         wav_lm, scal_lm = expand_mlm(X, self.nscales)
         scal_lm_hp = pys2let.lm2lm_hp(scal_lm, self.L)
