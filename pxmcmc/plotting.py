@@ -6,10 +6,12 @@ from scipy.stats import laplace
 from pxmcmc.utils import suppress_stdout
 
 
-def mollview(image, **kwargs):
+def mollview(image, figsize=(10, 8), **kwargs):
+    fig = plt.figure(figsize=figsize)
     with suppress_stdout():
         hp.mollview(image, **kwargs)
         hp.graticule(30)
+    return fig
 
 
 def plot_evolution(logposteriors, L2s, L1s, figsize=(10, 8)):
