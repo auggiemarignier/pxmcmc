@@ -30,6 +30,23 @@ class Transform:
         raise NotImplementedError
 
 
+class IdentityTransform(Transform):
+    def __init__(self):
+        pass
+
+    def forward(self, X):
+        return X
+
+    def forward_adjoint(self, X):
+        return X
+
+    def inverse(self, X):
+        return X
+
+    def inverse_adjoint(self, X):
+        return X
+
+
 class WaveletTransform(Transform):
     def __init__(self, L, B, J_min, Nside=None, dirs=1, spin=0, out_type="harmonic"):
         self.L = L
