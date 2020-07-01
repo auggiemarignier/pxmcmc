@@ -6,15 +6,27 @@ from pxmcmc.utils import expand_mlm, alm2map
 
 class Transform:
     def forward(self):
-        raise NotImplementedError
-
-    def forward_adjoint(self):
+        """
+        e.g. spherical image to spherical harmonics
+        """
         raise NotImplementedError
 
     def inverse(self):
+        """
+        e.g. spherical harmonics to spherical image
+        """
+        raise NotImplementedError
+
+    def forward_adjoint(self):
+        """
+        e.g. spherical harmonics to spherical image
+        """
         raise NotImplementedError
 
     def inverse_adjoint(self):
+        """
+        e.g. spherical image to spherical harmonics
+        """
         raise NotImplementedError
 
 
