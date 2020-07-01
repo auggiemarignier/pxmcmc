@@ -145,8 +145,9 @@ class MYULA(PxMCMC):
 
 
 class PxMALA(MYULA):
-    def __init__(self, forward, prox, mcmcparams=PxMCMCParams()):
+    def __init__(self, forward, prox, mcmcparams=PxMCMCParams(), tune_delta=True):
         super().__init__(forward, prox, mcmcparams)
+        self.tune_delta = tune_delta
 
     def run(self):
         self.acceptance_trace = []
@@ -185,8 +186,9 @@ class PxMALA(MYULA):
             else:
                 self.acceptance_trace.append(0)
 
-            self._tune_delta(i)
-            self.deltas_trace.append(self.delta)
+            if self.tune_delta:
+                self._tune_delta(i)
+                self.deltas_trace.append(self.delta)
 
             if i >= self.nburn:
                 if (self.ngap == 0 or (i - self.nburn) % self.ngap == 0) and accept:
