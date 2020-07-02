@@ -5,21 +5,27 @@ import os
 from scipy import sparse
 
 from pxmcmc.utils import expand_mlm, flatten_mlm, alm2map, map2alm, wavelet_basis
+from pxmcmc.measurements import Identity, PathIntegral
+from pxmcmc.transforms import WaveletTransform
 
 
 class ForwardOperator:
     """
-    Base Forward operator
+    Base Forward operator. Combines a transform and a measurement operator
     Children of this class must define analysis/synthesis forward and gradg functions
     Children must also take data and sig_d in the constructor
     """
 
-    def __init__(self, data, sig_d, setting):
+    def __init__(self, data, sig_d, setting, transform=None, measurement=None):
         self.data = data
         self.sig_d = sig_d
         if setting not in ["analysis", "synthesis"]:
             raise ValueError
         self.setting = setting
+        if transform is not None:
+            self.transform = transform
+        if measurement is not None:
+            self.measurement = measurement
 
     def forward(self, X):
         if self.setting == "analysis":
