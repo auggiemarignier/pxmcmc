@@ -68,19 +68,15 @@ class ISWTOperator(ForwardOperator):
         self.nparams = L * L
 
         self.transform = WaveletTransform(
-            L, B, J_min, dirs=dirs, spin=spin, pred_out_type="harmonic_mw"
+            L,
+            B,
+            J_min,
+            dirs=dirs,
+            spin=spin,
+            pred_out_type="harmonic_mw",
+            param_in_type="harmonic_mw",
         )
         self.measurement = Identity(M=len(self.data), N=self.nparams)
-
-    def _gradg_synthesis(self, preds):
-        """
-        Takes in predictions of harmonic coefficients and calculates gradients wrt scaling/wavelet coefficients
-        """
-        diff_lm = preds - self.data
-        diff_lm_adj = self.measurement.adjoint(diff_lm)
-        f = pys2let.alm2map_mw(diff_lm_adj, self.transform.L, self.transform.spin)
-        f_wav_lm, f_scal_lm = self.transform.inverse_adjoint(f)
-        return flatten_mlm(f_wav_lm, f_scal_lm) / (self.sig_d ** 2)
 
 
 class SWC2PixOperator(ISWTOperator):
