@@ -19,9 +19,10 @@ def test_BaseGradg(forwardop):
 def test_ISWTForward(iswtoperator, Nside):
     from pxmcmc.utils import flatten_mlm
 
-    L = iswtoperator.L
-    B = iswtoperator.B
-    J_min = iswtoperator.J_min
+    L = iswtoperator.transform.L
+    B = iswtoperator.transform.B
+    J_min = iswtoperator.transform.J_min
+    nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
     f = np.ones(hp.nside2npix(Nside))
     flm_hp = hp.map2alm(f, L)
     flm = pys2let.lm_hp2lm(flm_hp, L)
@@ -29,7 +30,7 @@ def test_ISWTForward(iswtoperator, Nside):
     if iswtoperator.setting == "synthesis":
         f_wav_lm_hp, f_scal_lm_hp = pys2let.analysis_axisym_lm_wav(flm_hp, B, L, J_min)
         f_wav_lm = np.zeros((L ** 2, f_wav_lm_hp.shape[1]), dtype=np.complex)
-        for j in range(iswtoperator.nscales):
+        for j in range(nscales):
             f_wav_lm[:, j] = pys2let.lm_hp2lm(
                 np.ascontiguousarray(f_wav_lm_hp[:, j]), L
             )
