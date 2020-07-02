@@ -86,24 +86,16 @@ class ISWTOperator(ForwardOperator):
         """
         Takes in predictions of harmonic coefficients and computes the gradient wrt pixel values
         """
-        return (preds - self.data) / (self.sig_d ** 2)
+        return self.measurement.adjoint(preds - self.data) / (self.sig_d ** 2)
 
     def _gradg_synthesis(self, preds):
         """
         Takes in predictions of harmonic coefficients and calculates gradients wrt scaling/wavelet coefficients
         """
         diff_lm = preds - self.data
-        f = pys2let.alm2map_mw(diff_lm, self.L, 0)
-        f_wav, f_scal = pys2let.synthesis_adjoint_axisym_wav_mw(
-            f, self.B, self.L, self.J_min
-        )
-        f_scal_lm = pys2let.map2alm_mw(f_scal, self.L, 0)
-        f_wav_lm = np.zeros([self.L ** 2, self.nscales], dtype=np.complex)
-        vlen = self.L * (2 * self.L - 1)
-        for j in range(self.nscales):
-            f_wav_lm[:, j] = pys2let.map2alm_mw(
-                f_wav[j * vlen : (j + 1) * vlen + 1], self.L, 0
-            )
+        diff_lm_adj = self.measurement.adjoint(diff_lm)
+        f = pys2let.alm2map_mw(diff_lm_adj, self.transform.L, self.transform.spin)
+        f_wav_lm, f_scal_lm = self.transform.inverse_adjoint(f)
         return flatten_mlm(f_wav_lm, f_scal_lm) / (self.sig_d ** 2)
 
 
