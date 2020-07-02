@@ -7,8 +7,8 @@ class Measurement:
     """
     Measurement operators operate on some map X to create observations Y
     Adjoints operate on measurements to return some map
-    X is a vector of size N
-    Y is a vector of size M
+    X is a vector of size N (number of model parameters e.g. map pixels)
+    Y is a vector of size M (number of observations i.e. data points)
     """
 
     def __init__(self, M, N):
