@@ -48,7 +48,7 @@ class IdentityTransform(Transform):
 
 
 class WaveletTransform(Transform):
-    def __init__(self, L, B, J_min, Nside=None, dirs=1, spin=0, out_type="harmonic"):
+    def __init__(self, L, B, J_min, Nside=None, dirs=1, spin=0, pred_out_type="harmonic_mw"):
         self.L = L
         self.B = B
         self.J_min = J_min
@@ -57,21 +57,25 @@ class WaveletTransform(Transform):
         self.nscales = self.J_max - self.J_min + 1
         self.dirs = dirs
         self.spin = spin
-        assert out_type in ["harmonic", "pixel"]
-        self.out_type = out_type
+        assert pred_out_type in ["harmonic_mw", "harmonic_hp", "pixel_mw", "pixel_hp"]
+        self.pred_out_type = pred_out_type
 
     def inverse(self, X):
         """
         X is a of wavlet and scaling harmonic coefficients in MW format
-        If out_type is 'harmonic', returns spherical harmonic coefficients in MW format
-        If out_type is 'pixel', returns a Healpix map
+        If pred_out_type is 'harmonic_mw', returns spherical harmonic coefficients in MW format
+        If pred_out_type is 'pixel_hp', returns a Healpix map
         """
         clm_hp = self._mw_wav_lm2hp_lm(X)
-        if self.out_type == "harmonic":
+        if self.pred_out_type == "harmonic_hp":
+            return clm_hp
+        elif self.pred_out_type == "harmonic_mw":
             return pys2let.lm_hp2lm(clm_hp, self.L)
-        else:
+        elif self.pred_out_type == "pixel_hp":
             return alm2map(clm_hp, self.Nside)
-
+        else:
+            raise NotImplementedError
+        
     def inverse_adjoint(self, f):
         """
         f is a MW map

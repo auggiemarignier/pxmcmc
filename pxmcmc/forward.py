@@ -67,7 +67,9 @@ class ISWTOperator(ForwardOperator):
 
         self.nparams = L * L
 
-        self.transform = WaveletTransform(L, B, J_min, dirs=dirs, spin=spin, out_type="harmonic")
+        self.transform = WaveletTransform(
+            L, B, J_min, dirs=dirs, spin=spin, pred_out_type="harmonic_mw"
+        )
         self.measurement = Identity(M=len(self.data), N=self.nparams)
 
     def _gradg_synthesis(self, preds):
