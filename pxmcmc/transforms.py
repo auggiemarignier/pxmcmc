@@ -1,7 +1,7 @@
 import pys2let
 import numpy as np
 
-from pxmcmc.utils import expand_mlm, alm2map
+from pxmcmc.utils import expand_mlm, flatten_mlm, alm2map, map2alm
 
 
 class Transform:
@@ -48,7 +48,17 @@ class IdentityTransform(Transform):
 
 
 class WaveletTransform(Transform):
-    def __init__(self, L, B, J_min, Nside=None, dirs=1, spin=0, pred_out_type="harmonic_mw"):
+    def __init__(
+        self,
+        L,
+        B,
+        J_min,
+        Nside=None,
+        dirs=1,
+        spin=0,
+        pred_out_type="harmonic_mw",
+        param_in_type="harmonic_mw",
+    ):
         self.L = L
         self.B = B
         self.J_min = J_min
@@ -58,7 +68,13 @@ class WaveletTransform(Transform):
         self.dirs = dirs
         self.spin = spin
         assert pred_out_type in ["harmonic_mw", "harmonic_hp", "pixel_mw", "pixel_hp"]
-        self.pred_out_type = pred_out_type
+        self.pred_out_type = (
+            pred_out_type  # prediction outputs in harmonic/pixel space hp/mw format
+        )
+        assert param_in_type in ["harmonic_mw", "harmonic_hp", "pixel_mw", "pixel_hp"]
+        self.param_in_type = (
+            param_in_type  # wavelet coefficients in harmonic/pixel space hp/mw format
+        )
 
     def inverse(self, X):
         """
@@ -75,8 +91,22 @@ class WaveletTransform(Transform):
             return alm2map(clm_hp, self.Nside)
         else:
             raise NotImplementedError
-        
+
     def inverse_adjoint(self, f):
+        if self.param_in_type == "harmonic_mw":
+            f = pys2let.alm2map_mw(f, self.L, self.spin)
+        elif self.param_in_type == "pixel_hp":
+            f = map2alm(f, self.L)
+            f = pys2let.lm_hp2lm(f, self.L)
+            f = pys2let.alm2map_mw(f, self.L, self.spin)
+        elif self.param_in_type == "harmonic_hp":
+            f = pys2let.lm_hp2lm(f, self.L)
+            f = pys2let.alm2map_mw(f, self.L, self.spin)
+        else:
+            pass
+        return flatten_mlm(*self._mw2mw_lm_adjoint(f))
+
+    def _mw2mw_lm_adjoint(self, f):
         """
         f is a MW map
         Returns harmonic wavelet coefficients in MW format
