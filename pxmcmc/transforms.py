@@ -2,7 +2,7 @@ import pys2let
 import numpy as np
 import healpy as hp
 
-from pxmcmc.utils import expand_mlm, flatten_mlm, alm2map, map2alm
+from pxmcmc.utils import expand_mlm, flatten_mlm, alm2map, map2alm, WaveletFormatter
 
 
 class Transform:
@@ -61,6 +61,8 @@ class WaveletTransform(Transform):
         self.dirs = dirs
         self.spin = spin
 
+        self._formatter = WaveletFormatter(L, B, J_min, Nside)
+
     def inverse(self, X, in_type="harmonic_mw", out_type="harmonic_mw"):
         """
         X is a set of wavlet and scaling harmonic coefficients in MW format
@@ -97,35 +99,35 @@ class WaveletTransform(Transform):
         Returns a vector of scaling and wavelet coefficients in either pixel or harmonic space
         """
         self._check_inout_types(in_type, out_type)
-        if in_type == "harmonic_mw":
-            X_hp_lm = pys2let.lm2lm_hp(X, self.L)
-        elif in_type == "harmonic_hp":
-            X_hp_lm = X
-        elif in_type == "pixel_hp":
-            X_hp_lm = map2alm(X, self.L - 1)
-        else:
-            X_hp_lm = self._pixmw2pixhp(X)
 
+        X_hp_lm = self._intype2hp_lm(X, in_type)
         X_wav_hp_lm, X_scal_hp_lm = pys2let.analysis_axisym_lm_wav(
             X_hp_lm, self.B, self.L, self.J_min
         )
+        X_scal_out, X_wav_out = self._wavelets_hp_lm2outtype(
+            X_scal_hp_lm, X_wav_hp_lm, out_type
+        )
+        return flatten_mlm(X_wav_out, X_scal_out)
 
-        if out_type == "harmonic_hp":
-            return flatten_mlm(X_wav_hp_lm, X_scal_hp_lm)
-        elif out_type == "harmonic_mw":
-            X_scal_lm, X_wav_lm = self._harmonic_hp2harmonic_mw_wavelets(
-                X_scal_hp_lm, X_wav_hp_lm
-            )
-            return flatten_mlm(X_wav_lm, X_scal_lm)
-        elif out_type == "pixel_hp":
-            X_scal, X_wav = self._harmonic_hp2pix_hp_wavelets(X_scal_hp_lm, X_wav_hp_lm)
-            return flatten_mlm(X_wav, X_scal)
+    def _intype2hp_lm(self, X, in_type):
+        if in_type == "harmonic_hp":
+            return pys2let.lm2lm_hp(X, self.L)
+        elif in_type == "harmonic_mw":
+            return X
+        elif in_type == "pixel_hp":
+            return map2alm(X, self.L - 1)
         else:
-            X_scal_lm, X_wav_lm = self._harmonic_hp2harmonic_mw_wavelets(
-                X_scal_hp_lm, X_wav_hp_lm
-            )
-            X_scal, X_wav = self._harmonic_mw2pix_mw_wavelets(X_scal_lm, X_wav_lm)
-            return flatten_mlm(X_wav, X_scal)
+            return self._formatter._pixmw2pixhp(X)
+
+    def _wavelets_hp_lm2outtype(self, X_scal_lm_hp, X_wav_lm_hp, out_type):
+        if out_type == "harmonic_hp":
+            return X_scal_lm_hp, X_wav_lm_hp
+        elif out_type == "harmonic_mw":
+            return self._formatter._harmhp2harmmw_wavelets(X_scal_lm_hp, X_wav_lm_hp)
+        elif out_type == "pixel_hp":
+            return self._formatter._harmhp2pixhp_wavelets(X_scal_lm_hp, X_wav_lm_hp)
+        else:
+            return self._formatter._harmhp2pixmw_wavelets(X_scal_lm_hp, X_wav_lm_hp)
 
     def _mw2mw_lm_adjoint(self, f):
         """

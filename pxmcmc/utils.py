@@ -180,14 +180,20 @@ class WaveletFormatter:
         self.J_max = pys2let.pys2let_j_max(self.B, self.L, self.J_min)
         self.nscales = self.J_max - self.J_min + 1
 
-    def _pixmw2pixhp(self, f_mw):
+    def _pixmw2harmhp(self, f_mw):
         f_mw_lm = pys2let.map2alm_mw(f_mw, self.L)
-        f_hp_lm = pys2let.lm2lm_hp(f_mw_lm, self.L)
+        return pys2let.lm2lm_hp(f_mw_lm, self.L)
+
+    def _pixmw2pixhp(self, f_mw):
+        f_hp_lm = self._pixmw2harmhp(f_mw)
         return alm2map(f_hp_lm, self.Nside)
 
-    def _pixhp2pixmw(self, f_hp):
+    def _pixhp2harmmw(self, f_hp):
         f_hp_lm = map2alm(f_hp, self.L - 1)
-        f_mw_lm = pys2let.lm_hp2lm(f_hp_lm, self.L)
+        return pys2let.lm_hp2lm(f_hp_lm, self.L)
+
+    def _pixhp2pixmw(self, f_hp):
+        f_mw_lm = self._pixhp2harmmw(f_hp)
         return pys2let.alm2map_mw(f_mw_lm, self.L)
 
     def _harmonic_mw2pix_mw_wavelets(self, scal_lm, wav_lm):
@@ -199,14 +205,14 @@ class WaveletFormatter:
             )
         return scal_mw, wav_mw
 
-    def _harmonic_hp2pix_hp_wavelets(self, scal_hp_lm, wav_hp_lm):
+    def _harmhp2pixhp_wavelets(self, scal_hp_lm, wav_hp_lm):
         scal_hp = alm2map(scal_hp_lm, self.Nside)
         wav_hp = np.zeros((hp.nside2npix(self.Nside), self.nscales))
         for j in range(self.nscales):
             wav_hp[:, j] = alm2map(np.ascontiguousarray(wav_hp_lm[:, j]), self.Nside)
         return scal_hp, wav_hp
 
-    def _harmonic_hp2harmonic_mw_wavelets(self, scal_lm_hp, wav_lm_hp):
+    def _harmhp2harmmw_wavelets(self, scal_lm_hp, wav_lm_hp):
         scal_lm = pys2let.lm_hp2lm(scal_lm_hp, self.L)
         wav_lm = np.zeros((self.L * self.L, self.nscales), dtype=np.complex)
         for j in range(self.nscales):
@@ -214,3 +220,14 @@ class WaveletFormatter:
                 np.ascontiguousarray(wav_lm_hp[:, j]), self.L
             )
         return scal_lm, wav_lm
+
+    def _harmhp2pixmw_wavelets(self, scal_lm_hp, wav_lm_hp):
+        scal_lm = pys2let.lm_hp2lm(scal_lm_hp, self.L)
+        scal_mw = pys2let.alm2map_mw(scal_lm, self.L)
+        wav_mw = np.zeros((pys2let.mw_size(self.L), self.nscales), dtype=np.complex)
+        for j in range(self.nscales):
+            buff = pys2let.lm_hp2lm(
+                np.ascontiguousarray(wav_lm_hp[:, j]), self.L
+            )
+            wav_mw[:, j] = pys2let.alm2map_mw(buff, self.L)
+        return scal_mw, wav_mw
