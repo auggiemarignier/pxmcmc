@@ -159,36 +159,6 @@ class WaveletTransform(Transform):
         )
         return clm_hp
 
-    def _harmonic_hp2harmonic_mw_wavelets(self, scal_lm_hp, wav_lm_hp):
-        scal_lm = pys2let.lm_hp2lm(scal_lm_hp, self.L)
-        wav_lm = np.zeros((self.L * self.L, self.nscales), dtype=np.complex)
-        for j in range(self.nscales):
-            wav_lm[:, j] = pys2let.lm_hp2lm(
-                np.ascontiguousarray(wav_lm_hp[:, j]), self.L
-            )
-        return scal_lm, wav_lm
-
-    def _harmonic_hp2pix_hp_wavelets(self, scal_hp_lm, wav_hp_lm):
-        scal_hp = alm2map(scal_hp_lm, self.Nside)
-        wav_hp = np.zeros((hp.nside2npix(self.Nside), self.nscales))
-        for j in range(self.nscales):
-            wav_hp[:, j] = alm2map(np.ascontiguousarray(wav_hp_lm[:, j]), self.Nside)
-        return scal_hp, wav_hp
-
-    def _harmonic_mw2pix_mw_wavelets(self, scal_lm, wav_lm):
-        scal_mw = pys2let.alm2map_mw(scal_lm, self.L)
-        wav_mw = np.zeros((pys2let.mw_size(self.L)))
-        for j in range(self.nscales):
-            wav_mw[:, j] = pys2let.alm2map_mw(
-                np.ascontiguousarray(wav_lm[:, j]), self.L
-            )
-        return scal_mw, wav_mw
-
-    def _pixmw2pixhp(self, f_mw):
-        f_mw_lm = pys2let.alm2map_mw(f_mw, self.L)
-        f_hp_lm = pys2let.lm2lm_hp(f_mw_lm, self.L)
-        return alm2map(f_hp_lm, self.Nside)
-
     def _check_inout_types(self, in_type, out_type):
         if in_type not in ["harmonic_mw", "harmonic_hp", "pixel_mw", "pixel_hp"]:
             raise ValueError("Wrong input format")

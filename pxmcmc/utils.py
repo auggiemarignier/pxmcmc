@@ -164,3 +164,53 @@ def cheb1der(X, order):
         return 0
     else:
         return order * chebyshev2(X, order - 1)
+
+
+class WaveletFormatter:
+    """
+    Helper class for transforming wavelet and scaling functions between hp and mw
+    both in pixel and harmonic space
+    """
+
+    def __init__(self, L, B, J_min, Nside):
+        self.L = L
+        self.B = B
+        self.J_min = J_min
+        self.Nside = Nside
+        self.J_max = pys2let.pys2let_j_max(self.B, self.L, self.J_min)
+        self.nscales = self.J_max - self.J_min + 1
+
+    def _pixmw2pixhp(self, f_mw):
+        f_mw_lm = pys2let.map2alm_mw(f_mw, self.L)
+        f_hp_lm = pys2let.lm2lm_hp(f_mw_lm, self.L)
+        return alm2map(f_hp_lm, self.Nside)
+
+    def _pixhp2pixmw(self, f_hp):
+        f_hp_lm = map2alm(f_hp, self.L - 1)
+        f_mw_lm = pys2let.lm_hp2lm(f_hp_lm, self.L)
+        return pys2let.alm2map_mw(f_mw_lm, self.L)
+
+    def _harmonic_mw2pix_mw_wavelets(self, scal_lm, wav_lm):
+        scal_mw = pys2let.alm2map_mw(scal_lm, self.L)
+        wav_mw = np.zeros((pys2let.mw_size(self.L)))
+        for j in range(self.nscales):
+            wav_mw[:, j] = pys2let.alm2map_mw(
+                np.ascontiguousarray(wav_lm[:, j]), self.L
+            )
+        return scal_mw, wav_mw
+
+    def _harmonic_hp2pix_hp_wavelets(self, scal_hp_lm, wav_hp_lm):
+        scal_hp = alm2map(scal_hp_lm, self.Nside)
+        wav_hp = np.zeros((hp.nside2npix(self.Nside), self.nscales))
+        for j in range(self.nscales):
+            wav_hp[:, j] = alm2map(np.ascontiguousarray(wav_hp_lm[:, j]), self.Nside)
+        return scal_hp, wav_hp
+
+    def _harmonic_hp2harmonic_mw_wavelets(self, scal_lm_hp, wav_lm_hp):
+        scal_lm = pys2let.lm_hp2lm(scal_lm_hp, self.L)
+        wav_lm = np.zeros((self.L * self.L, self.nscales), dtype=np.complex)
+        for j in range(self.nscales):
+            wav_lm[:, j] = pys2let.lm_hp2lm(
+                np.ascontiguousarray(wav_lm_hp[:, j]), self.L
+            )
+        return scal_lm, wav_lm
