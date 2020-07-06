@@ -53,9 +53,9 @@ def test_cheb1der(order, X, expected):
     assert utils.cheb1der(X, order=order) == expected
 
 
-def test_formatter_pix2pix(waveletformatter, simpledata):
-    mw = waveletformatter._pixhp2pixmw(simpledata)
+def test_formatter_pix2pix(waveletformatter, simpledata_hp):
+    mw = waveletformatter._pixhp2pixmw(simpledata_hp)
     hp_rec = waveletformatter._pixmw2pixhp(mw)
-    assert np.allclose(simpledata, hp_rec)
+    assert np.allclose(simpledata_hp, hp_rec)
     mw_rec = waveletformatter._pixhp2pixmw(hp_rec)
     assert np.allclose(mw, mw_rec)
