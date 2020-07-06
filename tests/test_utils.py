@@ -1,6 +1,7 @@
 from pxmcmc import utils
 import numpy as np
 import pytest
+import pys2let
 
 
 def test_flattenmlm():
@@ -93,3 +94,16 @@ def test_harmhp2harmmw_wavelets(waveletformatter, simpledata_hp_lm):
     assert scal_lm.dtype == np.complex
     assert wav_lm.shape == (waveletformatter.L ** 2, waveletformatter.nscales)
     assert wav_lm.dtype == np.complex
+
+
+def test_harmhp2pixmw_wavelets(waveletformatter, simpledata_hp_lm):
+    scal_hp_lm = np.copy(simpledata_hp_lm)
+    wav_hp_lm = np.column_stack(
+        [simpledata_hp_lm for _ in range(waveletformatter.nscales)]
+    )
+    scal_lm, wav_lm = waveletformatter._harmhp2pixmw_wavelets(scal_hp_lm, wav_hp_lm)
+    assert scal_lm.shape == (pys2let.mw_size(waveletformatter.L),)
+    assert scal_lm.dtype == np.complex
+    assert wav_lm.shape == (pys2let.mw_size(waveletformatter.L), waveletformatter.nscales)
+    assert wav_lm.dtype == np.complex
+  
