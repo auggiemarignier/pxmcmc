@@ -227,8 +227,17 @@ class WaveletFormatter:
         scal_mw = pys2let.alm2map_mw(scal_lm, self.L, self.spin)
         wav_mw = np.zeros((pys2let.mw_size(self.L), self.nscales), dtype=np.complex)
         for j in range(self.nscales):
-            buff = pys2let.lm_hp2lm(
-                np.ascontiguousarray(wav_lm_hp[:, j]), self.L
-            )
+            buff = pys2let.lm_hp2lm(np.ascontiguousarray(wav_lm_hp[:, j]), self.L)
             wav_mw[:, j] = pys2let.alm2map_mw(buff, self.L, self.spin)
         return scal_mw, wav_mw
+
+    def _harmmw2harmhp_wavelets(self, scal_lm, wav_lm):
+        scal_lm_hp = pys2let.lm2lm_hp(scal_lm, self.L)
+        wav_lm_hp = np.zeros(
+            (self.L * (self.L + 1) // 2, self.nscales), dtype=np.complex
+        )
+        for j in range(self.nscales):
+            wav_lm_hp[:, j] = pys2let.lm2lm_hp(
+                np.ascontiguousarray(wav_lm[:, j]), self.L
+            )
+        return scal_lm_hp, wav_lm_hp

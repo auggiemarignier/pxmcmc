@@ -118,7 +118,7 @@ class WaveletTransform(Transform):
         if in_type == "harmonic_hp":
             return scal, wav
         elif in_type == "harmonic_mw":
-            return self._formatter._harmmw2harm(scal, wav)
+            return self._formatter._harmmw2harmhp_wavelets(scal, wav)
         elif in_type == "pixel_hp":
             return
         else:

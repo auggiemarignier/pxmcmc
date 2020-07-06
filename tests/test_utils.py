@@ -96,6 +96,35 @@ def test_harmhp2harmmw_wavelets(waveletformatter, simpledata_hp_lm):
     assert wav_lm.dtype == np.complex
 
 
+def test_harmmw2harmhp_wavelets(waveletformatter, simpledata_lm):
+    scal_lm = np.copy(simpledata_lm)
+    wav_lm = np.column_stack([simpledata_lm for _ in range(waveletformatter.nscales)])
+    scal_hp_lm, wav_hp_lm = waveletformatter._harmmw2harmhp_wavelets(scal_lm, wav_lm)
+    assert scal_hp_lm.shape == (waveletformatter.L * (waveletformatter.L + 1) // 2,)
+    assert scal_hp_lm.dtype == np.complex
+    assert wav_hp_lm.shape == (
+        waveletformatter.L * (waveletformatter.L + 1) // 2,
+        waveletformatter.nscales,
+    )
+    assert wav_hp_lm.dtype == np.complex
+
+
+def test_formatter_harm2harm_wavelets(waveletformatter, simpledata_lm):
+    scal_lm = np.copy(simpledata_lm)
+    wav_lm = np.column_stack([simpledata_lm for _ in range(waveletformatter.nscales)])
+    scal_hp_lm, wav_hp_lm = waveletformatter._harmmw2harmhp_wavelets(scal_lm, wav_lm)
+    scal_lm_rec, wav_lm_rec = waveletformatter._harmhp2harmmw_wavelets(
+        scal_hp_lm, wav_hp_lm
+    )
+    assert np.allclose(scal_lm_rec, scal_lm)
+    assert np.allclose(wav_lm_rec, wav_lm)
+    scal_hp_lm_rec, wav_hp_lm_rec = waveletformatter._harmmw2harmhp_wavelets(
+        scal_lm_rec, wav_lm_rec
+    )
+    assert np.allclose(scal_hp_lm_rec, scal_hp_lm)
+    assert np.allclose(wav_hp_lm_rec, wav_hp_lm)
+
+
 def test_harmhp2pixmw_wavelets(waveletformatter, simpledata_hp_lm):
     scal_hp_lm = np.copy(simpledata_hp_lm)
     wav_hp_lm = np.column_stack(
@@ -104,5 +133,8 @@ def test_harmhp2pixmw_wavelets(waveletformatter, simpledata_hp_lm):
     scal_lm, wav_lm = waveletformatter._harmhp2pixmw_wavelets(scal_hp_lm, wav_hp_lm)
     assert scal_lm.shape == (pys2let.mw_size(waveletformatter.L),)
     assert scal_lm.dtype == np.complex
-    assert wav_lm.shape == (pys2let.mw_size(waveletformatter.L), waveletformatter.nscales)
+    assert wav_lm.shape == (
+        pys2let.mw_size(waveletformatter.L),
+        waveletformatter.nscales,
+    )
     assert wav_lm.dtype == np.complex
