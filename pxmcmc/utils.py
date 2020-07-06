@@ -250,3 +250,12 @@ class WaveletFormatter:
         for j in range(self.nscales):
             wav_lm_hp[:, j] = self._pixmw2harmhp(np.ascontiguousarray(wav[:, j]))
         return scal_lm_hp, wav_lm_hp
+
+    def _pixhp2harmhp_wavelets(self, scal, wav):
+        scal_lm_hp = map2alm(scal, self.L - 1)
+        wav_lm_hp = np.zeros(
+            (self.L * (self.L + 1) // 2, self.nscales), dtype=np.complex
+        )
+        for j in range(self.nscales):
+            wav_lm_hp[:, j] = map2alm(np.ascontiguousarray(wav[:, j]), self.L - 1)
+        return scal_lm_hp, wav_lm_hp
