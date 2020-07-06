@@ -51,3 +51,11 @@ def test_chebyshev2(order, X, expected):
 @pytest.mark.parametrize("order,X,expected", [(0, 5, 0), (1, 2, 1), (5, 3, 5945)])
 def test_cheb1der(order, X, expected):
     assert utils.cheb1der(X, order=order) == expected
+
+
+def test_formatter_pix2pix(waveletformatter, simpledata):
+    mw = waveletformatter._pixhp2pixmw(simpledata)
+    hp_rec = waveletformatter._pixmw2pixhp(mw)
+    assert np.allclose(simpledata, hp_rec)
+    mw_rec = waveletformatter._pixhp2pixmw(hp_rec)
+    assert np.allclose(mw, mw_rec)

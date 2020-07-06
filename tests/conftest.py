@@ -6,6 +6,8 @@ import pys2let
 from pxmcmc.mcmc import PxMCMC
 from pxmcmc.forward import ForwardOperator, ISWTOperator, SWC2PixOperator
 from pxmcmc.prox import L1
+from pxmcmc.transforms import WaveletTransform
+from pxmcmc.utils import map2alm, WaveletFormatter
 
 
 @pytest.fixture
@@ -40,12 +42,12 @@ def setting(request):
 
 @pytest.fixture
 def simpledata(Nside, sig_d):
-    return np.ones(hp.nside2npix(Nside))
+    return np.random.rand(hp.nside2npix(Nside))
 
 
 @pytest.fixture
 def simpledata_lm(simpledata, L, B, J_min):
-    return pys2let.lm_hp2lm(hp.map2alm(simpledata, L), L)
+    return pys2let.lm_hp2lm(map2alm(simpledata, L - 1), L)
 
 
 @pytest.fixture
@@ -76,3 +78,13 @@ def L1regulariser(setting):
         return np.matmul(np.eye(100), X)
 
     return L1(setting, identity, identity, T)
+
+
+@pytest.fixture
+def waveletformatter(L, B, J_min, Nside):
+    return WaveletFormatter(L, B, J_min, Nside)
+
+
+@pytest.fixture
+def wvlttransform(L, B, J_min, Nside):
+    return WaveletTransform(L, B, J_min, Nside)
