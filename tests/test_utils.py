@@ -106,4 +106,3 @@ def test_harmhp2pixmw_wavelets(waveletformatter, simpledata_hp_lm):
     assert scal_lm.dtype == np.complex
     assert wav_lm.shape == (pys2let.mw_size(waveletformatter.L), waveletformatter.nscales)
     assert wav_lm.dtype == np.complex
-  
