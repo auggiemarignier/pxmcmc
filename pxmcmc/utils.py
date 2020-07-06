@@ -172,16 +172,17 @@ class WaveletFormatter:
     both in pixel and harmonic space
     """
 
-    def __init__(self, L, B, J_min, Nside):
+    def __init__(self, L, B, J_min, Nside, spin=0):
         self.L = L
         self.B = B
         self.J_min = J_min
         self.Nside = Nside
+        self.spin = 0
         self.J_max = pys2let.pys2let_j_max(self.B, self.L, self.J_min)
         self.nscales = self.J_max - self.J_min + 1
 
     def _pixmw2harmhp(self, f_mw):
-        f_mw_lm = pys2let.map2alm_mw(f_mw, self.L)
+        f_mw_lm = pys2let.map2alm_mw(f_mw, self.L, self.spin)
         return pys2let.lm2lm_hp(f_mw_lm, self.L)
 
     def _pixmw2pixhp(self, f_mw):
@@ -194,14 +195,14 @@ class WaveletFormatter:
 
     def _pixhp2pixmw(self, f_hp):
         f_mw_lm = self._pixhp2harmmw(f_hp)
-        return pys2let.alm2map_mw(f_mw_lm, self.L)
+        return pys2let.alm2map_mw(f_mw_lm, self.L, self.spin)
 
     def _harmonic_mw2pix_mw_wavelets(self, scal_lm, wav_lm):
-        scal_mw = pys2let.alm2map_mw(scal_lm, self.L)
+        scal_mw = pys2let.alm2map_mw(scal_lm, self.L, self.spin)
         wav_mw = np.zeros((pys2let.mw_size(self.L)))
         for j in range(self.nscales):
             wav_mw[:, j] = pys2let.alm2map_mw(
-                np.ascontiguousarray(wav_lm[:, j]), self.L
+                np.ascontiguousarray(wav_lm[:, j]), self.L, self.spin
             )
         return scal_mw, wav_mw
 
@@ -223,11 +224,11 @@ class WaveletFormatter:
 
     def _harmhp2pixmw_wavelets(self, scal_lm_hp, wav_lm_hp):
         scal_lm = pys2let.lm_hp2lm(scal_lm_hp, self.L)
-        scal_mw = pys2let.alm2map_mw(scal_lm, self.L)
+        scal_mw = pys2let.alm2map_mw(scal_lm, self.L, self.spin)
         wav_mw = np.zeros((pys2let.mw_size(self.L), self.nscales), dtype=np.complex)
         for j in range(self.nscales):
             buff = pys2let.lm_hp2lm(
                 np.ascontiguousarray(wav_lm_hp[:, j]), self.L
             )
-            wav_mw[:, j] = pys2let.alm2map_mw(buff, self.L)
+            wav_mw[:, j] = pys2let.alm2map_mw(buff, self.L, self.spin)
         return scal_mw, wav_mw
