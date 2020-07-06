@@ -19,7 +19,7 @@ def test_wavelet_pix_fwdback(simpledata, wvlttransform):
     assert np.allclose(simpledata, data_rec)
 
 
-def test_wavelet_pix_fwdback_hp(simpledata, wvlttransform):
+def test_wavelet_pix_fwdback_hp(simpledata_hp, wvlttransform):
     X_wav = wvlttransform.forward(simpledata_hp, in_type="pixel_hp", out_type="pixel_hp")
     data_rec = wvlttransform.inverse(X_wav, in_type="pixel_hp", out_type="pixel_hp")
-    assert np.allclose(simpledata, data_rec)
+    assert np.allclose(simpledata_hp, data_rec)

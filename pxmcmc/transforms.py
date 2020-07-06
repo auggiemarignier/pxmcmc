@@ -1,6 +1,5 @@
 import pys2let
 import numpy as np
-import healpy as hp
 
 from pxmcmc.utils import expand_mlm, flatten_mlm, alm2map, map2alm, WaveletFormatter
 
@@ -120,9 +119,9 @@ class WaveletTransform(Transform):
         elif in_type == "harmonic_mw":
             return self._formatter._harmmw2harmhp_wavelets(scal, wav)
         elif in_type == "pixel_hp":
-            return
+            return self._formatter._pixhp2harmhp_wavelets(scal, wav)
         else:
-            return
+            return self._formatter._pixmw2harmhp_wavelets(scal, wav)
 
     def _hp_lm2outtype(self, X, out_type):
         if out_type == "harmonic_hp":
@@ -132,7 +131,7 @@ class WaveletTransform(Transform):
         elif out_type == "pixel_hp":
             return alm2map(X, self.Nside)
         else:
-            return pys2let.alm2map_mw(pys2let.lm_hp2lm(X, self.L), self.L)
+            return pys2let.alm2map_mw(pys2let.lm_hp2lm(X, self.L), self.L, self.spin)
 
     def _wavelets_hp_lm2outtype(self, X_scal_lm_hp, X_wav_lm_hp, out_type):
         if out_type == "harmonic_hp":
