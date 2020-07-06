@@ -43,10 +43,12 @@ def setting(request):
 def simpledata_lm(L):
     data = np.zeros(L * L, dtype=np.complex)
     for el in range(L):
-        for em in range(el):
+        em = 0
+        while em <= el:
             rand = np.asarray(np.random.rand(), dtype=np.complex)
             data[el * el + el - em] = pow(-1.0, -em) * rand.conjugate()
             data[el * el + el + em] = rand
+            em += 1
     return data
 
 
