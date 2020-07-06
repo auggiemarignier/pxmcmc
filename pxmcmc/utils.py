@@ -197,9 +197,9 @@ class WaveletFormatter:
         f_mw_lm = self._pixhp2harmmw(f_hp)
         return pys2let.alm2map_mw(f_mw_lm, self.L, self.spin)
 
-    def _harmonic_mw2pix_mw_wavelets(self, scal_lm, wav_lm):
+    def _harmmw2pixmw_wavelets(self, scal_lm, wav_lm):
         scal_mw = pys2let.alm2map_mw(scal_lm, self.L, self.spin)
-        wav_mw = np.zeros((pys2let.mw_size(self.L)))
+        wav_mw = np.zeros((pys2let.mw_size(self.L), self.nscales), dtype=np.complex)
         for j in range(self.nscales):
             wav_mw[:, j] = pys2let.alm2map_mw(
                 np.ascontiguousarray(wav_lm[:, j]), self.L, self.spin

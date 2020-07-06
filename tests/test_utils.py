@@ -59,3 +59,14 @@ def test_formatter_pix2pix(waveletformatter, simpledata_hp):
     assert np.allclose(simpledata_hp, hp_rec)
     mw_rec = waveletformatter._pixhp2pixmw(hp_rec)
     assert np.allclose(mw, mw_rec)
+
+
+def test_formatter_harmmw2pixmw_wavelets(waveletformatter, simpledata_lm, simpledata):
+    scal_lm = np.copy(simpledata_lm)
+    wav_lm = np.column_stack(
+        [simpledata_lm for _ in range(waveletformatter.nscales)]
+    )
+    scal_mw, wav_mw = waveletformatter._harmmw2pixmw_wavelets(scal_lm, wav_lm)
+    assert np.allclose(scal_mw, simpledata)
+    for j in range(waveletformatter.nscales):
+        assert np.allclose(wav_mw[:, j], simpledata)
