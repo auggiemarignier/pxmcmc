@@ -1,13 +1,12 @@
 import pytest
 import numpy as np
-import healpy as hp
 import pys2let
 
 from pxmcmc.mcmc import PxMCMC
 from pxmcmc.forward import ForwardOperator, ISWTOperator, SWC2PixOperator
 from pxmcmc.prox import L1
 from pxmcmc.transforms import WaveletTransform
-from pxmcmc.utils import map2alm, WaveletFormatter
+from pxmcmc.utils import alm2map, WaveletFormatter
 
 
 @pytest.fixture
@@ -41,13 +40,23 @@ def setting(request):
 
 
 @pytest.fixture
-def simpledata(Nside, sig_d):
-    return np.random.rand(hp.nside2npix(Nside))
+def simpledata_lm(L):
+    return np.random.rand(L * L).astype(np.complex)
 
 
 @pytest.fixture
-def simpledata_lm(simpledata, L, B, J_min):
-    return pys2let.lm_hp2lm(map2alm(simpledata, L - 1), L)
+def simpledata(simpledata_lm, L):
+    return pys2let.alm2map_mw(simpledata_lm, L, 0)
+
+
+@pytest.fixture
+def simpledata_hp_lm(L):
+    return np.random.rand(L * (L + 1) // 2).astype(np.complex)
+
+
+@pytest.fixture
+def simpledata_hp(simpledata_hp_lm, Nside):
+    return alm2map(simpledata_hp_lm, Nside)
 
 
 @pytest.fixture
