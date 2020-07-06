@@ -164,3 +164,18 @@ def test_pixhp2harmhp_wavelets(waveletformatter, simpledata_hp):
         waveletformatter.nscales,
     )
     assert wav_hp_lm.dtype == np.complex
+
+
+def test_formatter_pixmw2harmhp2pixmw_wavelets(waveletformatter, simpledata):
+    scal = np.copy(simpledata)
+    wav = np.column_stack([simpledata for _ in range(waveletformatter.nscales)])
+    scal_hp_lm, wav_hp_lm = waveletformatter._pixmw2harmhp_wavelets(scal, wav)
+    scal_rec, wav_rec = waveletformatter._harmhp2pixmw_wavelets(scal_hp_lm, wav_hp_lm)
+    assert np.allclose(scal_rec, scal)
+    assert np.allclose(wav_rec, wav)
+    scal_hp_lm_rec, wav_hp_lm_rec = waveletformatter._pixmw2harmhp_wavelets(
+        scal_rec, wav_rec
+    )
+    assert np.allclose(scal_hp_lm_rec, scal_hp_lm)
+    assert np.allclose(wav_hp_lm_rec, wav_hp_lm)
+
