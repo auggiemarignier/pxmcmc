@@ -41,7 +41,13 @@ def setting(request):
 
 @pytest.fixture
 def simpledata_lm(L):
-    return np.random.rand(L * L).astype(np.complex)
+    data = np.zeros(L * L, dtype=np.complex)
+    for el in range(L):
+        for em in range(el):
+            rand = np.asarray(np.random.rand(), dtype=np.complex)
+            data[el * el + el - em] = pow(-1.0, -em) * rand.conjugate()
+            data[el * el + el + em] = rand
+    return data
 
 
 @pytest.fixture
