@@ -51,7 +51,9 @@ class ForwardOperator:
         return self.measurement.adjoint(preds - self.data) / (self.sig_d ** 2)
 
     def _gradg_synthesis(self, preds):
-        return self.transform.inverse_adjoint(self._gradg_analysis(preds))
+        return self.transform.inverse_adjoint(
+            self.measurement.adjoint(preds - self.data)
+        ) / (self.sig_d ** 2)
 
 
 class ISWTOperator(ForwardOperator):
