@@ -75,8 +75,10 @@ class ISWTOperator(ForwardOperator):
             J_min,
             dirs=dirs,
             spin=spin,
-            pred_out_type="harmonic_mw",
-            param_in_type="harmonic_mw",
+            inv_out_type="harmonic_mw",
+            inv_in_type="harmonic_mw",
+            inv_adj_in_type="harmonic_mw",
+            inv_adj_out_type="harmonic_mw",
         )
         self.measurement = Identity(M=len(self.data), N=self.nparams)
 
