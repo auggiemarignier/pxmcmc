@@ -38,7 +38,7 @@ def test_wavelet_fwd_adjoint_dot(wvlttransform, simpledata, simpledata_lm):
     f = flatten_mlm(wav_lm, scal_lm)
     g = wvlttransform.forward_adjoint(f, in_type="harmonic_mw", out_type="pixel_mw")
 
-    dot_diff = f.T.dot(y) - g.T.dot(x)
+    dot_diff = f.conj().T.dot(y) - g.conj().T.dot(x)
     assert np.isclose(dot_diff, 0)
 
 
@@ -51,5 +51,5 @@ def test_wavelet_inv_adjoint_dot(wvlttransform, simpledata_hp, simpledata_hp_lm)
     f = np.copy(simpledata_hp_lm)
     g = wvlttransform.inverse_adjoint(f, in_type="harmonic_hp", out_type="pixel_mw")
 
-    dot_diff = f.T.dot(y) - g.T.dot(x)
+    dot_diff = f.conj().T.dot(y) - g.conj().T.dot(x)
     assert np.isclose(dot_diff, 0)
