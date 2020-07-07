@@ -1,25 +1,24 @@
 import numpy as np
+import pytest
 
 
-def test_wavelet_lm_fwdback(simpledata_lm, wvlttransform):
-    X_wav = wvlttransform.forward(simpledata_lm, in_type="harmonic_mw", out_type="harmonic_mw")
-    data_rec = wvlttransform.inverse(X_wav, in_type="harmonic_mw", out_type="harmonic_mw")
-    assert np.allclose(simpledata_lm, data_rec)
-
-
-def test_wavelet_lm_fwdback_hp(simpledata_hp_lm, wvlttransform):
-    X_wav = wvlttransform.forward(simpledata_hp_lm, in_type="harmonic_hp", out_type="harmonic_hp")
-    data_rec = wvlttransform.inverse(X_wav, in_type="harmonic_hp", out_type="harmonic_hp")
-    assert np.allclose(simpledata_hp_lm, data_rec)
-
-
-def test_wavelet_pix_fwdback(simpledata, wvlttransform):
-    X_wav = wvlttransform.forward(simpledata, in_type="pixel_mw", out_type="pixel_mw")
-    data_rec = wvlttransform.inverse(X_wav, in_type="pixel_mw", out_type="pixel_mw")
-    assert np.allclose(simpledata, data_rec)
-
-
-def test_wavelet_pix_fwdback_hp(simpledata_hp, wvlttransform):
-    X_wav = wvlttransform.forward(simpledata_hp, in_type="pixel_hp", out_type="pixel_hp")
-    data_rec = wvlttransform.inverse(X_wav, in_type="pixel_hp", out_type="pixel_hp")
-    assert np.allclose(simpledata_hp, data_rec)
+@pytest.mark.parametrize(
+    "inout_type", ["harmonic_mw", "harmonic_hp", "pixel_mw", "pixel_hp"]
+)
+def test_wavelet_fwdback(
+    inout_type,
+    wvlttransform,
+    simpledata_lm,
+    simpledata_hp_lm,
+    simpledata,
+    simpledata_hp,
+):
+    data = {
+        "harmonic_mw": simpledata_lm,
+        "harmonic_hp": simpledata_hp_lm,
+        "pixel_mw": simpledata,
+        "pixel_hp": simpledata_hp,
+    }
+    X_wav = wvlttransform.forward(data[inout_type], in_type=inout_type, out_type=inout_type)
+    data_rec = wvlttransform.inverse(X_wav, in_type=inout_type, out_type=inout_type)
+    assert np.allclose(data[inout_type], data_rec)
