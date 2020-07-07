@@ -49,7 +49,21 @@ class IdentityTransform(Transform):
 
 class WaveletTransform(Transform):
     def __init__(
-        self, L, B, J_min, Nside=None, dirs=1, spin=0,
+        self,
+        L,
+        B,
+        J_min,
+        Nside=None,
+        dirs=1,
+        spin=0,
+        fwd_in_type=None,
+        fwd_out_type=None,
+        inv_in_type=None,
+        inv_out_type=None,
+        fwd_adj_in_type=None,
+        fwd_adj_out_type=None,
+        inv_adj_in_type=None,
+        inv_adj_out_type=None,
     ):
         self.L = L
         self.B = B
@@ -62,11 +76,24 @@ class WaveletTransform(Transform):
 
         self._formatter = WaveletFormatter(L, B, J_min, Nside, spin=spin)
 
-    def forward(self, X, in_type="harmonic_mw", out_type="harmonic_mw"):
+        self.fwd_in_type = fwd_in_type
+        self.fwd_out_type = fwd_out_type
+        self.inv_in_type = inv_in_type
+        self.inv_out_type = inv_out_type
+        self.fwd_adj_in_type = fwd_adj_in_type
+        self.fwd_adj_out_type = fwd_adj_out_type
+        self.inv_adj_in_type = inv_adj_in_type
+        self.inv_adj_out_type = inv_adj_out_type
+
+    def forward(self, X, in_type=None, out_type=None):
         """
         X is an input map in either pixel or harmonic space
         Returns a vector of scaling and wavelet coefficients in either pixel or harmonic space
         """
+        if self.fwd_in_type is not None:
+            in_type = self.fwd_in_type
+        if self.fwd_out_type is not None:
+            out_type = self.fwd_out_type
         self._check_inout_types(in_type, out_type)
 
         X_hp_lm = self._intype2hp_lm(X, in_type)
@@ -78,18 +105,24 @@ class WaveletTransform(Transform):
         )
         return flatten_mlm(X_wav_out, X_scal_out)
 
-    def inverse(self, X, in_type="harmonic_mw", out_type="harmonic_mw"):
+    def inverse(self, X, in_type=None, out_type=None):
         """
         X is a set of wavlet and scaling harmonic coefficients in MW format
         If out_type is 'harmonic_mw', returns spherical harmonic coefficients in MW format
         If out_type is 'pixel_hp', returns a Healpix map
         """
+        if self.inv_in_type is not None:
+            in_type = self.inv_in_type
+        if self.inv_out_type is not None:
+            out_type = self.inv_out_type
+        self._check_inout_types(in_type, out_type)
+
         wav, scal = expand_mlm(X, self.nscales)
         scal, wav = self._wavelets_intype2hp_lm(scal, wav, in_type)
         X = pys2let.synthesis_axisym_lm_wav(wav, scal, self.B, self.L, self.J_min)
         return self._hp_lm2outtype(X, out_type)
 
-    def inverse_adjoint(self, f, in_type="harmonic_mw", out_type="harmonic_mw"):
+    def inverse_adjoint(self, f, in_type=None, out_type=None):
         if in_type == "harmonic_mw":
             f = pys2let.alm2map_mw(f, self.L, self.spin)
         elif in_type == "pixel_hp":
