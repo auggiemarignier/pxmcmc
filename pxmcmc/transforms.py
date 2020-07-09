@@ -1,7 +1,6 @@
 import pys2let
-import numpy as np
 
-from pxmcmc.utils import expand_mlm, flatten_mlm, map2alm, WaveletFormatter
+from pxmcmc.utils import expand_mlm, flatten_mlm, WaveletFormatter
 
 
 class Transform:
@@ -107,9 +106,7 @@ class WaveletTransform(Transform):
 
     def inverse(self, X, in_type=None, out_type=None):
         """
-        X is a set of wavlet and scaling harmonic coefficients in MW format
-        If out_type is 'harmonic_mw', returns spherical harmonic coefficients in MW format
-        If out_type is 'pixel_hp', returns a Healpix map
+        X is a vector of wavlet and scaling
         """
         if self.inv_in_type is not None:
             in_type = self.inv_in_type
@@ -122,19 +119,37 @@ class WaveletTransform(Transform):
         X = pys2let.synthesis_axisym_wav_mw(wav, scal, self.B, self.L, self.J_min)
         return self._mwpx2outtype(X, out_type)
 
-    def inverse_adjoint(self, f, in_type=None, out_type=None):
-        if in_type == "harmonic_mw":
-            f = pys2let.alm2map_mw(f, self.L, self.spin)
-        elif in_type == "pixel_hp":
-            f = map2alm(f, self.L)
-            f = pys2let.lm_hp2lm(f, self.L)
-            f = pys2let.alm2map_mw(f, self.L, self.spin)
-        elif in_type == "harmonic_hp":
-            f = pys2let.lm_hp2lm(f, self.L)
-            f = pys2let.alm2map_mw(f, self.L, self.spin)
-        else:
-            pass
-        return flatten_mlm(*self._mw2mw_lm_adjoint(f))
+    def inverse_adjoint(self, X, in_type=None, out_type=None):
+        """
+        X is a input map
+        """
+        if self.inv_adj_in_type is not None:
+            in_type = self.inv_adj_in_type
+        if self.inv_adj_out_type is not None:
+            out_type = self.inv_adj_out_type
+        self._check_inout_types(in_type, out_type)
+
+        X = self._intype2mwpx(X, in_type)
+        X_wav, X_scal = pys2let.synthesis_adjoint_axisym_wav_mw(X, self.B, self.L, self.J_min)
+        X_scal_out, X_wav_out = self._wavelets_mwpx2outtype(
+            X_scal, X_wav, out_type
+        )
+        return flatten_mlm(X_wav_out, X_scal_out)
+
+    def forward_adjoint(self, X, in_type=None, out_type=None):
+        """
+        X is a vector of wavlet and scaling functions
+        """
+        if self.fwd_adj_in_type is not None:
+            in_type = self.fwd_adj_in_type
+        if self.fwd_adj_out_type is not None:
+            out_type = self.fwd_adj_out_type
+        self._check_inout_types(in_type, out_type)
+
+        wav, scal = expand_mlm(X, self.nscales, flatten_wavs=True)
+        scal, wav = self._wavelets_intype2mwpx(scal, wav, in_type)
+        X = pys2let.analysis_adjoint_axisym_wav_mw(wav, scal, self.B, self.L, self.J_min)
+        return self._mwpx2outtype(X, out_type)
 
     def _intype2mwpx(self, X, in_type):
         if in_type == "pixel_mw":
@@ -175,23 +190,6 @@ class WaveletTransform(Transform):
             return self._formatter._pixmw2pixhp_wavelets(X_scal, X_wav)
         else:
             return self._formatter._pixmw2harmhp_wavelets(X_scal, X_wav)
-
-    def _mw2mw_lm_adjoint(self, f):
-        """
-        f is a MW map
-        Returns harmonic wavelet coefficients in MW format
-        """
-        f_wav, f_scal = pys2let.synthesis_adjoint_axisym_wav_mw(
-            f, self.B, self.L, self.J_min
-        )
-        f_scal_lm = pys2let.map2alm_mw(f_scal, self.L, self.spin)
-        f_wav_lm = np.zeros([self.L ** 2, self.nscales], dtype=np.complex)
-        vlen = self.L * (2 * self.L - 1)
-        for j in range(self.nscales):
-            f_wav_lm[:, j] = pys2let.map2alm_mw(
-                f_wav[j * vlen : (j + 1) * vlen + 1], self.L, self.spin
-            )
-        return f_wav_lm, f_scal_lm
 
     def _check_inout_types(self, in_type, out_type):
         if in_type not in ["harmonic_mw", "harmonic_hp", "pixel_mw", "pixel_hp"]:

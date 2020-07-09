@@ -68,6 +68,19 @@ def simpledata_hp(simpledata_hp_lm, Nside):
 
 
 @pytest.fixture
+def all_data(
+    simpledata_lm, simpledata_hp_lm, simpledata, simpledata_hp,
+):
+    data = {
+        "harmonic_mw": simpledata_lm,
+        "harmonic_hp": simpledata_hp_lm,
+        "pixel_mw": simpledata,
+        "pixel_hp": simpledata_hp,
+    }
+    return data
+
+
+@pytest.fixture
 def forwardop(simpledata, sig_d, setting):
     return ForwardOperator(simpledata, sig_d, setting)
 
