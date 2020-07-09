@@ -64,54 +64,53 @@ def test_formatter_pix2pix(waveletformatter, simpledata_hp):
 
 def test_formatter_harmmw2pixmw_wavelets(waveletformatter, simpledata_lm, simpledata):
     scal_lm = np.copy(simpledata_lm)
-    wav_lm = np.column_stack([simpledata_lm for _ in range(waveletformatter.nscales)])
+    wav_lm = np.concatenate([simpledata_lm for _ in range(waveletformatter.nscales)])
     scal_mw, wav_mw = waveletformatter._harmmw2pixmw_wavelets(scal_lm, wav_lm)
     assert np.allclose(scal_mw, simpledata)
-    for j in range(waveletformatter.nscales):
-        assert np.allclose(wav_mw[:, j], simpledata)
+    assert np.allclose(
+        wav_mw, np.concatenate([simpledata for _ in range(waveletformatter.nscales)])
+    )
 
 
 def test_formatter_harmhp2pixhp_wavelets(
     waveletformatter, simpledata_hp_lm, simpledata_hp
 ):
     scal_lm = np.copy(simpledata_hp_lm)
-    wav_lm = np.column_stack(
-        [simpledata_hp_lm for _ in range(waveletformatter.nscales)]
+    wav_lm = np.concatenate([simpledata_hp_lm for _ in range(waveletformatter.nscales)])
+    scal_hp, wav_hp = waveletformatter._harmhp2pixhp_wavelets(scal_lm, wav_lm)
+    assert np.allclose(scal_hp, simpledata_hp)
+    assert np.allclose(
+        wav_hp, np.concatenate([simpledata_hp for _ in range(waveletformatter.nscales)])
     )
-    scal_mw, wav_mw = waveletformatter._harmhp2pixhp_wavelets(scal_lm, wav_lm)
-    assert np.allclose(scal_mw, simpledata_hp)
-    for j in range(waveletformatter.nscales):
-        assert np.allclose(wav_mw[:, j], simpledata_hp)
 
 
 def test_harmhp2harmmw_wavelets(waveletformatter, simpledata_hp_lm):
     scal_hp_lm = np.copy(simpledata_hp_lm)
-    wav_hp_lm = np.column_stack(
+    wav_hp_lm = np.concatenate(
         [simpledata_hp_lm for _ in range(waveletformatter.nscales)]
     )
     scal_lm, wav_lm = waveletformatter._harmhp2harmmw_wavelets(scal_hp_lm, wav_hp_lm)
     assert scal_lm.shape == (waveletformatter.L ** 2,)
     assert scal_lm.dtype == np.complex
-    assert wav_lm.shape == (waveletformatter.L ** 2, waveletformatter.nscales)
+    assert wav_lm.shape == (waveletformatter.L ** 2 * waveletformatter.nscales,)
     assert wav_lm.dtype == np.complex
 
 
 def test_harmmw2harmhp_wavelets(waveletformatter, simpledata_lm):
     scal_lm = np.copy(simpledata_lm)
-    wav_lm = np.column_stack([simpledata_lm for _ in range(waveletformatter.nscales)])
+    wav_lm = np.concatenate([simpledata_lm for _ in range(waveletformatter.nscales)])
     scal_hp_lm, wav_hp_lm = waveletformatter._harmmw2harmhp_wavelets(scal_lm, wav_lm)
     assert scal_hp_lm.shape == (waveletformatter.L * (waveletformatter.L + 1) // 2,)
     assert scal_hp_lm.dtype == np.complex
     assert wav_hp_lm.shape == (
-        waveletformatter.L * (waveletformatter.L + 1) // 2,
-        waveletformatter.nscales,
+        waveletformatter.L * (waveletformatter.L + 1) * waveletformatter.nscales // 2,
     )
     assert wav_hp_lm.dtype == np.complex
 
 
 def test_formatter_harm2harm_wavelets(waveletformatter, simpledata_lm):
     scal_lm = np.copy(simpledata_lm)
-    wav_lm = np.column_stack([simpledata_lm for _ in range(waveletformatter.nscales)])
+    wav_lm = np.concatenate([simpledata_lm for _ in range(waveletformatter.nscales)])
     scal_hp_lm, wav_hp_lm = waveletformatter._harmmw2harmhp_wavelets(scal_lm, wav_lm)
     scal_lm_rec, wav_lm_rec = waveletformatter._harmhp2harmmw_wavelets(
         scal_hp_lm, wav_hp_lm
@@ -127,48 +126,45 @@ def test_formatter_harm2harm_wavelets(waveletformatter, simpledata_lm):
 
 def test_harmhp2pixmw_wavelets(waveletformatter, simpledata_hp_lm):
     scal_hp_lm = np.copy(simpledata_hp_lm)
-    wav_hp_lm = np.column_stack(
+    wav_hp_lm = np.concatenate(
         [simpledata_hp_lm for _ in range(waveletformatter.nscales)]
     )
     scal_lm, wav_lm = waveletformatter._harmhp2pixmw_wavelets(scal_hp_lm, wav_hp_lm)
     assert scal_lm.shape == (pys2let.mw_size(waveletformatter.L),)
     assert scal_lm.dtype == np.complex
     assert wav_lm.shape == (
-        pys2let.mw_size(waveletformatter.L),
-        waveletformatter.nscales,
+        pys2let.mw_size(waveletformatter.L) * waveletformatter.nscales,
     )
     assert wav_lm.dtype == np.complex
 
 
 def test_pixmw2harmhp_wavelets(waveletformatter, simpledata):
     scal = np.copy(simpledata)
-    wav = np.column_stack([simpledata for _ in range(waveletformatter.nscales)])
+    wav = np.concatenate([simpledata for _ in range(waveletformatter.nscales)])
     scal_hp_lm, wav_hp_lm = waveletformatter._pixmw2harmhp_wavelets(scal, wav)
     assert scal_hp_lm.shape == (waveletformatter.L * (waveletformatter.L + 1) // 2,)
     assert scal_hp_lm.dtype == np.complex
     assert wav_hp_lm.shape == (
-        waveletformatter.L * (waveletformatter.L + 1) // 2,
-        waveletformatter.nscales,
+        waveletformatter.L * (waveletformatter.L + 1) * waveletformatter.nscales // 2,
     )
     assert wav_hp_lm.dtype == np.complex
 
 
 def test_pixhp2harmhp_wavelets(waveletformatter, simpledata_hp):
     scal = np.copy(simpledata_hp)
-    wav = np.column_stack([simpledata_hp for _ in range(waveletformatter.nscales)])
+    wav = np.concatenate([simpledata_hp for _ in range(waveletformatter.nscales)])
     scal_hp_lm, wav_hp_lm = waveletformatter._pixhp2harmhp_wavelets(scal, wav)
     assert scal_hp_lm.shape == (waveletformatter.L * (waveletformatter.L + 1) // 2,)
     assert scal_hp_lm.dtype == np.complex
     assert wav_hp_lm.shape == (
-        waveletformatter.L * (waveletformatter.L + 1) // 2,
-        waveletformatter.nscales,
+        waveletformatter.L * (waveletformatter.L + 1) * waveletformatter.nscales // 2,
     )
     assert wav_hp_lm.dtype == np.complex
 
 
 def test_formatter_pixmw2harmhp2pixmw_wavelets(waveletformatter, simpledata):
     scal = np.copy(simpledata)
-    wav = np.column_stack([simpledata for _ in range(waveletformatter.nscales)])
+    wav = np.concatenate([simpledata for _ in range(waveletformatter.nscales)])
     scal_hp_lm, wav_hp_lm = waveletformatter._pixmw2harmhp_wavelets(scal, wav)
     scal_rec, wav_rec = waveletformatter._harmhp2pixmw_wavelets(scal_hp_lm, wav_hp_lm)
     assert np.allclose(scal_rec, scal)
@@ -179,3 +175,31 @@ def test_formatter_pixmw2harmhp2pixmw_wavelets(waveletformatter, simpledata):
     assert np.allclose(scal_hp_lm_rec, scal_hp_lm)
     assert np.allclose(wav_hp_lm_rec, wav_hp_lm)
 
+
+def test_formatter_pixmw2harmhp2pixmw(waveletformatter, simpledata):
+    hp_lm = waveletformatter._pixmw2harmhp(simpledata)
+    mw_rec = waveletformatter._harmhp2pixmw(hp_lm)
+    assert np.allclose(mw_rec, simpledata)
+
+
+@pytest.mark.parametrize(
+    "datatype", ["harmonic_mw", "harmonic_hp", "pixel_mw", "pixel_hp"]
+)
+def test_formatter_splitflatten_wavelets(
+    datatype,
+    waveletformatter,
+    simpledata_lm,
+    simpledata_hp_lm,
+    simpledata,
+    simpledata_hp,
+):
+    data = {
+        "harmonic_mw": simpledata_lm,
+        "harmonic_hp": simpledata_hp_lm,
+        "pixel_mw": simpledata,
+        "pixel_hp": simpledata_hp,
+    }
+    wav = np.concatenate([data[datatype] for _ in range(waveletformatter.nscales)])
+    wav_s = waveletformatter._split_wavelets(wav)
+    wav_rec = waveletformatter._flatten_wavelets(wav_s)
+    assert np.array_equal(wav_rec, wav)
