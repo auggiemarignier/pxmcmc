@@ -2,8 +2,7 @@ import pytest
 import numpy as np
 import pys2let
 
-from pxmcmc.mcmc import PxMCMC
-from pxmcmc.forward import ForwardOperator, ISWTOperator, SWC2PixOperator
+from pxmcmc.forward import WaveletTransformOperator
 from pxmcmc.prox import L1
 from pxmcmc.transforms import WaveletTransform
 from pxmcmc.utils import alm2map, WaveletFormatter
@@ -81,23 +80,8 @@ def all_data(
 
 
 @pytest.fixture
-def forwardop(simpledata, sig_d, setting):
-    return ForwardOperator(simpledata, sig_d, setting)
-
-
-@pytest.fixture
-def iswtoperator(simpledata_lm, sig_d, L, B, J_min, setting):
-    return ISWTOperator(simpledata_lm, sig_d, L, B, J_min, setting)
-
-
-@pytest.fixture
-def mcmc(forwardop):
-    return PxMCMC(forwardop)
-
-
-@pytest.fixture
-def swc2pixoperator(simpledata, sig_d, Nside, L, B, J_min, setting):
-    return SWC2PixOperator(simpledata, sig_d, Nside, L, B, J_min, setting)
+def swtoperator(simpledata, sig_d, L, B, J_min, setting):
+    return WaveletTransformOperator(simpledata, sig_d, setting, L, B, J_min)
 
 
 @pytest.fixture
