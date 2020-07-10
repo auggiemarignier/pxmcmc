@@ -1,3 +1,5 @@
+from pys2let import mw_size
+
 from pxmcmc.measurements import Identity
 from pxmcmc.transforms import WaveletTransform
 
@@ -66,4 +68,8 @@ class WaveletTransformOperator(ForwardOperator):
             inv_adj_in_type=map_type,
             inv_adj_out_type=map_type,
         )
-        self.measurement = Identity(len(data), L * L)
+        self.measurement = Identity(len(data), mw_size(L))
+        if setting == "analysis":
+            self.nparams = mw_size(L)
+        else:
+            self.nparams = mw_size(L) * (self.transform.nscales + 1)
