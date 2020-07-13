@@ -68,8 +68,8 @@ class PxMCMC:
             print(f"\rBurning in", end="")
         else:
             print(
-                f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8f} - "
-                + " - ".join([f"{k}: {kwargs[k]:.8f}" for k in kwargs]),
+                f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8e} - "
+                + " - ".join([f"{k}: {kwargs[k]:.8e}" for k in kwargs]),
             )
 
     def _initial_sample(self):
@@ -204,6 +204,7 @@ class PxMALA(MYULA):
                     L2=L2Xc,
                     L1=L1Xc,
                     acceptanceRate=np.mean(self.acceptance_trace),
+                    # delta=self.delta
                 )
             i += 1
         print(f"\nDONE")
