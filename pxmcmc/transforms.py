@@ -193,6 +193,6 @@ class WaveletTransform(Transform):
 
     def _check_inout_types(self, in_type, out_type):
         if in_type not in ["harmonic_mw", "harmonic_hp", "pixel_mw", "pixel_hp"]:
-            raise ValueError("Wrong input format")
+            raise ValueError(f"Wrong input format: {in_type}")
         if out_type not in ["harmonic_mw", "harmonic_hp", "pixel_mw", "pixel_hp"]:
-            raise ValueError("Wrong output format")
+            raise ValueError(f"Wrong output format: {out_type}")
