@@ -4,16 +4,21 @@ import numpy as np
 from matplotlib import cm
 import pys2let
 import healpy as hp
+from math import floor, ceil
+
 
 from pxmcmc import plotting
 from pxmcmc import uncertainty
-from pxmcmc.utils import alm2map
+from pxmcmc.transforms import WaveletTransform
+from pxmcmc.utils import alm2map, WaveletFormatter, expand_mlm
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("datafile", type=str)
 parser.add_argument("directory", type=str)
+parser.add_argument("setting", type=str)
 parser.add_argument("--suffix", type=str, default="")
+parser.add_argument("--burn", type=int, default=3000)
 args = parser.parse_args()
 
 Nside = 32
@@ -25,6 +30,12 @@ def filename(name):
 
 file = h5py.File(args.datafile, "r")
 params = {attr: file.attrs[attr] for attr in file.attrs.keys()}
+L, B, J_min = params["L"], params["B"], params["J_min"]
+nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
+wvlttrans = WaveletTransform(
+    L, B, J_min, fwd_in_type="pixel_mw", fwd_out_type="harmonic_mw"
+)
+wvltform = WaveletFormatter(L, B, J_min, Nside)
 
 logpi = file["logposterior"][()]
 L2s = file["L2s"][()]
@@ -48,24 +59,46 @@ maxapost = plotting.mollview(
 )
 maxapost.savefig(filename("MAP"))
 
-diff = plotting.mollview(truth - MAP_hp, cmap=cm.jet, title="Truth - MAP", flip="geo")
-diff.savefig(filename("diff"))
+diff = truth - MAP_hp
+cbar_end = max([abs(floor(min(diff))), ceil(max(diff))])
+diffp = plotting.mollview(
+    diff, cmap=cm.PuOr, title="Truth - MAP", flip="geo", min=-cbar_end, max=cbar_end
+)
+diffp.savefig(filename("diff"))
 
 MAP_X = file["chain"][MAP_idx][0]
+if args.setting == "synthesis":
+    wavs, scal = expand_mlm(MAP_X, nscales, flatten_wavs=True)
+    scal_lm, wav_lm = wvltform._pixmw2harmmw_wavelets(scal, wavs)
+    MAP_X = np.concatenate([scal_lm, wav_lm])
+else:
+    MAP_X = wvlttrans.forward(MAP_X)
 mapx = plotting.plot_chain_sample(MAP_X)
 mapx.savefig(filename("MAP_X"))
 
-
-basis_els = plotting.plot_basis_els(
-    file["chain"][3000:], params["L"], params["B"], params["J_min"], inflate_mads=100
-)  # Careful with L
+# TODO: Sort this out for the analysis setting
+chain = np.zeros((len(file["chain"][args.burn :]), L * L * (nscales + 1)), dtype=np.complex)
+if args.setting == "synthesis":
+    for i in range(len(chain)):
+        print(f"\r{i+1}/{len(chain)}", end="")
+        wavs, scal = expand_mlm(
+            file["chain"][args.burn + i], nscales, flatten_wavs=True
+        )
+        scal_lm, wav_lm = wvltform._pixmw2harmmw_wavelets(scal, wavs)
+        chain[i] = np.concatenate([scal_lm, wav_lm])
+else:
+    for i in range(len(chain)):
+        print(f"\r{i+1}/{len(chain)}", end="")
+        chain[i] = wvlttrans.forward(file["chain"][args.burn + i])
+basis_els = plotting.plot_basis_els(chain, L, B, J_min, inflate_mads=100)
 basis_els.savefig(filename("basis_els"))
 
 ci_range = uncertainty.credible_interval_range(file["predictions"][3000:])
 ci_range_hp = alm2map(
-    pys2let.lm2lm_hp(pys2let.map2alm_mw(ci_range, params["L"], 0), params["L"]), 32
+    pys2let.lm2lm_hp(pys2let.map2alm_mw(ci_range, params["L"], 0), params["L"]), Nside
 )
 ci_map = plotting.mollview(
     ci_range_hp, min=0, title="95% credible interval range", flip="geo"
 )
 ci_map.savefig(filename("ci_map"))
+print()
