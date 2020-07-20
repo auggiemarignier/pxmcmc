@@ -1,7 +1,9 @@
 import healpy as hp
+import numpy as np
 import datetime
 import argparse
 import pys2let
+import pyssht
 
 from pxmcmc.mcmc import MYULA, PxMALA, PxMCMCParams
 from pxmcmc.forward import WaveletTransformOperator
@@ -19,17 +21,23 @@ parser.add_argument("--delta", type=float, default=1e-10)
 parser.add_argument("--mu", type=float, default=1)
 args = parser.parse_args()
 
-topo = hp.read_map(args.infile, verbose=False)
-sig_d = 0.03
+sig_d = 3.0
 
 L = 16
 B = 1.5
 J_min = 2
 Nside = 32
 setting = args.setting
-# topo_d = hp.ud_grade(topo, Nside)
-topo_d_lm = hp.map2alm(topo, L - 1)
-topo_d = pys2let.alm2map_mw(pys2let.lm_hp2lm(topo_d_lm, L), L, 0)
+if "_hpx_" in args.infile:
+    topo = hp.read_map(args.infile, verbose=False)
+    topo_d_lm = hp.map2alm(topo, L - 1)
+    topo_d = pys2let.alm2map_mw(pys2let.lm_hp2lm(topo_d_lm, L), L, 0)
+elif "_mw_" in args.infile:
+    topo = np.load(args.infile)
+    topo_d_lm = pyssht.forward(topo, L)
+    topo_d = pys2let.alm2map_mw(topo_d_lm, L, 0)  # just to get shapes right
+else:
+    raise ValueError("Check filename")
 
 forwardop = WaveletTransformOperator(topo_d, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
@@ -63,11 +71,12 @@ else:
     raise ValueError
 mcmc.run()
 
+filename = f"{args.algo}_{args.setting}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}"
 save_mcmc(
     mcmc,
     params,
     args.outdir,
-    filename=f"{args.algo}_{args.setting}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}",
+    filename=filename,
     L=L,
     B=B,
     J_min=J_min,
