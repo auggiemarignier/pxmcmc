@@ -10,7 +10,7 @@ from math import floor, ceil
 from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import WaveletTransform
-from pxmcmc.utils import alm2map, WaveletFormatter, expand_mlm
+from pxmcmc.utils import alm2map, map2alm, WaveletFormatter, expand_mlm
 
 
 parser = argparse.ArgumentParser()
@@ -19,6 +19,7 @@ parser.add_argument("directory", type=str)
 parser.add_argument("setting", type=str)
 parser.add_argument("--suffix", type=str, default="")
 parser.add_argument("--burn", type=int, default=3000)
+parser.add_argument("--chain_mwlm", action="store_true", help="Convert chain to mwlm")
 args = parser.parse_args()
 
 Nside = 32
@@ -46,8 +47,9 @@ evo.savefig(filename("evolution"))
 topo = hp.read_map(
     "/home/zcfbllm/src_proxmcmc/experiments/earthtopography/ETOPO1_Ice_hpx_256.fits",
     verbose=False,
+    dtype=np.float64,
 )
-truth = hp.alm2map(hp.map2alm(topo, params["L"] - 1), Nside)
+truth = alm2map(map2alm(topo, params["L"] - 1), Nside)
 
 MAP_idx = np.where(logpi == max(logpi))
 MAP = file["predictions"][MAP_idx][0]
@@ -67,31 +69,36 @@ diffp = plotting.mollview(
 diffp.savefig(filename("diff"))
 
 MAP_X = file["chain"][MAP_idx][0]
-if args.setting == "synthesis":
-    wavs, scal = expand_mlm(MAP_X, nscales, flatten_wavs=True)
-    scal_lm, wav_lm = wvltform._pixmw2harmmw_wavelets(scal, wavs)
-    MAP_X = np.concatenate([scal_lm, wav_lm])
-else:
-    MAP_X = wvlttrans.forward(MAP_X)
+if args.chain_mwlm:
+    if args.setting == "synthesis":
+        wavs, scal = expand_mlm(MAP_X, nscales, flatten_wavs=True)
+        scal_lm, wav_lm = wvltform._pixmw2harmmw_wavelets(scal, wavs)
+        MAP_X = np.concatenate([scal_lm, wav_lm])
+    else:
+        MAP_X = wvlttrans.forward(MAP_X)
 mapx = plotting.plot_chain_sample(MAP_X)
 mapx.savefig(filename("MAP_X"))
 
 # TODO: Sort this out for the analysis setting
-chain = np.zeros((len(file["chain"][args.burn :]), L * L * (nscales + 1)), dtype=np.complex)
-if args.setting == "synthesis":
-    for i in range(len(chain)):
-        print(f"\r{i+1}/{len(chain)}", end="")
-        wavs, scal = expand_mlm(
-            file["chain"][args.burn + i], nscales, flatten_wavs=True
-        )
-        scal_lm, wav_lm = wvltform._pixmw2harmmw_wavelets(scal, wavs)
-        chain[i] = np.concatenate([scal_lm, wav_lm])
-else:
-    for i in range(len(chain)):
-        print(f"\r{i+1}/{len(chain)}", end="")
-        chain[i] = wvlttrans.forward(file["chain"][args.burn + i])
-basis_els = plotting.plot_basis_els(chain, L, B, J_min, inflate_mads=100)
-basis_els.savefig(filename("basis_els"))
+if args.chain_mwlm:
+    chain = np.zeros(
+        (len(file["chain"][args.burn :]), L * L * (nscales + 1)), dtype=np.complex
+    )
+    if args.setting == "synthesis":
+        for i in range(len(chain)):
+            print(f"\r{i+1}/{len(chain)}", end="")
+            wavs, scal = expand_mlm(
+                file["chain"][args.burn + i], nscales, flatten_wavs=True
+            )
+            scal_lm, wav_lm = wvltform._pixmw2harmmw_wavelets(scal, wavs)
+            chain[i] = np.concatenate([scal_lm, wav_lm])
+    else:
+        for i in range(len(chain)):
+            print(f"\r{i+1}/{len(chain)}", end="")
+            chain[i] = wvlttrans.forward(file["chain"][args.burn + i])
+
+    basis_els = plotting.plot_basis_els(chain, L, B, J_min, inflate_mads=100)
+    basis_els.savefig(filename("basis_els"))
 
 ci_range = uncertainty.credible_interval_range(file["predictions"][3000:])
 ci_range_hp = alm2map(
