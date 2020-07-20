@@ -15,6 +15,7 @@ jupyterlab = "^2.1.2"
 ipykernel = "^5.2.1"
 h5py = "^2.10.0"
 greatcirclepaths = {git = "https://github.com/auggiemarignier/GreatCirclePaths"}
+pyssht = {git = "https://github.com/astro-informatics/src_ssht.git", rev = "Feature/PlanarToSphereProjections"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
