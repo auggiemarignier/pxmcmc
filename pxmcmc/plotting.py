@@ -1,9 +1,24 @@
 import numpy as np
 import healpy as hp
 import matplotlib.pyplot as plt
+from matplotlib import cm
 from scipy.stats import laplace
+import copy
+
 
 from pxmcmc.utils import suppress_stdout
+
+
+def plot_map(f, title=None, cbar=True, cmap="turbo"):
+    cmap = copy.copy(cm.get_cmap(cmap))
+    cmap.set_bad(alpha=0)
+
+    plt.figure(figsize=(20, 10))
+    plt.imshow(f, origin='lower', cmap=cmap)
+    plt.axis('off')
+    plt.title(title, fontsize=24)
+    if cbar:
+        plt.colorbar()
 
 
 def mollview(image, figsize=(10, 8), **kwargs):
