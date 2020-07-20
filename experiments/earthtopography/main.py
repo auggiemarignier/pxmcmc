@@ -33,7 +33,7 @@ topo_d = pys2let.alm2map_mw(pys2let.lm_hp2lm(topo_d_lm, L), L, 0)
 
 forwardop = WaveletTransformOperator(topo_d, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
-    nsamples=int(2e4),
+    nsamples=int(5e3),
     nburn=0,
     ngap=int(1e2),
     complex=True,
@@ -42,9 +42,10 @@ params = PxMCMCParams(
     mu=args.mu,
     verbosity=int(1e2),
 )
+
 regulariser = L1(
     setting,
-    forwardop.transform.forward,
+    forwardop.transform.inverse,
     forwardop.transform.inverse_adjoint,
     params.lmda * params.mu,
 )
@@ -66,7 +67,7 @@ save_mcmc(
     mcmc,
     params,
     args.outdir,
-    filename=f"{args.algo}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}",
+    filename=f"{args.algo}_{args.setting}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}",
     L=L,
     B=B,
     J_min=J_min,
