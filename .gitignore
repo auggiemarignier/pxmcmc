@@ -2,7 +2,6 @@
 .vscode
 *.egg-info
 __pycache__
-*.npy
 *.png
 *logging.txt
 *.hdf5
