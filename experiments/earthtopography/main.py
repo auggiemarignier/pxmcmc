@@ -5,7 +5,7 @@ import argparse
 import pys2let
 import pyssht
 
-from pxmcmc.mcmc import MYULA, PxMALA, PxMCMCParams
+from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
 from pxmcmc.forward import WaveletTransformOperator
 from pxmcmc.prox import L1
 from pxmcmc.saving import save_mcmc
@@ -21,7 +21,7 @@ parser.add_argument("--delta", type=float, default=1e-10)
 parser.add_argument("--mu", type=float, default=1)
 args = parser.parse_args()
 
-sig_d = 3.0
+sig_d = 200
 
 L = 16
 B = 1.5
@@ -34,7 +34,7 @@ if "_hpx_" in args.infile:
     topo_d = pys2let.alm2map_mw(pys2let.lm_hp2lm(topo_d_lm, L), L, 0)
 elif "_mw_" in args.infile:
     topo = np.load(args.infile)
-    topo_d_lm = pyssht.forward(topo, L)
+    topo_d_lm = pyssht.forward(topo, L, Reality=True)
     topo_d = pys2let.alm2map_mw(topo_d_lm, L, 0)  # just to get shapes right
 else:
     raise ValueError("Check filename")
@@ -43,12 +43,15 @@ forwardop = WaveletTransformOperator(topo_d, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
     nsamples=int(5e3),
     nburn=0,
-    ngap=int(1e2),
+    ngap=int(1),
+    # ngap=int(1e2),
     complex=True,
     delta=args.delta,
     lmda=1e-7,
     mu=args.mu,
-    verbosity=int(1e2),
+    verbosity=int(1),
+    # verbosity=int(1e2),
+    s=10
 )
 
 regulariser = L1(
@@ -67,6 +70,8 @@ if args.algo == "myula":
     mcmc = MYULA(forwardop, regulariser, params)
 elif args.algo == "pxmala":
     mcmc = PxMALA(forwardop, regulariser, params, tune_delta=True)
+elif args.algo == "skrock":
+    mcmc = SKROCK(forwardop, regulariser, params)
 else:
     raise ValueError
 mcmc.run()

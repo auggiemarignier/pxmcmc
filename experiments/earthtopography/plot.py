@@ -59,7 +59,7 @@ maxapost = plotting.plot_map(MAP_plt, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
 
 diff = truth - MAP
-cbar_end = max([abs(floor(min(diff))), ceil(max(diff))])
+cbar_end = max([abs(floor(np.min(diff))), ceil(np.max(diff))])
 diff_plt, _ = pyssht.mollweide_projection(diff, L)
 diffp = plotting.plot_map(diff_plt, title="True - MAP", cmap="PuOr", vmin=-cbar_end, vmax=cbar_end)
 diffp.savefig(filename("diff"))
@@ -82,4 +82,3 @@ ci_map = plotting.plot_map(
     ci_range_plt, title="95% credible interval range", cmap="viridis", vmin=0
 )
 ci_map.savefig(filename("ci_map"))
-print()
