@@ -75,26 +75,6 @@ if args.chain_mwlm:
 mapx = plotting.plot_chain_sample(MAP_X)
 mapx.savefig(filename("MAP_X"))
 
-if args.chain_mwlm:
-    chain = np.zeros(
-        (len(file["chain"][args.burn :]), L * L * (nscales + 1)), dtype=np.complex
-    )
-    if args.setting == "synthesis":
-        for i in range(len(chain)):
-            print(f"\r{i+1}/{len(chain)}", end="")
-            wavs, scal = expand_mlm(
-                file["chain"][args.burn + i], nscales, flatten_wavs=True
-            )
-            scal_lm, wav_lm = wvltform._pixmw2harmmw_wavelets(scal, wavs)
-            chain[i] = np.concatenate([scal_lm, wav_lm])
-    else:
-        for i in range(len(chain)):
-            print(f"\r{i+1}/{len(chain)}", end="")
-            chain[i] = wvlttrans.forward(file["chain"][args.burn + i])
-
-    basis_els = plotting.plot_basis_els(chain, L, B, J_min, inflate_mads=100)
-    basis_els.savefig(filename("basis_els"))
-
 ci_range = uncertainty.credible_interval_range(file["predictions"][3000:])
 ci_range = pyssht.inverse(pys2let.map2alm_mw(ci_range, L, 0), L, Reality=True)
 ci_range_plt, _ = pyssht.mollweide_projection(ci_range, L)
