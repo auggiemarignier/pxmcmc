@@ -9,16 +9,17 @@ import copy
 from pxmcmc.utils import suppress_stdout
 
 
-def plot_map(f, title=None, cbar=True, cmap="turbo"):
+def plot_map(f, title=None, cbar=True, cmap="turbo", vmin=None, vmax=None):
     cmap = copy.copy(cm.get_cmap(cmap))
     cmap.set_bad(alpha=0)
 
-    plt.figure(figsize=(20, 10))
-    plt.imshow(f, origin='lower', cmap=cmap)
+    fig = plt.figure(figsize=(20, 10))
+    plt.imshow(f, origin='lower', cmap=cmap, vmin=vmin, vmax=vmax)
     plt.axis('off')
     plt.title(title, fontsize=24)
     if cbar:
         plt.colorbar()
+    return fig
 
 
 def mollview(image, figsize=(10, 8), **kwargs):

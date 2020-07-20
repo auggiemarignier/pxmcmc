@@ -1,8 +1,8 @@
 import argparse
 import h5py
 import numpy as np
-from matplotlib import cm
 import pys2let
+import pyssht
 import healpy as hp
 from math import floor, ceil
 
@@ -10,7 +10,7 @@ from math import floor, ceil
 from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import WaveletTransform
-from pxmcmc.utils import alm2map, map2alm, WaveletFormatter, expand_mlm
+from pxmcmc.utils import map2alm, WaveletFormatter, expand_mlm
 
 
 parser = argparse.ArgumentParser()
@@ -49,23 +49,19 @@ topo = hp.read_map(
     verbose=False,
     dtype=np.float64,
 )
-truth = alm2map(map2alm(topo, params["L"] - 1), Nside)
+truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=True)
 
 MAP_idx = np.where(logpi == max(logpi))
 MAP = file["predictions"][MAP_idx][0]
-MAP_hp = alm2map(
-    pys2let.lm2lm_hp(pys2let.map2alm_mw(MAP, params["L"], 0), params["L"]), Nside
-)
-maxapost = plotting.mollview(
-    MAP_hp, cmap=cm.jet, title="Maximum a posteriori solution", flip="geo"
-)
+MAP = pyssht.inverse(pys2let.map2alm_mw(MAP, L, 0), L, Reality=True)
+MAP_plt, _ = pyssht.mollweide_projection(MAP, L)
+maxapost = plotting.plot_map(MAP_plt, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
 
-diff = truth - MAP_hp
+diff = truth - MAP
 cbar_end = max([abs(floor(min(diff))), ceil(max(diff))])
-diffp = plotting.mollview(
-    diff, cmap=cm.PuOr, title="Truth - MAP", flip="geo", min=-cbar_end, max=cbar_end
-)
+diff_plt, _ = pyssht.mollweide_projection(diff, L)
+diffp = plotting.plot_map(diff_plt, title="True - MAP", cmap="PuOr", vmin=-cbar_end, vmax=cbar_end)
 diffp.savefig(filename("diff"))
 
 MAP_X = file["chain"][MAP_idx][0]
@@ -79,7 +75,6 @@ if args.chain_mwlm:
 mapx = plotting.plot_chain_sample(MAP_X)
 mapx.savefig(filename("MAP_X"))
 
-# TODO: Sort this out for the analysis setting
 if args.chain_mwlm:
     chain = np.zeros(
         (len(file["chain"][args.burn :]), L * L * (nscales + 1)), dtype=np.complex
@@ -101,11 +96,10 @@ if args.chain_mwlm:
     basis_els.savefig(filename("basis_els"))
 
 ci_range = uncertainty.credible_interval_range(file["predictions"][3000:])
-ci_range_hp = alm2map(
-    pys2let.lm2lm_hp(pys2let.map2alm_mw(ci_range, params["L"], 0), params["L"]), Nside
-)
-ci_map = plotting.mollview(
-    ci_range_hp, min=0, title="95% credible interval range", flip="geo"
+ci_range = pyssht.inverse(pys2let.map2alm_mw(ci_range, L, 0), L, Reality=True)
+ci_range_plt, _ = pyssht.mollweide_projection(ci_range, L)
+ci_map = plotting.plot_map(
+    ci_range_plt, title="95% credible interval range", cmap="viridis", vmin=0
 )
 ci_map.savefig(filename("ci_map"))
 print()
