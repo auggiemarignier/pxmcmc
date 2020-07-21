@@ -9,9 +9,10 @@ class ForwardOperator:
     Base Forward operator. Combines a transform and a measurement operator
     Children of this class must define analysis/synthesis forward and gradg functions
     Children must also take data and sig_d in the constructor
+    Number of model parameters must also be given
     """
 
-    def __init__(self, data, sig_d, setting, transform=None, measurement=None):
+    def __init__(self, data, sig_d, setting, transform=None, measurement=None, nparams=None):
         self.data = data
         self.sig_d = sig_d
         if setting not in ["analysis", "synthesis"]:
@@ -21,6 +22,8 @@ class ForwardOperator:
             self.transform = transform
         if measurement is not None:
             self.measurement = measurement
+        if nparams is not None:
+            self.nparams = nparams
 
     def forward(self, X):
         if self.setting == "analysis":
