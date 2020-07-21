@@ -120,7 +120,7 @@ class MYULA(PxMCMC):
                     self.preds[j] = curr_preds
                     self.chain[j] = X_curr
                     j += 1
-            if (i + 1) % self.verbosity == 0:
+            if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
                     j - 1, self.logPi[j - 1], L2=self.L2s[j - 1], L1=self.L1s[j - 1]
                 )
@@ -197,7 +197,7 @@ class PxMALA(MYULA):
                     self.preds[j] = curr_preds
                     self.chain[j] = X_curr
                     j += 1
-            if (i + 1) % self.verbosity == 0:
+            if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
                     j - 1,
                     logpiXc,
@@ -252,7 +252,7 @@ class SKROCK(PxMCMC):
                     self.preds[j] = curr_preds
                     self.chain[j] = X_curr
                     j += 1
-            if (i + 1) % self.verbosity == 0:
+            if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
                     j - 1, self.logPi[j - 1], L2=self.L2s[j - 1], L1=self.L1s[j - 1]
                 )
@@ -272,17 +272,17 @@ class SKROCK(PxMCMC):
         elif s == 1:
             return (
                 X
-                + self.mus[1]
+                + self.mus[0]
                 * self.delta
-                * self._gradlogpi(X + self.nus[1] * np.sqrt(2 * self.delta) * Z)
-                + self.ks[1] * np.sqrt(2 * self.delta) * Z
+                * self._gradlogpi(X + self.nus[0] * np.sqrt(2 * self.delta) * Z)
+                + self.ks[0] * np.sqrt(2 * self.delta) * Z
             )
         else:
             return (
-                self.mus[s] * self.delta * self._gradlogpi(self._K_recursion(X, s - 1, Z))
-                + self.nus[s] * self._K_recursion(X, s - 1, Z)
-                + self.ks[s]
-                - self._K_recursion(X, s - 2, Z)
+                self.mus[s - 1] * self.delta * self._gradlogpi(self._K_recursion(X, s, Z))
+                + self.nus[s - 1] * self._K_recursion(X, s - 2, Z)
+                + self.ks[s - 1]
+                - self._K_recursion(X, s - 3, Z)
             )
 
     def _recursion_coefs(self):
@@ -290,12 +290,12 @@ class SKROCK(PxMCMC):
         self.nus = np.zeros(self.s)
         self.ks = np.zeros(self.s)
 
-        self.mus[1] = self.omega_1 / self.omega_0
-        self.nus[1] = self.s * self.omega_1 / 2
-        self.ks[1] = self.s * self.omega_1 / self.omega_0
+        self.mus[0] = self.omega_1 / self.omega_0
+        self.nus[0] = self.s * self.omega_1 / 2
+        self.ks[0] = self.s * self.omega_1 / self.omega_0
 
-        for j in range(2, self.s + 1):
-            cheb_ratio = chebyshev1(self.omega_0, j - 1) / chebyshev1(self.omega_1, j)
+        for j in range(1, self.s):
+            cheb_ratio = chebyshev1(self.omega_0, j) / chebyshev1(self.omega_1, j + 1)
             self.mus[j] = 2 * self.omega_1 * cheb_ratio
             self.nus[j] = 2 * self.omega_0 * cheb_ratio
-            self.ks[j] = 1 - self.nus[0]
+            self.ks[j] = 1 - self.nus[j]

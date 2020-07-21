@@ -14,7 +14,7 @@ def forwardop(simpledata, setting, sig_d):
     transform = IdentityTransform()
     measurement = Identity(ndata, nparams)
     return ForwardOperator(
-        simpledata, sig_d, setting, transform, measurement, nparams=nparams
+        simpledata.real, sig_d, setting, transform, measurement, nparams=nparams
     )
 
 
@@ -44,4 +44,4 @@ def case_skrock(forwardop, prox, mcmcparams):
 
 @parametrize_with_cases("algo", cases=".")
 def test_algorithms(algo):
-    algo.run
+    algo.run()
