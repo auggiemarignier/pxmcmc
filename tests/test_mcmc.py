@@ -27,7 +27,7 @@ def prox(forwardop, setting):
 
 @pytest.fixture
 def mcmcparams():
-    return PxMCMCParams(nsamples=100, nburn=10, ngap=5, verbosity=0)
+    return PxMCMCParams(nsamples=100, nburn=10, ngap=5, verbosity=0, s=5)
 
 
 def case_myula(forwardop, prox, mcmcparams):
