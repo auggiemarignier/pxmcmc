@@ -1,4 +1,5 @@
 import pytest
+from pytest_cases import parametrize_with_cases, fixture
 import numpy as np
 import pys2let
 
@@ -11,12 +12,6 @@ from pxmcmc.utils import alm2map, WaveletFormatter
 @pytest.fixture
 def Nside():
     return 32
-
-
-@pytest.fixture
-def sig_d():
-    return 1
-
 
 @pytest.fixture
 def L():
@@ -77,6 +72,20 @@ def all_data(
         "pixel_hp": simpledata_hp,
     }
     return data
+
+
+def case_sig_d_int():
+    return 1
+
+
+def case_sig_d_array():
+    return np.ones(pys2let.mw_size(10))
+
+
+@fixture
+@parametrize_with_cases("format", cases=[case_sig_d_int, case_sig_d_array])
+def sig_d(format):
+    return format
 
 
 @pytest.fixture
