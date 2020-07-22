@@ -12,7 +12,9 @@ class ForwardOperator:
     Number of model parameters must also be given
     """
 
-    def __init__(self, data, sig_d, setting, transform=None, measurement=None, nparams=None):
+    def __init__(
+        self, data, sig_d, setting, transform=None, measurement=None, nparams=None
+    ):
         self.data = data
         self.sig_d = sig_d
         if setting not in ["analysis", "synthesis"]:
@@ -46,12 +48,12 @@ class ForwardOperator:
         return prediction
 
     def _gradg_analysis(self, preds):
-        return self.measurement.adjoint(preds - self.data) / (self.sig_d ** 2)
+        return self.measurement.adjoint((preds - self.data) / (self.sig_d ** 2))
 
     def _gradg_synthesis(self, preds):
         return self.transform.inverse_adjoint(
-            self.measurement.adjoint(preds - self.data)
-        ) / (self.sig_d ** 2)
+            self.measurement.adjoint((preds - self.data)) / (self.sig_d ** 2)
+        )
 
 
 class WaveletTransformOperator(ForwardOperator):

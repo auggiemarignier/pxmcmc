@@ -51,9 +51,9 @@ class PxMCMC:
         """
         Calculates the log(posterior), L2-norm and L1-norm of a model X.
         """
-        L2 = sum(abs((self.forward.data - preds)) ** 2)
+        L2 = sum(abs(self.forward.data - preds) ** 2 / (2 * self.forward.sig_d ** 2))
         L1 = sum(abs(X))
-        logPi = -self.mu * L1 - L2 / (2 * self.forward.sig_d ** 2)
+        logPi = -self.mu * L1 - L2
         return logPi, L2, L1
 
     def _gradlogpi(self, X, preds=None):
