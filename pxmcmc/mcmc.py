@@ -120,7 +120,7 @@ class MYULA(PxMCMC):
                     self.preds[j] = curr_preds
                     self.chain[j] = X_curr
                     j += 1
-            if (i + 1) % self.verbosity == 0:
+            if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
                     j - 1, self.logPi[j - 1], L2=self.L2s[j - 1], L1=self.L1s[j - 1]
                 )
@@ -197,7 +197,7 @@ class PxMALA(MYULA):
                     self.preds[j] = curr_preds
                     self.chain[j] = X_curr
                     j += 1
-            if (i + 1) % self.verbosity == 0:
+            if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
                     j - 1,
                     logpiXc,
