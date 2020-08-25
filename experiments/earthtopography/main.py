@@ -9,6 +9,7 @@ from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
 from pxmcmc.forward import WaveletTransformOperator
 from pxmcmc.prox import L1
 from pxmcmc.saving import save_mcmc
+from pxmcmc.utils import calc_pixel_areas
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--infile", type=str, default="ETOPO1_Ice_hpx_256.fits")
@@ -19,14 +20,17 @@ parser.add_argument("--algo", type=str, default="myula")
 parser.add_argument("--setting", type=str, default="synthesis")
 parser.add_argument("--delta", type=float, default=1e-10)
 parser.add_argument("--mu", type=float, default=1)
+
+parser.add_argument("--L", type=int, default=16)
+parser.add_argument("--sigma", type=float, default=1)
+parser.add_argument("--makenoise", action="store_true")
 args = parser.parse_args()
 
-sig_d = 200
 
-L = 16
+L = args.L
 B = 1.5
 J_min = 2
-Nside = 32
+sigma = args.sigma
 setting = args.setting
 if "_hpx_" in args.infile:
     topo = hp.read_map(args.infile, verbose=False)
@@ -38,6 +42,15 @@ elif "_mw_" in args.infile:
     topo_d = pys2let.alm2map_mw(topo_d_lm, L, 0)  # just to get shapes right
 else:
     raise ValueError("Check filename")
+
+if args.makenoise:
+    areas = calc_pixel_areas(L)
+    sig_d = np.sqrt(sigma ** 2 / areas)
+    noise = np.random.normal(0, sig_d)
+    topo_d += noise
+else:
+    sig_d = sigma
+    noise = None
 
 forwardop = WaveletTransformOperator(topo_d, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
@@ -51,7 +64,7 @@ params = PxMCMCParams(
     mu=args.mu,
     verbosity=int(1),
     # verbosity=int(1e2),
-    s=10
+    s=10,
 )
 
 regulariser = L1(
@@ -87,4 +100,5 @@ save_mcmc(
     J_min=J_min,
     sig_d=sig_d,
     nparams=forwardop.nparams,
+    noise=noise,
 )
