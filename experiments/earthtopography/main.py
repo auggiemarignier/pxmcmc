@@ -24,6 +24,7 @@ parser.add_argument("--mu", type=float, default=1)
 parser.add_argument("--L", type=int, default=16)
 parser.add_argument("--sigma", type=float, default=1)
 parser.add_argument("--makenoise", action="store_true")
+parser.add_argument("--scaleafrica", type=int, default=0)
 args = parser.parse_args()
 
 
@@ -46,6 +47,16 @@ else:
 if args.makenoise:
     areas = calc_pixel_areas(L)
     sig_d = np.sqrt(sigma ** 2 / areas)
+    if args.scaleafrica:
+        thetas = np.deg2rad(np.linspace(60, 120, 100))
+        phis = np.deg2rad(np.linspace(-30, 30, 100))
+        block = np.zeros((L, 2 * L - 1))
+        for theta in thetas:
+            theta_ind = pyssht.theta_to_index(theta, L)
+            for phi in phis:
+                phi_ind = pyssht.phi_to_index(phi, L)
+                block[theta_ind, phi_ind] = 1
+        sig_d[block == 1] *= args.scaleafrica
     noise = np.random.normal(0, sig_d)
     topo_d += noise
 else:
