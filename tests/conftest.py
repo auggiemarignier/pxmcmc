@@ -13,6 +13,7 @@ from pxmcmc.utils import alm2map, WaveletFormatter
 def Nside():
     return 32
 
+
 @pytest.fixture
 def L():
     return 10

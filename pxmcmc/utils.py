@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import os
 import sys
 import pys2let
+import pyssht
 
 
 def flatten_mlm(wav_lm, scal_lm):
@@ -332,3 +333,25 @@ class WaveletFormatter:
                 wav[j * offset_hp : (j + 1) * offset_hp], self.L - 1
             )
         return scal_lm_hp, wav_lm_hp
+
+
+def pixel_area(r, theta1, theta2, phi1, phi2):
+    return r ** 2 * (np.cos(theta1) - np.cos(theta2)) * (phi2 - phi1)
+
+
+def polar_cap_area(r, alpha):
+    return 2 * np.pi * r ** 2 * (1 - np.cos(alpha))
+
+
+def calc_pixel_areas(L, r=1):
+    thetas, phis = pyssht.sample_positions(L)
+    nthetas, nphis = thetas.shape[0], phis.shape[0]
+    areas = np.zeros((nthetas, nphis), dtype=np.float64)
+    phis = np.append(phis, [2 * np.pi])
+    areas[0] = polar_cap_area(r, thetas[0]) / nphis
+    for t, theta1 in enumerate(thetas[:-1]):
+        theta2 = thetas[t + 1]
+        for p, phi1 in enumerate(phis[:-1]):
+            phi2 = phis[p + 1]
+            areas[t + 1][p] = pixel_area(r, theta1, theta2, phi1, phi2)
+    return areas

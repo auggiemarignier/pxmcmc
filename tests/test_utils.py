@@ -203,3 +203,19 @@ def test_formatter_splitflatten_wavelets(
     wav_s = waveletformatter._split_wavelets(wav)
     wav_rec = waveletformatter._flatten_wavelets(wav_s)
     assert np.array_equal(wav_rec, wav)
+
+
+def test_pixel_area():
+    area = utils.pixel_area(1, 0, np.pi, 0, 2 * np.pi)
+    assert np.isclose(area, 4 * np.pi)
+
+
+@pytest.mark.parametrize("alpha, area", [(np.pi / 2, 2 * np.pi), (np.pi, 4 * np.pi)])
+def test_polar_cap_area(alpha, area):
+    cap = utils.polar_cap_area(1, alpha)
+    assert np.isclose(cap, area)
+
+
+def test_calc_pixel_areas(L):
+    areas = utils.calc_pixel_areas(L)
+    assert np.isclose(np.sum(areas), 4 * np.pi)
