@@ -82,7 +82,7 @@ if args.chain_mwlm:
 mapx = plotting.plot_chain_sample(MAP_X)
 mapx.savefig(filename("MAP_X"))
 
-ci_range = uncertainty.credible_interval_range(file["predictions"][3000:])
+ci_range = uncertainty.credible_interval_range(file["predictions"][args.burn:])
 ci_range = pyssht.inverse(pys2let.map2alm_mw(ci_range, L, 0), L, Reality=True)
 ci_range_plt, _ = pyssht.mollweide_projection(ci_range, L)
 ci_map = plotting.plot_map(
