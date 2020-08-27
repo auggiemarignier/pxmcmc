@@ -58,10 +58,17 @@ MAP_plt, _ = pyssht.mollweide_projection(MAP, L)
 maxapost = plotting.plot_map(MAP_plt, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
 
-diff = truth - MAP
+diff = 100 * (truth - MAP) / truth
 cbar_end = max([abs(floor(np.min(diff))), ceil(np.max(diff))])
 diff_plt, _ = pyssht.mollweide_projection(diff, L)
-diffp = plotting.plot_map(diff_plt, title="True - MAP", cmap="PuOr", vmin=-cbar_end, vmax=cbar_end)
+diffp = plotting.plot_map(
+    diff_plt,
+    title="True - MAP",
+    cmap="PuOr",
+    vmin=-cbar_end,
+    vmax=cbar_end,
+    cbar_label="%",
+)
 diffp.savefig(filename("diff"))
 
 MAP_X = file["chain"][MAP_idx][0]
