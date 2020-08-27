@@ -57,6 +57,7 @@ if args.makenoise:
                 phi_ind = pyssht.phi_to_index(phi, L)
                 block[theta_ind, phi_ind] = 1
         sig_d[block == 1] *= args.scaleafrica
+    sig_d = sig_d.flatten()  # flatten() by default goes to C ordering like in s2let
     noise = np.random.normal(0, sig_d)
     topo_d += noise
 else:
