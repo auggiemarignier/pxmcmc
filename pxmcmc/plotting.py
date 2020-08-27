@@ -9,7 +9,7 @@ import copy
 from pxmcmc.utils import suppress_stdout
 
 
-def plot_map(f, title=None, cbar=True, cmap="turbo", vmin=None, vmax=None):
+def plot_map(f, title=None, cbar=True, cmap="turbo", vmin=None, vmax=None, cbar_label=""):
     cmap = copy.copy(cm.get_cmap(cmap))
     cmap.set_bad(alpha=0)
 
@@ -19,6 +19,7 @@ def plot_map(f, title=None, cbar=True, cmap="turbo", vmin=None, vmax=None):
     plt.title(title, fontsize=24)
     if cbar:
         plt.colorbar()
+        cbar.ax.set_ylabel(cbar_label)
     return fig
 
 
