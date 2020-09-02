@@ -18,7 +18,7 @@ def plot_map(f, title=None, cbar=True, cmap="turbo", vmin=None, vmax=None, cbar_
     plt.axis('off')
     plt.title(title, fontsize=24)
     if cbar:
-        plt.colorbar()
+        cbar = plt.colorbar()
         cbar.ax.set_ylabel(cbar_label)
     return fig
 
