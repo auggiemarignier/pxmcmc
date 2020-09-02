@@ -52,7 +52,7 @@ class ForwardOperator:
 
     def _gradg_synthesis(self, preds):
         return self.transform.inverse_adjoint(
-            self.measurement.adjoint((preds - self.data)) / (self.sig_d ** 2)
+            self.measurement.adjoint((preds - self.data) / (self.sig_d ** 2))
         )
 
 
