@@ -76,11 +76,11 @@ def all_data(
 
 
 def case_sig_d_int():
-    return 1
+    return 0.1
 
 
 def case_sig_d_array():
-    return np.ones(pys2let.mw_size(10))
+    return np.full(pys2let.mw_size(10), 0.1)
 
 
 @fixture

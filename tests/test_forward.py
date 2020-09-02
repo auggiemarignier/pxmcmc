@@ -24,14 +24,16 @@ def test_WaveletTransformOperator_forward(swtoperator):
 def test_WaveletTransformOperator_gradg(swtoperator):
     preds = np.random.rand(len(swtoperator.data)).astype(np.complex)
     if swtoperator.setting == "analysis":
-        expected = preds - swtoperator.data
+        expected = (1 / swtoperator.sig_d ** 2) * (preds - swtoperator.data)
     else:
         B = swtoperator.transform.B
         L = swtoperator.transform.L
         J_min = swtoperator.transform.J_min
-        diff = preds - swtoperator.data
+        diff = (1 / swtoperator.sig_d ** 2) * (preds - swtoperator.data)
         expected = flatten_mlm(
             *pys2let.synthesis_adjoint_axisym_wav_mw(diff, B, L, J_min)
         )
 
-    assert np.allclose(swtoperator.calc_gradg(preds), expected)
+    assert np.allclose(
+        swtoperator.calc_gradg(preds), expected
+    )
