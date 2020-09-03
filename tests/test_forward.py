@@ -1,5 +1,6 @@
 import pys2let
 import numpy as np
+from scipy import sparse
 
 from pxmcmc.utils import expand_mlm, flatten_mlm
 
@@ -24,16 +25,14 @@ def test_WaveletTransformOperator_forward(swtoperator):
 def test_WaveletTransformOperator_gradg(swtoperator):
     preds = np.random.rand(len(swtoperator.data)).astype(np.complex)
     if swtoperator.setting == "analysis":
-        expected = (1 / swtoperator.sig_d ** 2) * (preds - swtoperator.data)
+        expected = swtoperator.invcov.dot(sparse.csr_matrix(preds - swtoperator.data).T).toarray().flatten()
     else:
         B = swtoperator.transform.B
         L = swtoperator.transform.L
         J_min = swtoperator.transform.J_min
-        diff = (1 / swtoperator.sig_d ** 2) * (preds - swtoperator.data)
+        diff = swtoperator.invcov.dot(sparse.csr_matrix(preds - swtoperator.data).T).toarray().flatten()
         expected = flatten_mlm(
             *pys2let.synthesis_adjoint_axisym_wav_mw(diff, B, L, J_min)
         )
 
-    assert np.allclose(
-        swtoperator.calc_gradg(preds), expected
-    )
+    assert np.allclose(swtoperator.calc_gradg(preds), expected)

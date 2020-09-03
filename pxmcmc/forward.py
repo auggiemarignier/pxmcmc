@@ -1,4 +1,5 @@
 from pys2let import mw_size
+from scipy import sparse
 
 from pxmcmc.measurements import Identity
 from pxmcmc.transforms import WaveletTransform
@@ -16,7 +17,7 @@ class ForwardOperator:
         self, data, sig_d, setting, transform=None, measurement=None, nparams=None
     ):
         self.data = data
-        self.sig_d = sig_d
+        self.invcov = self._build_inverse_covariance_matrix(sig_d)
         if setting not in ["analysis", "synthesis"]:
             raise ValueError
         self.setting = setting
@@ -48,12 +49,22 @@ class ForwardOperator:
         return prediction
 
     def _gradg_analysis(self, preds):
-        return self.measurement.adjoint((preds - self.data) / (self.sig_d ** 2))
+        return self.measurement.adjoint(
+            self.invcov.dot(sparse.csr_matrix(preds - self.data).T).toarray().flatten()
+        )
 
     def _gradg_synthesis(self, preds):
-        return self.transform.inverse_adjoint(
-            self.measurement.adjoint((preds - self.data) / (self.sig_d ** 2))
-        )
+        return self.transform.inverse_adjoint(self._gradg_analysis(preds))
+
+    def _build_inverse_covariance_matrix(self, sig_d):
+        if isinstance(sig_d, float) or isinstance(sig_d, int):
+            return sparse.identity(len(self.data)).dot(1 / sig_d ** 2)
+        elif sig_d.size == len(self.data) and len(sig_d.shape) == 1:
+            return sparse.diags(1 / sig_d ** 2)
+        elif len(sig_d.shape) == 2:
+            return sparse.linalg.inv(sig_d)
+        else:
+            raise TypeError("sig_d must be a float scalar, vector or 2D matrix")
 
 
 class WaveletTransformOperator(ForwardOperator):
