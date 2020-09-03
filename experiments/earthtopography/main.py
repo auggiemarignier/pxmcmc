@@ -39,8 +39,7 @@ if "_hpx_" in args.infile:
     topo_d = pys2let.alm2map_mw(pys2let.lm_hp2lm(topo_d_lm, L), L, 0)
 elif "_mw_" in args.infile:
     topo = np.load(args.infile)
-    topo_d_lm = pyssht.forward(topo, L, Reality=True)
-    topo_d = pys2let.alm2map_mw(topo_d_lm, L, 0)  # just to get shapes right
+    topo_d = topo.reshape((L, 2 * L - 1))
 else:
     raise ValueError("Check filename")
 
