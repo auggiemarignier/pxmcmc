@@ -53,7 +53,7 @@ truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=Tru
 
 MAP_idx = np.where(logpi == max(logpi))
 MAP = file["predictions"][MAP_idx][0]
-MAP = MAP.reshape((L, 2 * L - 1)).astype(float)
+MAP = MAP.reshape((L, 2 * L - 1)).real
 MAP_plt, _ = pyssht.mollweide_projection(MAP, L)
 maxapost = plotting.plot_map(MAP_plt, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
@@ -89,3 +89,9 @@ ci_map = plotting.plot_map(
     ci_range_plt, title="95% credible interval range", cmap="viridis", vmin=0
 )
 ci_map.savefig(filename("ci_map"))
+
+if "noise" in params:
+    noise = params["noise"].reshape((L, 2 * L - 1))
+    noise_plt, _ = pyssht.mollweide_projection(noise, L)
+    noise_map = plotting.plot_map(noise_plt, title="Added noise", cmap="binary")
+    noise_map.savefig(filename("noise"))
