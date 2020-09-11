@@ -2,6 +2,7 @@ from pxmcmc import utils
 import numpy as np
 import pytest
 import pys2let
+import pyssht
 
 
 def test_flattenmlm():
@@ -219,3 +220,21 @@ def test_polar_cap_area(alpha, area):
 def test_calc_pixel_areas(L):
     areas = utils.calc_pixel_areas(L)
     assert np.isclose(np.sum(areas), 4 * np.pi)
+
+
+def test_s2_integrate(L):
+
+    flm = np.zeros((L * L), dtype=complex)
+    for el in range(L):
+        m = 0
+        ind = pyssht.elm2ind(el, m)
+        flm[ind] = np.random.randn()
+        for m in range(1, el + 1):
+            ind_pm = pyssht.elm2ind(el, m)
+            ind_nm = pyssht.elm2ind(el, -m)
+            flm[ind_pm] = np.random.randn() + 1j * np.random.randn()
+            flm[ind_nm] = (-1)**m * np.conj(flm[ind_pm])
+    I0 = flm[0] * np.sqrt(4 * np.pi)
+    f = pyssht.inverse(flm, L, Method="MW", Reality=True).flatten()
+
+    assert np.isclose(I0, utils.s2_integrate(f, L))
