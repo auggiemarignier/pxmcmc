@@ -36,12 +36,11 @@ class Identity(Measurement):
 
 
 class PathIntegral(Measurement):
-    def __init__(self, datafile, ndata, npix, path_matrix_file=None):
-        super().__init__(ndata, npix)
-        self._read_datafile(datafile)
-        self._get_path_matrix(path_matrix_file)
-
+    def __init__(self, path_matrix):
+        self.path_matrix = path_matrix
         self.path_matrix_adj = self.path_matrix.getH()
+
+        self.ndata, self.npix = path_matrix.shape
 
     def forward(self, X):
         assert len(X) == self.npix
