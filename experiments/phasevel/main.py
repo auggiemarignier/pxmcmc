@@ -75,6 +75,8 @@ else:
     path_matrix = get_path_matrix(start, stop)
     sparse.save_npz(args.pathsfile)
 
+assert path_matrix.shape[0] == len(data)
+
 forwardop = PathIntegralOperator(path_matrix, data, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
     nsamples=int(5e3),
