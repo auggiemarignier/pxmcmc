@@ -4,12 +4,12 @@ from os import path
 from scipy import sparse
 from greatcirclepaths import GreatCirclePath
 from multiprocessing import Pool
+import datetime
 
 from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
-from pxmcmc.forward import WaveletTransformOperator
+from pxmcmc.forward import PathIntegralOperator
 from pxmcmc.prox import L1
 from pxmcmc.saving import save_mcmc
-from pxmcmc.utils import calc_pixel_areas
 
 
 def read_datafile(datafile):
@@ -32,7 +32,7 @@ def read_datafile(datafile):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("infile", type=str, default="hvh.000S061.asc.rwt3_std4")
+parser.add_argument("infile", type=str)
 parser.add_argument("--outdir", type=str, default=".")
 parser.add_argument("--jobid", type=str, default="0")
 parser.add_argument(
@@ -47,6 +47,10 @@ parser.add_argument("--mu", type=float, default=1)
 parser.add_argument("--L", type=int, default=20)
 
 args = parser.parse_args()
+L = args.L
+B = 2
+J_min = 2
+setting = args.setting
 
 
 def build_path(start, stop):
@@ -66,7 +70,55 @@ def get_path_matrix(start, stop, processes=4):
 
 start, stop, data, sig_d = read_datafile(args.infile)
 if path.exists(args.pathsfile):
-    path_matrix = sparse.load_npz(args.pathfile)
+    path_matrix = sparse.load_npz(args.pathsfile)
 else:
     path_matrix = get_path_matrix(start, stop)
     sparse.save_npz(args.pathsfile)
+
+forwardop = PathIntegralOperator(path_matrix, data, sig_d, setting, L, B, J_min)
+params = PxMCMCParams(
+    nsamples=int(5e3),
+    nburn=0,
+    ngap=int(1),
+    complex=True,
+    delta=args.delta,
+    lmda=1e-7,
+    mu=args.mu,
+    verbosity=int(1),
+    s=10,
+)
+
+regulariser = L1(
+    setting,
+    forwardop.transform.inverse,
+    forwardop.transform.inverse_adjoint,
+    params.lmda * params.mu,
+)
+
+print(f"Number of data points: {len(data)}")
+print(f"Number of model parameters: {forwardop.nparams}")
+
+NOW = datetime.datetime.now()
+
+if args.algo == "myula":
+    mcmc = MYULA(forwardop, regulariser, params)
+elif args.algo == "pxmala":
+    mcmc = PxMALA(forwardop, regulariser, params, tune_delta=True)
+elif args.algo == "skrock":
+    mcmc = SKROCK(forwardop, regulariser, params)
+else:
+    raise ValueError
+mcmc.run()
+
+filename = f"{args.algo}_{args.setting}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}"
+save_mcmc(
+    mcmc,
+    params,
+    args.outdir,
+    filename=filename,
+    L=L,
+    B=B,
+    J_min=J_min,
+    sig_d=sig_d,
+    nparams=forwardop.nparams,
+)
