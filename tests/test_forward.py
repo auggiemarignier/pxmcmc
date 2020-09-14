@@ -1,45 +1,32 @@
-import pys2let
-import numpy as np
+import pyssht
 from scipy import sparse
-import pytest
+import numpy as np
+from pytest_cases import parametrize_with_cases
 
-from pxmcmc.utils import expand_mlm, flatten_mlm
-from pxmcmc.forward import WaveletTransformOperator
+from pxmcmc.forward import WaveletTransformOperator, PathIntegralOperator
 
-# These tests mostly test implementation
+# These tests only test output size, to ensure something is returned
 # Tests on individal transform and measurement operators are more valuable
 
 
-@pytest.fixture
-def swtoperator(simpledata, sig_d, L, B, J_min, setting):
+def case_swtoperator(simpledata, sig_d, L, B, J_min, setting):
     return WaveletTransformOperator(simpledata, sig_d, setting, L, B, J_min)
 
 
-def test_WaveletTransformOperator_forward(swtoperator):
-    sample = np.random.rand(swtoperator.nparams).astype(np.complex)
-    if swtoperator.setting == "analysis":
-        expected = np.copy(sample)
-    else:
-        wav, scal = expand_mlm(sample, swtoperator.transform.nscales, flatten_wavs=True)
-        B = swtoperator.transform.B
-        L = swtoperator.transform.L
-        J_min = swtoperator.transform.J_min
-        expected = pys2let.synthesis_axisym_wav_mw(wav, scal, B, L, J_min)
-
-    assert np.allclose(swtoperator.forward(sample), expected)
+def case_pathintoperator(simpledata, sig_d, setting, L, B, J_min):
+    pathmatrix = sparse.random(len(simpledata), pyssht.sample_length(L, Method="MW"))
+    return PathIntegralOperator(pathmatrix, simpledata, sig_d, setting, L, B, J_min)
 
 
-def test_WaveletTransformOperator_gradg(swtoperator):
-    preds = np.random.rand(len(swtoperator.data)).astype(np.complex)
-    if swtoperator.setting == "analysis":
-        expected = swtoperator.invcov.dot(sparse.csr_matrix(preds - swtoperator.data).T).toarray().flatten()
-    else:
-        B = swtoperator.transform.B
-        L = swtoperator.transform.L
-        J_min = swtoperator.transform.J_min
-        diff = swtoperator.invcov.dot(sparse.csr_matrix(preds - swtoperator.data).T).toarray().flatten()
-        expected = flatten_mlm(
-            *pys2let.synthesis_adjoint_axisym_wav_mw(diff, B, L, J_min)
-        )
+@parametrize_with_cases("operator", cases=".")
+def test_operator_forward(operator):
+    sample = np.random.rand(operator.nparams).astype(complex)
+    preds = operator.forward(sample)
+    assert len(preds) == len(operator.data)
 
-    assert np.allclose(swtoperator.calc_gradg(preds), expected)
+
+@parametrize_with_cases("operator", cases=".")
+def test_operator_gradg(operator):
+    preds = np.random.rand(len(operator.data))
+    gradg = operator.calc_gradg(preds)
+    assert len(gradg) == operator.nparams
