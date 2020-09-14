@@ -2,6 +2,12 @@ import numpy as np
 import pytest
 
 from pxmcmc.utils import flatten_mlm
+from pxmcmc.transforms import WaveletTransform
+
+
+@pytest.fixture
+def wvlttransform(L, B, J_min, Nside):
+    return WaveletTransform(L, B, J_min, Nside)
 
 
 @pytest.mark.parametrize(

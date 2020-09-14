@@ -355,3 +355,34 @@ def calc_pixel_areas(L, r=1):
             phi2 = phis[p + 1]
             areas[t + 1][p] = pixel_area(r, theta1, theta2, phi1, phi2)
     return areas
+
+
+def mw_weights(m):
+    if m == 1:
+        w = 1j * np.pi / 2
+    elif m == -1:
+        w = -1j * np.pi / 2
+    elif m % 2 == 0:
+        w = 2.0 / (1.0 - m * m)
+    else:
+        w = 0
+
+    return w
+
+
+def weights_theta(L):
+    wr = np.zeros(2 * L - 1, dtype=complex)
+    for i, m in enumerate(range(-(L - 1), L)):
+        wr[i] = mw_weights(m) * np.exp(-1j * m * np.pi / (2 * L - 1))
+    wr = (np.fft.fft(np.fft.ifftshift(wr)) * 2 * np.pi / (2 * L - 1)**2).real
+    return wr
+
+
+def s2_integrate(f, L):
+    wr = weights_theta(L)
+    q = wr[0:L]
+    for i, j in enumerate(range(2 * L - 2, L - 1, -1)):
+        q[i] = q[i] + wr[j]
+    Q = np.outer(q, np.ones(2 * L - 1)).flatten()
+    integral = Q.dot(f)
+    return integral
