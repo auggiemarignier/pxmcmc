@@ -1,11 +1,18 @@
 import pys2let
 import numpy as np
 from scipy import sparse
+import pytest
 
 from pxmcmc.utils import expand_mlm, flatten_mlm
+from pxmcmc.forward import WaveletTransformOperator
 
 # These tests mostly test implementation
 # Tests on individal transform and measurement operators are more valuable
+
+
+@pytest.fixture
+def swtoperator(simpledata, sig_d, L, B, J_min, setting):
+    return WaveletTransformOperator(simpledata, sig_d, setting, L, B, J_min)
 
 
 def test_WaveletTransformOperator_forward(swtoperator):

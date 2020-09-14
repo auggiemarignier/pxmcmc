@@ -3,10 +3,7 @@ from pytest_cases import parametrize_with_cases, fixture
 import numpy as np
 import pys2let
 
-from pxmcmc.forward import WaveletTransformOperator
-from pxmcmc.prox import L1
-from pxmcmc.transforms import WaveletTransform
-from pxmcmc.utils import alm2map, WaveletFormatter
+from pxmcmc.utils import alm2map
 
 
 @pytest.fixture
@@ -87,28 +84,3 @@ def case_sig_d_array():
 @parametrize_with_cases("format", cases=[case_sig_d_int, case_sig_d_array])
 def sig_d(format):
     return format
-
-
-@pytest.fixture
-def swtoperator(simpledata, sig_d, L, B, J_min, setting):
-    return WaveletTransformOperator(simpledata, sig_d, setting, L, B, J_min)
-
-
-@pytest.fixture
-def L1regulariser(setting):
-    T = 50
-
-    def identity(X):
-        return np.matmul(np.eye(100), X)
-
-    return L1(setting, identity, identity, T)
-
-
-@pytest.fixture
-def waveletformatter(L, B, J_min, Nside):
-    return WaveletFormatter(L, B, J_min, Nside)
-
-
-@pytest.fixture
-def wvlttransform(L, B, J_min, Nside):
-    return WaveletTransform(L, B, J_min, Nside)

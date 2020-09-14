@@ -55,6 +55,11 @@ def test_cheb1der(order, X, expected):
     assert utils.cheb1der(X, order=order) == expected
 
 
+@pytest.fixture
+def waveletformatter(L, B, J_min, Nside):
+    return utils.WaveletFormatter(L, B, J_min, Nside)
+
+
 def test_formatter_pix2pix(waveletformatter, simpledata_hp):
     mw = waveletformatter._pixhp2pixmw(simpledata_hp)
     hp_rec = waveletformatter._pixmw2pixhp(mw)
