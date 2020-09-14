@@ -29,7 +29,7 @@ args = parser.parse_args()
 
 
 L = args.L
-B = 1.5
+B = 2
 J_min = 2
 sigma = args.sigma
 setting = args.setting
@@ -44,7 +44,7 @@ else:
     raise ValueError("Check filename")
 
 if args.makenoise:
-    areas = calc_pixel_areas(L)
+    areas = calc_pixel_areas(L, r=6371000)
     sig_d = np.sqrt(sigma ** 2 / areas)
     if args.scaleafrica:
         thetas = np.deg2rad(np.linspace(60, 120, 100))
@@ -67,14 +67,12 @@ forwardop = WaveletTransformOperator(topo_d, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
     nsamples=int(5e3),
     nburn=0,
-    ngap=int(1),
-    # ngap=int(1e2),
+    ngap=int(5e2),
     complex=True,
     delta=args.delta,
     lmda=1e-7,
     mu=args.mu,
-    verbosity=int(1),
-    # verbosity=int(1e2),
+    verbosity=0,
     s=10,
 )
 

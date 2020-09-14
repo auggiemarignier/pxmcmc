@@ -53,13 +53,13 @@ truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=Tru
 
 MAP_idx = np.where(logpi == max(logpi))
 MAP = file["predictions"][MAP_idx][0]
-MAP = MAP.reshape((L, 2 * L - 1)).real
+MAP = MAP.reshape((L, 2 * L - 1)).astype(float)
 MAP_plt, _ = pyssht.mollweide_projection(MAP, L)
 maxapost = plotting.plot_map(MAP_plt, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
 
 diff = 100 * (truth - MAP) / truth
-cbar_end = max([abs(floor(np.min(diff))), ceil(np.max(diff))])
+cbar_end = min(max([abs(floor(np.min(diff))), ceil(np.max(diff))]), 100)
 diff_plt, _ = pyssht.mollweide_projection(diff, L)
 diffp = plotting.plot_map(
     diff_plt,
