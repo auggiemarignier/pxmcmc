@@ -202,12 +202,12 @@ version = "0.1.0"
 [package.dependencies]
 healpy = "^1.13.0"
 matplotlib = "^3.2.2"
+pyssht = "rev Feature/PlanarToSphereProjections"
 
 [package.source]
-reference = "9c3be8de6f2bc556b9374a29ae6dc69f6814ecce"
+reference = "6fccb76942900b89e87e3ccd1acc876572f78a1b"
 type = "git"
 url = "https://github.com/auggiemarignier/GreatCirclePaths"
-
 [[package]]
 category = "main"
 description = "Read and write HDF5 files from Python"
