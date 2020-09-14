@@ -208,6 +208,7 @@ pyssht = "rev Feature/PlanarToSphereProjections"
 reference = "6fccb76942900b89e87e3ccd1acc876572f78a1b"
 type = "git"
 url = "https://github.com/auggiemarignier/GreatCirclePaths"
+
 [[package]]
 category = "main"
 description = "Read and write HDF5 files from Python"
@@ -511,7 +512,7 @@ description = "Small library to dynamically create python functions."
 name = "makefun"
 optional = false
 python-versions = "*"
-version = "1.9.2"
+version = "1.9.3"
 
 [package.dependencies]
 six = "*"
@@ -861,11 +862,11 @@ description = "Separate test code from test cases in pytest."
 name = "pytest-cases"
 optional = false
 python-versions = "*"
-version = "2.0.4"
+version = "2.2.2"
 
 [package.dependencies]
 decopatch = "*"
-makefun = ">=1.7"
+makefun = ">=1.9.3"
 
 [[package]]
 category = "main"
@@ -1360,8 +1361,8 @@ kiwisolver = [
     {file = "kiwisolver-1.2.0.tar.gz", hash = "sha256:247800260cd38160c362d211dcaf4ed0f7816afb5efe56544748b21d6ad6d17f"},
 ]
 makefun = [
-    {file = "makefun-1.9.2-py2.py3-none-any.whl", hash = "sha256:8ebc8f5bbd84a010ad67f0ee6bf6ca896481869aba2a740809590f8bff7e7b94"},
-    {file = "makefun-1.9.2.tar.gz", hash = "sha256:3fb5993cfe3b318ea8bb820a707898c8dfd15e3864a1c923430c35528094d146"},
+    {file = "makefun-1.9.3-py2.py3-none-any.whl", hash = "sha256:ffe6a4ae006f4206c5bec77bcdc5bc00b356a5ac7359a8b2ddb1f7efa2dc5dec"},
+    {file = "makefun-1.9.3.tar.gz", hash = "sha256:709ea9ab8e8c98ac3a12a464d75748d5161a8752a2bf79daaf02f5f7e8b66132"},
 ]
 markupsafe = [
     {file = "MarkupSafe-1.1.1-cp27-cp27m-macosx_10_6_intel.whl", hash = "sha256:09027a7803a62ca78792ad89403b1b7a73a01c8cb65909cd876f7fcebd79b161"},
@@ -1563,8 +1564,8 @@ pytest = [
     {file = "pytest-5.4.1.tar.gz", hash = "sha256:84dde37075b8805f3d1f392cc47e38a0e59518fb46a431cfdaf7cf1ce805f970"},
 ]
 pytest-cases = [
-    {file = "pytest-cases-2.0.4.tar.gz", hash = "sha256:14beb6a3c2c79118e031cf858be9e453b0aea3fbd3e3d947ffb114191b754a47"},
-    {file = "pytest_cases-2.0.4-py2.py3-none-any.whl", hash = "sha256:0549a440171b52bf38070e46238749a10d00160dfa6e1fef530425aa87e9b126"},
+    {file = "pytest-cases-2.2.2.tar.gz", hash = "sha256:48f5245950a93fe33e92467dfac559ac4d35e5766970fab72a21dabec0dc98a1"},
+    {file = "pytest_cases-2.2.2-py2.py3-none-any.whl", hash = "sha256:f0fbd78d98ceb2c8d9fe64f3ce52c68c6d9acd2d06f72fff61974170a37f7796"},
 ]
 python-dateutil = [
     {file = "python-dateutil-2.8.1.tar.gz", hash = "sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c"},
