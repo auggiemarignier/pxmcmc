@@ -51,7 +51,9 @@ class PxMCMC:
         """
         Calculates the log(posterior), L2-norm and L1-norm of a model X.
         """
-        L2 = (self.forward.data - preds).T.dot(self.forward.invcov.dot((self.forward.data - preds)))
+        L2 = (self.forward.data - preds).T.dot(
+            self.forward.invcov.dot((self.forward.data - preds))
+        )
         L1 = sum(abs(X))
         logPi = -self.mu * L1 - L2
         return logPi, L2, L1
@@ -61,7 +63,7 @@ class PxMCMC:
         if preds is None:
             preds = self.forward.forward(X)
         gradg = self.forward.calc_gradg(preds)
-        return - gradf - gradg
+        return -gradf - gradg
 
     def _print_progress(self, i, logpi, **kwargs):
         if i < self.nburn:
@@ -83,10 +85,7 @@ class PxMCMC:
     def _initialise_tracking_arrays(self):
         # TODO: make these optional to save memory
         self.logPi = np.zeros(self.nsamples)
-        self.preds = np.zeros(
-            (self.nsamples, len(self.forward.data)),
-            dtype=np.complex if self.complex else np.float,
-        )
+        self.preds = np.zeros((self.nsamples, len(self.forward.data)), dtype=np.float,)
         self.chain = np.zeros(
             (self.nsamples, self.forward.nparams),
             dtype=np.complex if self.complex else np.float,
@@ -279,7 +278,9 @@ class SKROCK(PxMCMC):
             )
         else:
             return (
-                self.mus[s] * self.delta * self._gradlogpi(self._K_recursion(X, s - 1, Z))
+                self.mus[s]
+                * self.delta
+                * self._gradlogpi(self._K_recursion(X, s - 1, Z))
                 + self.nus[s] * self._K_recursion(X, s - 1, Z)
                 + self.ks[s]
                 - self._K_recursion(X, s - 2, Z)
