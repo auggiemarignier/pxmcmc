@@ -68,7 +68,6 @@ params = PxMCMCParams(
     nsamples=int(5e3),
     nburn=0,
     ngap=int(5e2),
-    complex=True,
     delta=args.delta,
     lmda=1e-7,
     mu=args.mu,

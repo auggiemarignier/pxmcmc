@@ -42,6 +42,7 @@ parser.add_argument(
 )
 parser.add_argument("--algo", type=str, default="myula")
 parser.add_argument("--setting", type=str, default="synthesis")
+parser.add_argument("--lmda", type=float, default=2e-10)
 parser.add_argument("--delta", type=float, default=1e-10)
 parser.add_argument("--mu", type=float, default=1)
 parser.add_argument("--L", type=int, default=32)
@@ -82,9 +83,8 @@ params = PxMCMCParams(
     nsamples=int(5e3),
     nburn=0,
     ngap=int(1),
-    complex=True,
     delta=args.delta,
-    lmda=1e-7,
+    lmda=args.lmda,
     mu=args.mu,
     verbosity=int(1),
     s=10,
