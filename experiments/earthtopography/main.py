@@ -109,4 +109,5 @@ save_mcmc(
     J_min=J_min,
     nparams=forwardop.nparams,
     noise=noise,
+    setting=setting,
 )
