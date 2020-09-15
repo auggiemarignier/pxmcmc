@@ -44,11 +44,11 @@ parser.add_argument("--algo", type=str, default="myula")
 parser.add_argument("--setting", type=str, default="synthesis")
 parser.add_argument("--delta", type=float, default=1e-10)
 parser.add_argument("--mu", type=float, default=1)
-parser.add_argument("--L", type=int, default=20)
+parser.add_argument("--L", type=int, default=32)
 
 args = parser.parse_args()
 L = args.L
-B = 2
+B = 1.5
 J_min = 2
 setting = args.setting
 
@@ -121,6 +121,6 @@ save_mcmc(
     L=L,
     B=B,
     J_min=J_min,
-    sig_d=sig_d,
     nparams=forwardop.nparams,
+    setting=setting
 )
