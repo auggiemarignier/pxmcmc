@@ -29,7 +29,7 @@ args = parser.parse_args()
 
 
 L = args.L
-B = 2
+B = 1.5
 J_min = 2
 sigma = args.sigma
 setting = args.setting
@@ -107,7 +107,6 @@ save_mcmc(
     L=L,
     B=B,
     J_min=J_min,
-    sig_d=sig_d,
     nparams=forwardop.nparams,
     noise=noise,
 )
