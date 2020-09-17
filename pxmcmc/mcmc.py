@@ -15,6 +15,7 @@ class PxMCMCParams:
         ngap=int(1e2),
         complex=False,
         verbosity=100,
+        track=["logposterior", "L2", "L1", "chain"],
     ):
         self.lmda = lmda  # prox parameter. tuned to make proxf abritrarily close to f
         self.delta = delta  # Forward-Euler approximation step-size
@@ -25,6 +26,7 @@ class PxMCMCParams:
         self.ngap = ngap  # Thinning parameter=number of iterations between samples. reduces correlations between samples
         self.complex = complex
         self.verbosity = verbosity  # print every verbosity samples
+        self.track = track  # list of variables to keep track of
 
 
 class PxMCMC:
@@ -83,15 +85,33 @@ class PxMCMC:
         return X_curr, curr_preds
 
     def _initialise_tracking_arrays(self):
-        # TODO: make these optional to save memory
-        self.logPi = np.zeros(self.nsamples)
-        self.preds = np.zeros((self.nsamples, len(self.forward.data)), dtype=np.float,)
-        self.chain = np.zeros(
-            (self.nsamples, self.forward.nparams),
-            dtype=np.complex if self.complex else np.float,
-        )
-        self.L2s = np.zeros(self.nsamples, dtype=np.float)
-        self.L1s = np.zeros(self.nsamples, dtype=np.float)
+        if "logposterior" in self.track:
+            self.logPi = np.zeros(self.nsamples)
+        if "predictions" in self.track:
+            self.preds = np.zeros(
+                (self.nsamples, len(self.forward.data)), dtype=np.float
+            )
+        if "chain" in self.track:
+            self.chain = np.zeros(
+                (self.nsamples, self.forward.nparams),
+                dtype=np.complex if self.complex else np.float,
+            )
+        if "L2" in self.track:
+            self.L2s = np.zeros(self.nsamples, dtype=np.float)
+        if "L1" in self.track:
+            self.L1s = np.zeros(self.nsamples, dtype=np.float)
+
+    def _tracking(self, j, X_curr, curr_preds, logPi, L2, L1):
+        if hasattr(self, "logPi"):
+            self.logPi[j] = logPi
+        if hasattr(self, "L2s"):
+            self.L2s[j] = L2
+        if hasattr(self, "L1s"):
+            self.L1s[j] = L1
+        if hasattr(self, "preds"):
+            self.preds[j] = curr_preds
+        if hasattr(self, "chain"):
+            self.chain[j] = X_curr
 
 
 class MYULA(PxMCMC):
@@ -113,11 +133,8 @@ class MYULA(PxMCMC):
 
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
-                    self.logPi[j], self.L2s[j], self.L1s[j] = self.logpi(
-                        X_curr, curr_preds
-                    )
-                    self.preds[j] = curr_preds
-                    self.chain[j] = X_curr
+                    logPi, L2, L1 = self.logpi(X_curr, curr_preds)
+                    self._tracking(j, X_curr, curr_preds, logPi, L2, L1)
                     j += 1
             if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
@@ -190,11 +207,7 @@ class PxMALA(MYULA):
 
             if i >= self.nburn:
                 if (self.ngap == 0 or (i - self.nburn) % self.ngap == 0) and accept:
-                    self.logPi[j] = logpiXc
-                    self.L2s[j] = L2Xc
-                    self.L1s[j] = L1Xc
-                    self.preds[j] = curr_preds
-                    self.chain[j] = X_curr
+                    self._tracking(j, X_curr, curr_preds, logpiXc, L2Xc, L1Xc)
                     j += 1
             if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
@@ -245,11 +258,8 @@ class SKROCK(PxMCMC):
 
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
-                    self.logPi[j], self.L2s[j], self.L1s[j] = self.logpi(
-                        X_curr, curr_preds
-                    )
-                    self.preds[j] = curr_preds
-                    self.chain[j] = X_curr
+                    logPi, L2, L1 = self.logpi(X_curr, curr_preds)
+                    self._tracking(j, X_curr, curr_preds, logPi, L2, L1)
                     j += 1
             if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
