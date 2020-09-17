@@ -71,6 +71,7 @@ params = PxMCMCParams(
     delta=args.delta,
     lmda=1e-7,
     mu=args.mu,
+    complex=True,
     verbosity=0,
     s=10,
 )

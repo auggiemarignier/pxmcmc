@@ -82,11 +82,12 @@ forwardop = PathIntegralOperator(path_matrix, data, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
     nsamples=int(5e3),
     nburn=0,
-    ngap=int(1),
+    ngap=int(10),
     delta=args.delta,
     lmda=args.lmda,
     mu=args.mu,
-    verbosity=int(1),
+    complex=True,
+    verbosity=10,
     s=10,
 )
 
