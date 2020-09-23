@@ -10,13 +10,12 @@ from math import floor, ceil
 from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import WaveletTransform
-from pxmcmc.utils import map2alm, WaveletFormatter, expand_mlm
+from pxmcmc.utils import map2alm, expand_mlm
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("datafile", type=str)
 parser.add_argument("directory", type=str)
-parser.add_argument("setting", type=str)
 parser.add_argument("--suffix", type=str, default="")
 parser.add_argument("--burn", type=int, default=3000)
 parser.add_argument("--chain_mwlm", action="store_true", help="Convert chain to mwlm")
@@ -31,12 +30,18 @@ def filename(name):
 
 file = h5py.File(args.datafile, "r")
 params = {attr: file.attrs[attr] for attr in file.attrs.keys()}
-L, B, J_min = params["L"], params["B"], params["J_min"]
+L, B, J_min, setting = params["L"], params["B"], params["J_min"], params["setting"]
 nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
 wvlttrans = WaveletTransform(
-    L, B, J_min, fwd_in_type="pixel_mw", fwd_out_type="harmonic_mw"
+    L,
+    B,
+    J_min,
+    inv_out_type="pixel_mw",
+    inv_in_type="pixel_mw",
+    fwd_out_type="pixel_mw",
+    fwd_in_type="pixel_mw",
 )
-wvltform = WaveletFormatter(L, B, J_min, Nside)
+mw_shape = pyssht.sample_shape(L, Method="MW")
 
 logpi = file["logposterior"][()]
 L2s = file["L2s"][()]
@@ -45,15 +50,21 @@ evo = plotting.plot_evolution(logpi, L2s, L1s)
 evo.savefig(filename("evolution"))
 
 topo = hp.read_map(
-    "/home/zcfbllm/src_proxmcmc/experiments/earthtopography/ETOPO1_Ice_hpx_256.fits",
+    "ETOPO1_Ice_hpx_256.fits",
     verbose=False,
     dtype=np.float64,
 )
 truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=True)
 
 MAP_idx = np.where(logpi == max(logpi))
-MAP = file["predictions"][MAP_idx][0]
-MAP = MAP.reshape((L, 2 * L - 1)).astype(float)
+MAP_X = file["chain"][MAP_idx][0]
+if setting == "synthesis":
+    MAP = wvlttrans.inverse(MAP_X)
+    MAP_wvlt = np.copy(MAP_X)
+else:
+    MAP = np.copy(MAP_X)
+    MAP_wvlt = wvlttrans.forward(MAP_X)
+MAP = MAP.reshape(mw_shape).astype(float)
 MAP_plt, _ = pyssht.mollweide_projection(MAP, L)
 maxapost = plotting.plot_map(MAP_plt, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
@@ -71,19 +82,19 @@ diffp = plotting.plot_map(
 )
 diffp.savefig(filename("diff"))
 
-MAP_X = file["chain"][MAP_idx][0]
-if args.chain_mwlm:
-    if args.setting == "synthesis":
-        wavs, scal = expand_mlm(MAP_X, nscales, flatten_wavs=True)
-        scal_lm, wav_lm = wvltform._pixmw2harmmw_wavelets(scal, wavs)
-        MAP_X = np.concatenate([scal_lm, wav_lm])
-    else:
-        MAP_X = wvlttrans.forward(MAP_X)
-mapx = plotting.plot_chain_sample(MAP_X)
-mapx.savefig(filename("MAP_X"))
+map_wvlt = plotting.plot_chain_sample(MAP_wvlt)
+map_wvlt.savefig(filename("MAP_wvlt"))
 
-ci_range = uncertainty.credible_interval_range(file["predictions"][args.burn:])
-ci_range = pyssht.inverse(pys2let.map2alm_mw(ci_range, L, 0), L, Reality=True)
+
+chain_pix = np.zeros(
+    (file.attrs["nsamples"] - args.burn, pyssht.sample_length(L, Method="MW"))
+)
+for i, sample in enumerate(file["chain"][args.burn :]):
+    if setting == "synthesis":
+        chain_pix[i] = wvlttrans.inverse(sample)
+    else:
+        chain_pix[i] = np.copy(sample)
+ci_range = uncertainty.credible_interval_range(chain_pix).reshape(mw_shape)
 ci_range_plt, _ = pyssht.mollweide_projection(ci_range, L)
 ci_map = plotting.plot_map(
     ci_range_plt, title="95% credible interval range", cmap="viridis", vmin=0
