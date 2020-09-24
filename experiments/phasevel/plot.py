@@ -12,7 +12,6 @@ from pxmcmc.transforms import WaveletTransform
 parser = argparse.ArgumentParser()
 parser.add_argument("datafile", type=str)
 parser.add_argument("directory", type=str)
-parser.add_argument("setting", type=str)
 parser.add_argument("--suffix", type=str, default="")
 parser.add_argument("--burn", type=int, default=3000)
 args = parser.parse_args()
@@ -24,7 +23,7 @@ def filename(name):
 
 file = h5py.File(args.datafile, "r")
 params = {attr: file.attrs[attr] for attr in file.attrs.keys()}
-L, B, J_min = params["L"], params["B"], params["J_min"]
+L, B, J_min, setting = params["L"], params["B"], params["J_min"], params["setting"]
 nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
 wvlttrans = WaveletTransform(
     L,
@@ -46,7 +45,7 @@ evo.savefig(filename("evolution"))
 
 MAP_idx = np.where(logpi == max(logpi))
 MAP_X = file["chain"][MAP_idx][0]
-if args.setting == "synthesis":
+if setting == "synthesis":
     MAP = wvlttrans.inverse(MAP_X)
     MAP_wvlt = np.copy(MAP_X)
 else:
@@ -54,7 +53,7 @@ else:
     MAP_wvlt = wvlttrans.forward(MAP_X)
 MAP = MAP.reshape(mw_shape).astype(float)
 MAP_plt, _ = pyssht.mollweide_projection(MAP, L)
-maxapost = plotting.plot_map(MAP_plt, title="Maximum a posetriori solution")
+maxapost = plotting.plot_map(MAP_plt, title="Maximum a posetriori solution", cmap="seismic_r")
 maxapost.savefig(filename("MAP"))
 
 map_wvlt = plotting.plot_chain_sample(MAP_wvlt)
@@ -65,7 +64,7 @@ chain_pix = np.zeros(
     (file.attrs["nsamples"] - args.burn, pyssht.sample_length(L, Method="MW"))
 )
 for i, sample in enumerate(file["chain"][args.burn :]):
-    if args.setting == "synthesis":
+    if setting == "synthesis":
         chain_pix[i] = wvlttrans.inverse(sample)
     else:
         chain_pix[i] = np.copy(sample)
