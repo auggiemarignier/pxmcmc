@@ -46,7 +46,7 @@ def simpledata_lm(L):
 
 @pytest.fixture
 def simpledata(simpledata_lm, L):
-    return pys2let.alm2map_mw(simpledata_lm, L, 0)
+    return pys2let.alm2map_mw(simpledata_lm, L, 0).astype(float)
 
 
 @pytest.fixture
