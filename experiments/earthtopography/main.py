@@ -18,10 +18,10 @@ parser.add_argument("--jobid", type=str, default="0")
 
 parser.add_argument("--algo", type=str, default="myula")
 parser.add_argument("--setting", type=str, default="synthesis")
-parser.add_argument("--delta", type=float, default=1e-10)
+parser.add_argument("--delta", type=float, default=5e-8)
 parser.add_argument("--mu", type=float, default=1)
 
-parser.add_argument("--L", type=int, default=16)
+parser.add_argument("--L", type=int, default=32)
 parser.add_argument("--sigma", type=float, default=1)
 parser.add_argument("--makenoise", action="store_true")
 parser.add_argument("--scaleafrica", type=int, default=0)
@@ -71,8 +71,8 @@ params = PxMCMCParams(
     delta=args.delta,
     lmda=1e-7,
     mu=args.mu,
-    complex=True,
-    verbosity=0,
+    complex=False,
+    verbosity=5e2,
     s=10,
 )
 
