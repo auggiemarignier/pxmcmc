@@ -196,6 +196,8 @@ class WaveletFormatter:
         return np.concatenate([wav[:, j] for j in range(self.nscales)])
 
     def _pixmw2harmhp(self, f_mw):
+        if not isinstance(f_mw, complex):
+            f_mw = f_mw.astype(complex)
         f_mw_lm = pys2let.map2alm_mw(f_mw, self.L, self.spin)
         return pys2let.lm2lm_hp(f_mw_lm, self.L)
 
