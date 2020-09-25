@@ -380,11 +380,15 @@ def weights_theta(L):
     return wr
 
 
-def s2_integrate(f, L):
+def weighted_s2(f, L):
     wr = weights_theta(L)
     q = wr[0:L]
     for i, j in enumerate(range(2 * L - 2, L - 1, -1)):
         q[i] = q[i] + wr[j]
     Q = np.outer(q, np.ones(2 * L - 1)).flatten()
-    integral = Q.dot(f)
-    return integral
+    return Q * f
+
+
+def s2_integrate(f, L):
+    f_weighted = weighted_s2(f, L)
+    return f_weighted.sum()
