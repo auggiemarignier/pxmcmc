@@ -44,6 +44,7 @@ else:
     raise ValueError("Check filename")
 
 if args.makenoise:
+    np.random.seed(2)
     areas = calc_pixel_areas(L, r=6371000)
     sig_d = np.sqrt(sigma ** 2 / areas)
     if args.scaleafrica:
