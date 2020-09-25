@@ -7,7 +7,7 @@ import pyssht
 
 from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
 from pxmcmc.forward import WaveletTransformOperator
-from pxmcmc.prox import L1
+from pxmcmc.prior import L1
 from pxmcmc.saving import save_mcmc
 from pxmcmc.utils import calc_pixel_areas
 

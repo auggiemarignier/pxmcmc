@@ -8,7 +8,7 @@ import datetime
 
 from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
 from pxmcmc.forward import PathIntegralOperator
-from pxmcmc.prox import L1
+from pxmcmc.prior import L1
 from pxmcmc.saving import save_mcmc
 
 

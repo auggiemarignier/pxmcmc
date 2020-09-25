@@ -5,7 +5,7 @@ from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
 from pxmcmc.measurements import Identity
 from pxmcmc.transforms import IdentityTransform
 from pxmcmc.forward import ForwardOperator
-from pxmcmc.prox import L1
+from pxmcmc.prior import L1
 
 
 @pytest.fixture

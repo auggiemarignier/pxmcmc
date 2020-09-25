@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pxmcmc.prox import L1, S2_Wavelets_L1
+from pxmcmc.prior import L1, S2_Wavelets_L1
 
 
 @pytest.fixture

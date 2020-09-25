@@ -23,6 +23,9 @@ class L1:
         self.adj = adj
         self.T = T
 
+    def prior(self, X):
+        return sum(abs(X))
+
     def proxf(self, X):
         if self.setting == "synthesis":
             return self._proxf_synthesis(X)
@@ -49,6 +52,10 @@ class S2_Wavelets_L1(L1):
         J_min = J_min
         J_max = pys2let.pys2let_j_max(B, L, J_min)
         self.nscales = J_max - J_min + 1
+
+    def prior(self, X):
+        X = self._weight_maps(X, self.L)
+        return super().prior(X)
 
     def proxf(self, X):
         X = self._weight_maps(X, self.L)
