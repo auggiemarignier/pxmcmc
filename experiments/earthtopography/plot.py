@@ -10,7 +10,7 @@ from math import floor, ceil
 from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import WaveletTransform
-from pxmcmc.utils import map2alm, expand_mlm
+from pxmcmc.utils import map2alm
 
 
 parser = argparse.ArgumentParser()
@@ -20,8 +20,6 @@ parser.add_argument("--suffix", type=str, default="")
 parser.add_argument("--burn", type=int, default=3000)
 parser.add_argument("--chain_mwlm", action="store_true", help="Convert chain to mwlm")
 args = parser.parse_args()
-
-Nside = 32
 
 
 def filename(name):
@@ -49,11 +47,7 @@ L1s = file["L1s"][()]
 evo = plotting.plot_evolution(logpi, L2s, L1s)
 evo.savefig(filename("evolution"))
 
-topo = hp.read_map(
-    "ETOPO1_Ice_hpx_256.fits",
-    verbose=False,
-    dtype=np.float64,
-)
+topo = hp.read_map("ETOPO1_Ice_hpx_256.fits", verbose=False, dtype=np.float64,)
 truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=True)
 
 MAP_idx = np.where(logpi == max(logpi))
@@ -65,15 +59,13 @@ else:
     MAP = np.copy(MAP_X)
     MAP_wvlt = wvlttrans.forward(MAP_X)
 MAP = MAP.reshape(mw_shape).astype(float)
-MAP_plt, _ = pyssht.mollweide_projection(MAP, L)
-maxapost = plotting.plot_map(MAP_plt, title="Maximum a posetriori solution")
+maxapost = plotting.plot_map(MAP, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
 
 diff = 100 * (truth - MAP) / truth
 cbar_end = min(max([abs(floor(np.min(diff))), ceil(np.max(diff))]), 100)
-diff_plt, _ = pyssht.mollweide_projection(diff, L)
 diffp = plotting.plot_map(
-    diff_plt,
+    diff,
     title="True - MAP",
     cmap="PuOr",
     vmin=-cbar_end,
@@ -95,14 +87,14 @@ for i, sample in enumerate(file["chain"][args.burn :]):
     else:
         chain_pix[i] = np.copy(sample)
 ci_range = uncertainty.credible_interval_range(chain_pix).reshape(mw_shape)
-ci_range_plt, _ = pyssht.mollweide_projection(ci_range, L)
 ci_map = plotting.plot_map(
-    ci_range_plt, title="95% credible interval range", cmap="viridis", vmin=0
+    ci_range, title="95% credible interval range", cmap="viridis", vmin=0
 )
 ci_map.savefig(filename("ci_map"))
 
 if "noise" in params:
     noise = params["noise"].reshape((L, 2 * L - 1))
-    noise_plt, _ = pyssht.mollweide_projection(noise, L)
-    noise_map = plotting.plot_map(noise_plt, title="Added noise", cmap="binary")
+    noise_map = plotting.plot_map(
+        noise, title="Added noise", cmap="binary", oversample=False
+    )
     noise_map.savefig(filename("noise"))

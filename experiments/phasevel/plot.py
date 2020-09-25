@@ -52,8 +52,9 @@ else:
     MAP = np.copy(MAP_X)
     MAP_wvlt = wvlttrans.forward(MAP_X)
 MAP = MAP.reshape(mw_shape).astype(float)
-MAP_plt, _ = pyssht.mollweide_projection(MAP, L)
-maxapost = plotting.plot_map(MAP_plt, title="Maximum a posetriori solution", cmap="seismic_r")
+maxapost = plotting.plot_map(
+    MAP, title="Maximum a posetriori solution", cmap="seismic_r", centre0=True
+)
 maxapost.savefig(filename("MAP"))
 
 map_wvlt = plotting.plot_chain_sample(MAP_wvlt)
@@ -69,8 +70,7 @@ for i, sample in enumerate(file["chain"][args.burn :]):
     else:
         chain_pix[i] = np.copy(sample)
 ci_range = uncertainty.credible_interval_range(chain_pix).reshape(mw_shape)
-ci_range_plt, _ = pyssht.mollweide_projection(ci_range, L)
 ci_map = plotting.plot_map(
-    ci_range_plt, title="95% credible interval range", cmap="viridis", vmin=0
+    ci_range, title="95% credible interval range", cmap="viridis", vmin=0
 )
 ci_map.savefig(filename("ci_map"))
