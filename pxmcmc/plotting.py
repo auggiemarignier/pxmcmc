@@ -4,18 +4,34 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from scipy.stats import laplace
 import copy
-
+import pyssht
 
 from pxmcmc.utils import suppress_stdout
 
 
-def plot_map(f, title=None, cbar=True, cmap="turbo", vmin=None, vmax=None, cbar_label=""):
+def plot_map(
+    f,
+    title=None,
+    cbar=True,
+    cmap="turbo",
+    vmin=None,
+    vmax=None,
+    cbar_label="",
+    oversample=True,
+):
     cmap = copy.copy(cm.get_cmap(cmap))
     cmap.set_bad(alpha=0)
 
+    if oversample:
+        L = 256
+        f = _oversample(f, L)
+    else:
+        L = f.shape[0]
+
+    f_plt, _ = pyssht.mollweide_projection(f, L)
     fig = plt.figure(figsize=(20, 10))
-    plt.imshow(f, origin='lower', cmap=cmap, vmin=vmin, vmax=vmax)
-    plt.axis('off')
+    plt.imshow(f_plt, origin="lower", cmap=cmap, vmin=vmin, vmax=vmax)
+    plt.axis("off")
     plt.title(title, fontsize=24)
     if cbar:
         cbar = plt.colorbar()
@@ -25,7 +41,9 @@ def plot_map(f, title=None, cbar=True, cmap="turbo", vmin=None, vmax=None, cbar_
 
 def mollview(image, figsize=(10, 8), **kwargs):
     i = np.random.randint(1000)
-    fig = plt.figure(num=i, figsize=figsize)  # this figure number thing is a bit hacky...
+    fig = plt.figure(
+        num=i, figsize=figsize
+    )  # this figure number thing is a bit hacky...
     with suppress_stdout():
         hp.mollview(image, fig=i, **kwargs)
         hp.graticule(30)
@@ -142,3 +160,10 @@ def plot_meds_mads(medians, mads, L, B, J_min, figsize=(10, 8)):
     for bndr in wvltbndrs:
         plt.axvline(bndr, ls="--", c="k", zorder=0, alpha=0.5)
     return fig
+
+
+def _oversample(f, L):
+    flm = pyssht.forward(f, f.shape[0], Reality=True)
+    z = np.zeros(L**2 - f.shape[0]**2)
+    flm = np.concatenate((flm, z))
+    return pyssht.inverse(flm, L, Reality=True)
