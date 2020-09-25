@@ -18,6 +18,7 @@ def plot_map(
     vmax=None,
     cbar_label="",
     oversample=True,
+    centre0=False,
 ):
     cmap = copy.copy(cm.get_cmap(cmap))
     cmap.set_bad(alpha=0)
@@ -27,6 +28,11 @@ def plot_map(
         f = _oversample(f, L)
     else:
         L = f.shape[0]
+
+    if centre0:
+        cbar_end = max([f.max(), abs(f.min())])
+        vmax = cbar_end
+        vmin = -cbar_end
 
     f_plt, _ = pyssht.mollweide_projection(f, L)
     fig = plt.figure(figsize=(20, 10))
@@ -164,6 +170,6 @@ def plot_meds_mads(medians, mads, L, B, J_min, figsize=(10, 8)):
 
 def _oversample(f, L):
     flm = pyssht.forward(f, f.shape[0], Reality=True)
-    z = np.zeros(L**2 - f.shape[0]**2)
+    z = np.zeros(L ** 2 - f.shape[0] ** 2)
     flm = np.concatenate((flm, z))
     return pyssht.inverse(flm, L, Reality=True)
