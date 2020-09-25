@@ -15,7 +15,7 @@ class PxMCMCParams:
         ngap=int(1e2),
         complex=False,
         verbosity=100,
-        track=["logposterior", "L2", "L1", "chain"],
+        track=["logposterior", "L2", "prior", "chain"],
     ):
         self.lmda = lmda  # prox parameter. tuned to make proxf abritrarily close to f
         self.delta = delta  # Forward-Euler approximation step-size
@@ -35,12 +35,12 @@ class PxMCMC:
     Children of this class must implement a run function.
     """
 
-    def __init__(self, forward, prox, mcmcparams=PxMCMCParams()):
+    def __init__(self, forward, prior, mcmcparams=PxMCMCParams()):
         """
         Initialises proximal MCMC algorithm.
         """
         self.forward = forward
-        self.prox = prox
+        self.prior = prior
         for attr in mcmcparams.__dict__.keys():
             setattr(self, attr, getattr(mcmcparams, attr))
         self._initialise_tracking_arrays()
@@ -49,19 +49,18 @@ class PxMCMC:
         raise NotImplementedError
 
     def logpi(self, X, preds):
-        # TODO: flexibility for different priors
         """
-        Calculates the log(posterior), L2-norm and L1-norm of a model X.
+        Calculates the log(posterior), L2-norm and prior-norm of a model X.
         """
         L2 = (self.forward.data - preds).T.dot(
             self.forward.invcov.dot((self.forward.data - preds))
         )
-        L1 = sum(abs(X))
-        logPi = -self.mu * L1 - L2
-        return logPi, L2, L1
+        prior = self.prior.prior(X)
+        logPi = -self.mu * prior - L2
+        return logPi, L2, prior
 
     def _gradlogpi(self, X, preds=None):
-        gradf = (X - self.prox.proxf(X)) / self.lmda
+        gradf = (X - self.prior.proxf(X)) / self.lmda
         if preds is None:
             preds = self.forward.forward(X)
         gradg = self.forward.calc_gradg(preds)
@@ -69,7 +68,7 @@ class PxMCMC:
 
     def _print_progress(self, i, logpi, **kwargs):
         if i < self.nburn:
-            print(f"\rBurning in", end="")
+            print("\rBurning in", end="")
         else:
             print(
                 f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8e} - "
@@ -98,16 +97,16 @@ class PxMCMC:
             )
         if "L2" in self.track:
             self.L2s = np.zeros(self.nsamples, dtype=np.float)
-        if "L1" in self.track:
-            self.L1s = np.zeros(self.nsamples, dtype=np.float)
+        if "prior" in self.track:
+            self.priors = np.zeros(self.nsamples, dtype=np.float)
 
-    def _tracking(self, j, X_curr, curr_preds, logPi, L2, L1):
+    def _tracking(self, j, X_curr, curr_preds, logPi, L2, prior):
         if hasattr(self, "logPi"):
             self.logPi[j] = logPi
         if hasattr(self, "L2s"):
             self.L2s[j] = L2
-        if hasattr(self, "L1s"):
-            self.L1s[j] = L1
+        if hasattr(self, "priors"):
+            self.priors[j] = prior
         if hasattr(self, "preds"):
             self.preds[j] = curr_preds
         if hasattr(self, "chain"):
@@ -124,7 +123,7 @@ class MYULA(PxMCMC):
         X_curr, curr_preds = self._initial_sample()
         while j < self.nsamples:
             gradg = self.forward.calc_gradg(curr_preds)
-            proxf = self.prox.proxf(X_curr)
+            proxf = self.prior.proxf(X_curr)
             X_prop = self.chain_step(X_curr, proxf, gradg)
             prop_preds = self.forward.forward(X_prop)
 
@@ -133,16 +132,19 @@ class MYULA(PxMCMC):
 
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
-                    logPi, L2, L1 = self.logpi(X_curr, curr_preds)
-                    self._tracking(j, X_curr, curr_preds, logPi, L2, L1)
+                    logPi, L2, prior = self.logpi(X_curr, curr_preds)
+                    self._tracking(j, X_curr, curr_preds, logPi, L2, prior)
                     j += 1
             if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
-                    j - 1, self.logPi[j - 1], L2=self.L2s[j - 1], L1=self.L1s[j - 1]
+                    j - 1,
+                    self.logPi[j - 1],
+                    L2=self.L2s[j - 1],
+                    prior=self.priors[j - 1],
                 )
             i += 1
 
-        print(f"\nDONE")
+        print("\nDONE")
 
     def chain_step(self, X, proxf, gradg):
         """
@@ -171,13 +173,13 @@ class PxMALA(MYULA):
         j = 0
         X_curr, curr_preds = self._initial_sample()
         gradg_curr = self.forward.calc_gradg(curr_preds)
-        proxf_curr = self.prox.proxf(X_curr)
-        logpiXc, L2Xc, L1Xc = self.logpi(X_curr, curr_preds)
+        proxf_curr = self.prior.proxf(X_curr)
+        logpiXc, L2Xc, priorXc = self.logpi(X_curr, curr_preds)
         while j < self.nsamples:
             X_prop = self.chain_step(X_curr, proxf_curr, gradg_curr)
             prop_preds = self.forward.forward(X_prop)
             gradg_prop = self.forward.calc_gradg(prop_preds)
-            proxf_prop = self.prox.proxf(X_prop)
+            proxf_prop = self.prior.proxf(X_prop)
 
             logtransXcXp = self.calc_logtransition(
                 X_curr, X_prop, proxf_curr, gradg_curr
@@ -185,7 +187,7 @@ class PxMALA(MYULA):
             logtransXpXc = self.calc_logtransition(
                 X_prop, X_curr, proxf_prop, gradg_prop
             )
-            logpiXp, L2Xp, L1Xp = self.logpi(X_prop, prop_preds)
+            logpiXp, L2Xp, priorXp = self.logpi(X_prop, prop_preds)
 
             logalpha = logtransXpXc + logpiXp - logtransXcXp - logpiXc
             accept = np.log(np.random.rand()) < logalpha
@@ -196,7 +198,7 @@ class PxMALA(MYULA):
                 proxf_curr = proxf_prop
                 logpiXc = logpiXp
                 L2Xc = L2Xp
-                L1Xc = L1Xp
+                priorXc = priorXp
                 self.acceptance_trace.append(1)
             else:
                 self.acceptance_trace.append(0)
@@ -207,19 +209,18 @@ class PxMALA(MYULA):
 
             if i >= self.nburn:
                 if (self.ngap == 0 or (i - self.nburn) % self.ngap == 0) and accept:
-                    self._tracking(j, X_curr, curr_preds, logpiXc, L2Xc, L1Xc)
+                    self._tracking(j, X_curr, curr_preds, logpiXc, L2Xc, priorXc)
                     j += 1
             if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
                     j - 1,
                     logpiXc,
                     L2=L2Xc,
-                    L1=L1Xc,
+                    prior=priorXc,
                     acceptanceRate=np.mean(self.acceptance_trace),
-                    # delta=self.delta
                 )
             i += 1
-        print(f"\nDONE")
+        print("\nDONE")
 
     def _tune_delta(self, i):
         delta = self.delta * (1 + (self.acceptance_trace[i] - 0.5) / ((i + 1) ** 0.75))
@@ -258,16 +259,19 @@ class SKROCK(PxMCMC):
 
             if i >= self.nburn:
                 if self.ngap == 0 or (i - self.nburn) % self.ngap == 0:
-                    logPi, L2, L1 = self.logpi(X_curr, curr_preds)
-                    self._tracking(j, X_curr, curr_preds, logPi, L2, L1)
+                    logPi, L2, prior = self.logpi(X_curr, curr_preds)
+                    self._tracking(j, X_curr, curr_preds, logPi, L2, prior)
                     j += 1
             if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
                 self._print_progress(
-                    j - 1, self.logPi[j - 1], L2=self.L2s[j - 1], L1=self.L1s[j - 1]
+                    j - 1,
+                    self.logPi[j - 1],
+                    L2=self.L2s[j - 1],
+                    prior=self.priors[j - 1],
                 )
             i += 1
 
-        print(f"\nDONE")
+        print("\nDONE")
 
     def chain_step(self, X):
         Z = np.random.randn(len(X))
