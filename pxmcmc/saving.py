@@ -14,8 +14,8 @@ def save_mcmc(
             f.create_dataset("chain", data=mcmc.chain)
         if hasattr(mcmc, "L2s"):
             f.create_dataset("L2s", data=mcmc.L2s)
-        if hasattr(mcmc, "L1s"):
-            f.create_dataset("L1s", data=mcmc.L1s)
+        if hasattr(mcmc, "priors"):
+            f.create_dataset("priors", data=mcmc.priors)
         if hasattr(mcmc, "acceptance_trace"):
             f.create_dataset("acceptances", data=mcmc.acceptance_trace, dtype="i1")
         if hasattr(mcmc, "deltas_trace"):
