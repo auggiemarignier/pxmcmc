@@ -52,22 +52,22 @@ class S2_Wavelets_L1(L1):
         J_min = J_min
         J_max = pys2let.pys2let_j_max(B, L, J_min)
         self.nscales = J_max - J_min + 1
+        self.map_size = pyssht.sample_length(L, Method="MW")
 
     def prior(self, X):
-        X = self._weight_maps(X, self.L)
+        X = self._weight_maps(X)
         return super().prior(X)
 
     def proxf(self, X):
-        X = self._weight_maps(X, self.L)
+        X = self._weight_maps(X)
         return super().proxf(X)
 
-    def _weight_maps(self, X, L):
+    def _weight_maps(self, X):
         X_w = np.zeros_like(X)
         if self.setting == "synthesis":
-            map_size = pyssht.sample_length(L, Method="MW")
             for j in range(self.nscales):
-                wav_map = X[j * map_size : (j + 1) * map_size]
-                X_w[j * map_size : (j + 1) * map_size] = weighted_s2(wav_map, self.L)
+                wav_map = X[j * self.map_size : (j + 1) * self.map_size]
+                X_w[j * self.map_size : (j + 1) * self.map_size] = weighted_s2(wav_map, self.L)
         else:
             X_w = weighted_s2(X, self.L)
         return X_w
