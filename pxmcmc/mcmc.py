@@ -67,13 +67,10 @@ class PxMCMC:
         return -gradf - gradg
 
     def _print_progress(self, i, logpi, **kwargs):
-        if i < self.nburn:
-            print("\rBurning in", end="")
-        else:
-            print(
-                f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8e} - "
-                + " - ".join([f"{k}: {kwargs[k]:.8e}" for k in kwargs]),
-            )
+        print(
+            f"{i+1:,}/{self.nsamples:,} - logposterior: {logpi:.8e} - "
+            + " - ".join([f"{k}: {kwargs[k]:.8e}" for k in kwargs]),
+        )
 
     def _initial_sample(self):
         # TODO: flexibility for different priors
@@ -135,13 +132,16 @@ class MYULA(PxMCMC):
                     logPi, L2, prior = self.logpi(X_curr, curr_preds)
                     self._tracking(j, X_curr, curr_preds, logPi, L2, prior)
                     j += 1
-            if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
-                self._print_progress(
-                    j - 1,
-                    self.logPi[j - 1],
-                    L2=self.L2s[j - 1],
-                    prior=self.priors[j - 1],
-                )
+                if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
+                    self._print_progress(
+                        j - 1,
+                        self.logPi[j - 1],
+                        L2=self.L2s[j - 1],
+                        prior=self.priors[j - 1],
+                    )
+            else:
+                if self.verbosity > 0 and (i + 1) % self.verbosity == 0:
+                    print("Burning in...")
             i += 1
 
         print("\nDONE")
