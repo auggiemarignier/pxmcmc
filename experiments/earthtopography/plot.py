@@ -43,12 +43,12 @@ mw_shape = pyssht.sample_shape(L, Method="MW")
 
 logpi = file["logposterior"][()]
 L2s = file["L2s"][()]
-L1s = file["L1s"][()]
+L1s = file["priors"][()]
 evo = plotting.plot_evolution(logpi, L2s, L1s)
 evo.savefig(filename("evolution"))
 
 topo = hp.read_map("ETOPO1_Ice_hpx_256.fits", verbose=False, dtype=np.float64,)
-truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=True)
+truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=True) / 1000
 
 MAP_idx = np.where(logpi == max(logpi))
 MAP_X = file["chain"][MAP_idx][0]
@@ -62,10 +62,11 @@ MAP = MAP.reshape(mw_shape).astype(float)
 maxapost = plotting.plot_map(MAP, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
 
-diff = 100 * (truth - MAP) / truth
-cbar_end = min(max([abs(floor(np.min(diff))), ceil(np.max(diff))]), 100)
+diff = truth - MAP
+diff_perc = 100 * diff / truth
+cbar_end = min(max([abs(floor(np.min(diff_perc))), ceil(np.max(diff_perc))]), 100)
 diffp = plotting.plot_map(
-    diff,
+    diff_perc,
     title="True - MAP",
     cmap="PuOr",
     vmin=-cbar_end,
@@ -98,3 +99,16 @@ if "noise" in params:
         noise, title="Added noise", cmap="binary", oversample=False
     )
     noise_map.savefig(filename("noise"))
+
+
+def norm(x):
+    return np.linalg.norm(x)
+
+
+def snr(signal, noise):
+    return 20 * np.log10(norm(signal) / norm(noise))
+
+
+if "noise" in params:
+    print(f"Input SNR: {snr(truth, noise):.2f} dB")
+print(f"MAP SNR: {snr(truth, diff):.2f} dB")
