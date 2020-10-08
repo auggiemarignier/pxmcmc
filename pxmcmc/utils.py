@@ -380,15 +380,15 @@ def weights_theta(L):
     return wr
 
 
-def weighted_s2(f, L):
+def mw_map_weights(L):
     wr = weights_theta(L)
-    q = wr[0:L]
+    q = np.copy(wr[0:L])
     for i, j in enumerate(range(2 * L - 2, L - 1, -1)):
         q[i] = q[i] + wr[j]
     Q = np.outer(q, np.ones(2 * L - 1)).flatten()
-    return Q * f
+    return Q
 
 
 def s2_integrate(f, L):
-    f_weighted = weighted_s2(f, L)
+    f_weighted = mw_map_weights(L) * f
     return f_weighted.sum()
