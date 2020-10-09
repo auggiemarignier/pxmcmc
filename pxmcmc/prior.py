@@ -2,7 +2,7 @@ import numpy as np
 import pys2let
 import pyssht
 
-from pxmcmc.utils import soft, weighted_s2
+from pxmcmc.utils import soft, mw_map_weights
 
 
 class L1:
@@ -53,21 +53,19 @@ class S2_Wavelets_L1(L1):
         J_max = pys2let.pys2let_j_max(B, L, J_min)
         self.nscales = J_max - J_min + 1
         self.map_size = pyssht.sample_length(L, Method="MW")
+        self.map_weights = mw_map_weights(L)
+        if setting == "synthesis":
+            self.map_weights = np.concatenate(
+                [self.map_weights for _ in range(self.nscales + 1)]
+            )
+        self.T *= self.map_weights ** 2
 
     def prior(self, X):
-        X = self._weight_maps(X)
-        return super().prior(X)
+        return super().prior(self.map_weights * X)
 
-    def proxf(self, X):
-        X = self._weight_maps(X)
-        return super().proxf(X)
+    def _proxf_synthesis(self, X):
+        WX = self.map_weights * X
+        return X + (1 / self.map_weights) * (soft(WX, self.T) - WX)
 
-    def _weight_maps(self, X):
-        X_w = np.zeros_like(X)
-        if self.setting == "synthesis":
-            for j in range(self.nscales):
-                wav_map = X[j * self.map_size : (j + 1) * self.map_size]
-                X_w[j * self.map_size : (j + 1) * self.map_size] = weighted_s2(wav_map, self.L)
-        else:
-            X_w = weighted_s2(X, self.L)
-        return X_w
+    def _proxf_analysis(self, X):
+        raise NotImplementedError

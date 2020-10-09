@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from pyssht import sample_length
 
 from pxmcmc.prior import L1, S2_Wavelets_L1
 
@@ -23,27 +24,28 @@ def test_L1(L1regulariser):
 
 @pytest.fixture
 def S2_Wavs_L1reg(setting, L, B, J_min):
-    reg = S2_Wavelets_L1(setting, None, None, 0.5, L, B, J_min)
+    reg = S2_Wavelets_L1(setting, None, None, 1, L, B, J_min)
 
     def identity(X):
         if setting == "analysis":
             return np.matmul(np.eye(L * (2 * L - 1)), X)
         else:
-            return np.matmul(np.eye(reg.nscales * L * (2 * L - 1)), X)
+            return np.matmul(np.eye((reg.nscales + 1) * L * (2 * L - 1)), X)
 
     reg.fwd = identity
     reg.adj = identity
     return reg
 
 
-def test_S2_Wavlets_L1(S2_Wavs_L1reg, simpledata):
+def test_S2_Wavlets_L1(S2_Wavs_L1reg):
     """
     Since the soft thresholding and weighting have been tested individually
     just make sure it runs
     """
+    data = np.ones(sample_length(S2_Wavs_L1reg.L))
     if S2_Wavs_L1reg.setting == "analysis":
-        S2_Wavs_L1reg.proxf(simpledata)
+        S2_Wavs_L1reg.proxf(data)
     else:
         S2_Wavs_L1reg.proxf(
-            np.concatenate([simpledata for _ in range(S2_Wavs_L1reg.nscales)])
+            np.concatenate([data for _ in range(S2_Wavs_L1reg.nscales + 1)])
         )
