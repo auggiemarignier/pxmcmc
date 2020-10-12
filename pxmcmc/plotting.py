@@ -42,6 +42,7 @@ def plot_map(
     if cbar:
         cbar = plt.colorbar()
         cbar.ax.set_ylabel(cbar_label)
+        cbar.ax.tick_params(labelsize="xx-large")
     return fig
 
 
