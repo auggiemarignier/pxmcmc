@@ -58,19 +58,23 @@ def mollview(image, figsize=(10, 8), **kwargs):
 
 
 def plot_evolution(logposteriors, L2s, L1s, figsize=(10, 8)):
+    MAP_idx = np.where(logposteriors == max(logposteriors))
     fig = plt.figure(figsize=figsize)
     plt.subplot(3, 1, 1)
     plt.plot(-logposteriors)
+    plt.axvline(MAP_idx, linestyle="--", c="r")
     plt.yscale("log")
     plt.ylabel("-log(posterior)")
 
     plt.subplot(3, 1, 2)
     plt.plot(L2s)
+    plt.axvline(MAP_idx, linestyle="--", c="r")
     plt.yscale("log")
     plt.ylabel("L2")
 
     plt.subplot(3, 1, 3)
     plt.plot(L1s)
+    plt.axvline(MAP_idx, linestyle="--", c="r")
     plt.yscale("log")
     plt.ylabel("L1")
     return fig
