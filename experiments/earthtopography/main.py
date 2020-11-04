@@ -7,7 +7,7 @@ import pyssht
 
 from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
 from pxmcmc.forward import WaveletTransformOperator
-from pxmcmc.prior import L1
+from pxmcmc.prior import S2_Wavelets_L1, L1
 from pxmcmc.saving import save_mcmc
 from pxmcmc.utils import calc_pixel_areas
 
@@ -45,7 +45,7 @@ else:
 
 if args.makenoise:
     np.random.seed(2)
-    areas = calc_pixel_areas(L, r=6371000)
+    areas = calc_pixel_areas(L)
     sig_d = np.sqrt(sigma ** 2 / areas)
     if args.scaleafrica:
         thetas = np.deg2rad(np.linspace(60, 120, 100))
@@ -60,28 +60,32 @@ if args.makenoise:
     sig_d = sig_d.flatten()  # flatten() by default goes to C ordering like in s2let
     noise = np.random.normal(0, sig_d)
     topo_d += noise
+    np.random.seed(None)
 else:
     sig_d = sigma
     noise = None
 
-forwardop = WaveletTransformOperator(topo_d, sig_d, setting, L, B, J_min)
+forwardop = WaveletTransformOperator(topo_d / 1000, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
-    nsamples=int(5e3),
-    nburn=0,
+    nsamples=int(1e4),
+    nburn=int(0),
     ngap=int(5e2),
     delta=args.delta,
     lmda=1e-7,
     mu=args.mu,
     complex=False,
-    verbosity=5e2,
+    verbosity=5e3,
     s=10,
 )
 
-regulariser = L1(
+regulariser = S2_Wavelets_L1(
     setting,
     forwardop.transform.inverse,
     forwardop.transform.inverse_adjoint,
     params.lmda * params.mu,
+    L=L,
+    B=B,
+    J_min=J_min
 )
 
 print(f"Number of data points: {len(topo_d)}")
@@ -111,4 +115,7 @@ save_mcmc(
     nparams=forwardop.nparams,
     noise=noise,
     setting=setting,
+    sigma=sigma,
+    scaleafrica=args.scaleafrica,
+    time=datetime.datetime.now() - NOW
 )

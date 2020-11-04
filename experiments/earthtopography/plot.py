@@ -10,7 +10,7 @@ from math import floor, ceil
 from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import WaveletTransform
-from pxmcmc.utils import map2alm
+from pxmcmc.utils import map2alm, snr
 
 
 parser = argparse.ArgumentParser()
@@ -28,7 +28,11 @@ def filename(name):
 
 file = h5py.File(args.datafile, "r")
 params = {attr: file.attrs[attr] for attr in file.attrs.keys()}
-L, B, J_min, setting = params["L"], params["B"], params["J_min"], params["setting"]
+L, B, J_min = params["L"], params["B"], params["J_min"]
+try:
+    setting = params["setting"]
+except KeyError:
+    setting = input("Specify setting:\t")
 nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
 wvlttrans = WaveletTransform(
     L,
@@ -63,21 +67,19 @@ maxapost = plotting.plot_map(MAP, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
 
 diff = truth - MAP
-diff_perc = 100 * diff / truth
-cbar_end = min(max([abs(floor(np.min(diff_perc))), ceil(np.max(diff_perc))]), 100)
+diff_perc = 100 * diff / np.max(abs(truth))
+cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
 diffp = plotting.plot_map(
-    diff_perc,
+    diff,
     title="True - MAP",
     cmap="PuOr",
     vmin=-cbar_end,
     vmax=cbar_end,
-    cbar_label="%",
 )
 diffp.savefig(filename("diff"))
 
 map_wvlt = plotting.plot_chain_sample(MAP_wvlt)
 map_wvlt.savefig(filename("MAP_wvlt"))
-
 
 chain_pix = np.zeros(
     (file.attrs["nsamples"] - args.burn, pyssht.sample_length(L, Method="MW"))
@@ -99,14 +101,6 @@ if "noise" in params:
         noise, title="Added noise", cmap="binary", oversample=False
     )
     noise_map.savefig(filename("noise"))
-
-
-def norm(x):
-    return np.linalg.norm(x)
-
-
-def snr(signal, noise):
-    return 20 * np.log10(norm(signal) / norm(noise))
 
 
 if "noise" in params:
