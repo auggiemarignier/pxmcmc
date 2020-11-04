@@ -392,3 +392,11 @@ def mw_map_weights(L):
 def s2_integrate(f, L):
     f_weighted = mw_map_weights(L) * f
     return f_weighted.sum()
+
+
+def norm(x):
+    return np.linalg.norm(x)
+
+
+def snr(signal, noise):
+    return 20 * np.log10(norm(signal) / norm(noise))
