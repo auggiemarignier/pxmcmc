@@ -7,6 +7,7 @@ import pyssht
 from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import WaveletTransform
+from pxmcmc.utils import snr
 
 
 parser = argparse.ArgumentParser()
@@ -38,7 +39,7 @@ mw_shape = pyssht.sample_shape(L, Method="MW")
 
 logpi = file["logposterior"][()]
 L2s = file["L2s"][()]
-L1s = file["L1s"][()]
+L1s = file["priors"][()]
 evo = plotting.plot_evolution(logpi, L2s, L1s)
 evo.savefig(filename("evolution"))
 
@@ -57,6 +58,19 @@ maxapost = plotting.plot_map(
 )
 maxapost.savefig(filename("MAP"))
 
+truth = np.load("squaredtruth.npy")
+diff = truth - MAP
+diff_perc = 100 * diff / np.max(abs(truth))
+cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
+diffp = plotting.plot_map(
+    diff,
+    title="True - MAP",
+    cmap="PuOr",
+    vmin=-cbar_end,
+    vmax=cbar_end,
+)
+diffp.savefig(filename("diff"))
+
 map_wvlt = plotting.plot_chain_sample(MAP_wvlt)
 map_wvlt.savefig(filename("MAP_wvlt"))
 
@@ -74,3 +88,5 @@ ci_map = plotting.plot_map(
     ci_range, title="95% credible interval range", cmap="viridis", vmin=0
 )
 ci_map.savefig(filename("ci_map"))
+
+print(f"MAP SNR: {snr(truth, diff):.2f} dB")
