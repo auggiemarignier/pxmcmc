@@ -3,11 +3,13 @@ import h5py
 import numpy as np
 import pys2let
 import pyssht
+from scipy import sparse
 
 from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import WaveletTransform
-from pxmcmc.utils import snr
+from pxmcmc.measurements import PathIntegral
+from pxmcmc.utils import snr, norm
 
 
 parser = argparse.ArgumentParser()
@@ -90,3 +92,10 @@ ci_map = plotting.plot_map(
 ci_map.savefig(filename("ci_map"))
 
 print(f"MAP SNR: {snr(truth, diff):.2f} dB")
+
+path_matrix = sparse.load_npz("MWdistances32.npz")
+pathint = PathIntegral(path_matrix)
+preds = pathint.forward(MAP.flatten())
+data_obs = np.loadtxt("squaredtruth_data.txt")[:, 4]
+rel_squared_error = (norm(preds - data_obs) / norm(data_obs))**2
+print(f"MAP R2E: {rel_squared_error:.2f}")
