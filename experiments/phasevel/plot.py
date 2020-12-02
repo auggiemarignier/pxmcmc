@@ -65,10 +65,10 @@ diff = truth - MAP
 diff_perc = 100 * diff / np.max(abs(truth))
 cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
 diffp = plotting.plot_map(
-    diff,
-    title="True - MAP",
-    cmap="PuOr",
-    vmin=-cbar_end,
+    np.abs(diff),
+    title="|True - MAP|",
+    cmap="plasma",
+    vmin=0,
     vmax=cbar_end,
 )
 diffp.savefig(filename("diff"))
