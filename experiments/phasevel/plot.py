@@ -91,7 +91,12 @@ ci_map = plotting.plot_map(
 )
 ci_map.savefig(filename("ci_map"))
 
+mean = np.mean(chain_pix, axis=0).reshape(mw_shape)
+mean_map = plotting.plot_map(mean, title="Mean solution", cmap="seismic_r", centre0=True)
+mean_map.savefig(filename("mean"))
+
 print(f"MAP SNR: {snr(truth, diff):.2f} dB")
+print(f"Mean SNR: {snr(truth, truth - mean):.2f} dB")
 
 path_matrix = sparse.load_npz("MWdistances32.npz")
 pathint = PathIntegral(path_matrix)
