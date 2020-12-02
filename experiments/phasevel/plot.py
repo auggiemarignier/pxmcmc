@@ -3,10 +3,13 @@ import h5py
 import numpy as np
 import pys2let
 import pyssht
+from scipy import sparse
 
 from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import WaveletTransform
+from pxmcmc.measurements import PathIntegral
+from pxmcmc.utils import snr, norm
 
 
 parser = argparse.ArgumentParser()
@@ -38,7 +41,7 @@ mw_shape = pyssht.sample_shape(L, Method="MW")
 
 logpi = file["logposterior"][()]
 L2s = file["L2s"][()]
-L1s = file["L1s"][()]
+L1s = file["priors"][()]
 evo = plotting.plot_evolution(logpi, L2s, L1s)
 evo.savefig(filename("evolution"))
 
@@ -57,6 +60,19 @@ maxapost = plotting.plot_map(
 )
 maxapost.savefig(filename("MAP"))
 
+truth = np.load("squaredtruth.npy")
+diff = truth - MAP
+diff_perc = 100 * diff / np.max(abs(truth))
+cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
+diffp = plotting.plot_map(
+    np.abs(diff),
+    title="|True - MAP|",
+    cmap="plasma",
+    vmin=0,
+    vmax=cbar_end,
+)
+diffp.savefig(filename("diff"))
+
 map_wvlt = plotting.plot_chain_sample(MAP_wvlt)
 map_wvlt.savefig(filename("MAP_wvlt"))
 
@@ -74,3 +90,17 @@ ci_map = plotting.plot_map(
     ci_range, title="95% credible interval range", cmap="viridis", vmin=0
 )
 ci_map.savefig(filename("ci_map"))
+
+mean = np.mean(chain_pix, axis=0).reshape(mw_shape)
+mean_map = plotting.plot_map(mean, title="Mean solution", cmap="seismic_r", centre0=True)
+mean_map.savefig(filename("mean"))
+
+print(f"MAP SNR: {snr(truth, diff):.2f} dB")
+print(f"Mean SNR: {snr(truth, truth - mean):.2f} dB")
+
+path_matrix = sparse.load_npz("MWdistances32.npz")
+pathint = PathIntegral(path_matrix)
+preds = pathint.forward(MAP.flatten())
+data_obs = np.loadtxt("squaredtruth_data.txt")[:, 4]
+rel_squared_error = (norm(preds - data_obs) / norm(data_obs))**2
+print(f"MAP R2E: {rel_squared_error:.2f}")
