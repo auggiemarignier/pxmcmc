@@ -5,6 +5,7 @@ from matplotlib import cm
 from scipy.stats import laplace
 import copy
 import pyssht
+from cartopy.crs import Mollweide
 
 from pxmcmc.utils import suppress_stdout
 
@@ -19,6 +20,7 @@ def plot_map(
     cbar_label="",
     oversample=True,
     centre0=False,
+    coasts=False,
 ):
     cmap = copy.copy(cm.get_cmap(cmap))
     cmap.set_bad(alpha=0)
@@ -36,14 +38,26 @@ def plot_map(
 
     f_plt, _ = pyssht.mollweide_projection(f, L)
     fig = plt.figure(figsize=(20, 10))
-    plt.imshow(f_plt, origin="lower", cmap=cmap, vmin=vmin, vmax=vmax)
-    plt.axis("off")
-    plt.title(title, fontsize=24)
-    if cbar:
-        cbar = plt.colorbar()
-        cbar.ax.set_ylabel(cbar_label)
+    if not cbar:
+        map_gs = fig.add_gridspec(1, 1)
+        map_ax = map_gs.subplots()
+        im = map_ax.imshow(f_plt, origin="lower", cmap=cmap, vmin=vmin, vmax=vmax)
+    else:
+        map_gs = fig.add_gridspec(nrows=1, ncols=2, width_ratios=[40, 1], wspace=0.05)
+        map_ax = fig.add_subplot(map_gs[:, :-1])
+        cbar_ax = fig.add_subplot(map_gs[:, -1])
+        im = map_ax.imshow(f_plt, origin="lower", cmap=cmap, vmin=vmin, vmax=vmax)
+        cbar = fig.colorbar(im, cax=cbar_ax)
+        cbar.set_label(cbar_label, fontsize=24)
         cbar.ax.tick_params(labelsize="xx-large")
-    return fig
+    map_ax.axis("off")
+    map_ax.set_title(title, fontsize=24)
+    if coasts:
+        coast_gs = map_gs[0].subgridspec(1, 1)
+        coast_ax = coast_gs.subplots(subplot_kw={"projection": Mollweide()})
+        coast_ax.coastlines(linewidth=2)
+        coast_ax.patch.set_alpha(0)
+    return fig, map_gs
 
 
 def mollview(image, figsize=(10, 8), **kwargs):
