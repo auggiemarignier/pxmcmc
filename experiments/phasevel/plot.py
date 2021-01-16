@@ -17,11 +17,12 @@ parser.add_argument("datafile", type=str)
 parser.add_argument("directory", type=str)
 parser.add_argument("--suffix", type=str, default="")
 parser.add_argument("--burn", type=int, default=3000)
+parser.add_argument("--save_npy", action="store_true")
 args = parser.parse_args()
 
 
-def filename(name):
-    return f"{args.directory}/{name}{args.suffix}.png"
+def filename(name, ext="png"):
+    return f"{args.directory}/{name}{args.suffix}.{ext}"
 
 
 file = h5py.File(args.datafile, "r")
@@ -104,3 +105,9 @@ preds = pathint.forward(MAP.flatten())
 data_obs = np.loadtxt("squaredtruth_data.txt")[:, 4]
 rel_squared_error = (norm(preds - data_obs) / norm(data_obs))**2
 print(f"MAP R2E: {rel_squared_error:.2f}")
+
+if args.save_npy:
+    np.save(filename("mean", "npy"), mean)
+    np.save(filename("MAP", "npy"), MAP)
+    np.save(filename("CI", "npy"), ci_range)
+    np.save(filename("diff", "npy"), diff)
