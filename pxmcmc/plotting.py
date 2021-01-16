@@ -57,7 +57,7 @@ def plot_map(
         coast_ax = coast_gs.subplots(subplot_kw={"projection": Mollweide()})
         coast_ax.coastlines(linewidth=2)
         coast_ax.patch.set_alpha(0)
-    return fig, map_gs
+    return fig
 
 
 def mollview(image, figsize=(10, 8), **kwargs):
