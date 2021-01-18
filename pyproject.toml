@@ -14,10 +14,10 @@ jupyter = "^1.0.0"
 jupyterlab = "^2.1.2"
 ipykernel = "^5.2.1"
 h5py = "^2.10.0"
-greatcirclepaths = {git = "https://github.com/auggiemarignier/GreatCirclePaths"}
 pyssht = "^1.3.2"
 pys2let = "^2.1.0-rc.2"
 Cartopy = {version = "^0.18.0", optional = true}
+greatcirclepaths = {git = "git@github.com:auggiemarignier/GreatCirclePaths.git"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
