@@ -8,7 +8,7 @@ import datetime
 
 from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
 from pxmcmc.forward import PathIntegralOperator
-from pxmcmc.prior import L1
+from pxmcmc.prior import S2_Wavelets_L1
 from pxmcmc.saving import save_mcmc
 
 
@@ -33,35 +33,34 @@ def read_datafile(datafile):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("infile", type=str)
-parser.add_argument("--outdir", type=str, default=".")
-parser.add_argument("--jobid", type=str, default="0")
 parser.add_argument(
-    "--pathsfile",
+    "pathsfile",
     type=str,
     help="path to .npz file with scipy sparse matrix.  If file is not found, sparse matrix will be generated and saved here.",
 )
+parser.add_argument("--outdir", type=str, default=".")
+parser.add_argument("--jobid", type=str, default="0")
 parser.add_argument("--algo", type=str, default="myula")
 parser.add_argument("--setting", type=str, default="synthesis")
-parser.add_argument("--lmda", type=float, default=2e-10)
-parser.add_argument("--delta", type=float, default=1e-10)
+parser.add_argument("--delta", type=float, default=1e-6)
 parser.add_argument("--mu", type=float, default=1)
-parser.add_argument("--L", type=int, default=32)
+parser.add_argument("--L", type=int, default=20)
 
 args = parser.parse_args()
 L = args.L
-B = 1.5
+B = 2
 J_min = 2
 setting = args.setting
 
 
 def build_path(start, stop):
-    path = GreatCirclePath(start, stop, "MW", L=args.L, weighting=True)
-    path.get_points(100)
+    path = GreatCirclePath(start, stop, "MW", L=args.L, weighting="distances")
+    path.get_points(points_per_rad=160)
     path.fill()
     return path.map
 
 
-def get_path_matrix(start, stop, processes=4):
+def get_path_matrix(start, stop, processes=16):
     itrbl = [(stt, stp) for (stt, stp) in zip(start, stop)]
     with Pool(processes) as p:
         result = p.starmap_async(build_path, itrbl)
@@ -74,28 +73,31 @@ if path.exists(args.pathsfile):
     path_matrix = sparse.load_npz(args.pathsfile)
 else:
     path_matrix = get_path_matrix(start, stop)
-    sparse.save_npz(args.pathsfile)
+    sparse.save_npz(args.pathsfile, path_matrix)
 
 assert path_matrix.shape[0] == len(data)
 
 forwardop = PathIntegralOperator(path_matrix, data, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
-    nsamples=int(5e3),
+    nsamples=int(2e3),
     nburn=0,
     ngap=int(5e2),
     delta=args.delta,
-    lmda=args.lmda,
+    lmda=args.delta / 2,
     mu=args.mu,
     complex=False,
     verbosity=1e3,
     s=10,
 )
 
-regulariser = L1(
+regulariser = S2_Wavelets_L1(
     setting,
     forwardop.transform.inverse,
     forwardop.transform.inverse_adjoint,
     params.lmda * params.mu,
+    L=L,
+    B=B,
+    J_min=J_min,
 )
 
 print(f"Number of data points: {len(data)}")
@@ -123,5 +125,6 @@ save_mcmc(
     B=B,
     J_min=J_min,
     nparams=forwardop.nparams,
-    setting=setting
+    setting=setting,
+    time=str(datetime.datetime.now() - NOW),
 )
