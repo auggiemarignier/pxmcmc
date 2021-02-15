@@ -16,18 +16,29 @@ def flatten_mlm(wav_lm, scal_lm):
     return mlm
 
 
-def expand_mlm(mlm, nscales, flatten_wavs=False):
+def expand_mlm(mlm, nscales=None, nscalcoefs=None, flatten_wavs=False):
     """
     Sepatates scaling and wavelet coefficients from a single vector to separate arrays.
+    Must be given one of 'nscales' or 'nscalcoefs'.
+    'nscales' is number of wavlet scales + 1 scaling function (not multires)
+    'nscalcoefs' is number of scaling coefficients in multiresolution
     """
-    v_len = mlm.size // (nscales + 1)
-    assert v_len > 0
-    scal_lm = mlm[:v_len]
-    wav_lm = np.zeros((v_len, nscales), dtype=np.complex)
-    for i in range(nscales):
-        wav_lm[:, i] = mlm[(i + 1) * v_len : (i + 2) * v_len]
-    if flatten_wavs:
-        wav_lm = np.concatenate([wav_lm[:, i] for i in range(nscales)])
+    if nscales is None and nscalcoefs is None:
+        raise ValueError("Set either 'nscales', or 'nscalcoefs'")
+    elif nscales is not None and nscalcoefs is not None:
+        raise ValueError("Give only one of 'nscales' or 'nscalcoefs'")
+    elif nscales is not None:
+        v_len = mlm.size // (nscales + 1)
+        assert v_len > 0
+        scal_lm = mlm[:v_len]
+        wav_lm = np.zeros((v_len, nscales), dtype=np.complex)
+        for i in range(nscales):
+            wav_lm[:, i] = mlm[(i + 1) * v_len : (i + 2) * v_len]
+        if flatten_wavs:
+            wav_lm = np.concatenate([wav_lm[:, i] for i in range(nscales)])
+    elif nscalcoefs is not None :
+        scal_lm = mlm[:nscalcoefs]
+        wav_lm = mlm[nscalcoefs:]
     return wav_lm, scal_lm
 
 
@@ -234,7 +245,9 @@ class WaveletFormatter:
         offset = pys2let.mw_size(self.L)
         offset_hp = hp.nside2npix(self.Nside)
         for j in range(self.nscales):
-            wav_mw[j * offset : (j + 1) * offset] = self._pixhp2pixmw(wav[j * offset_hp : (j + 1) * offset_hp])
+            wav_mw[j * offset : (j + 1) * offset] = self._pixhp2pixmw(
+                wav[j * offset_hp : (j + 1) * offset_hp]
+            )
         return scal_mw, wav_mw
 
     def _harmhp2pixhp_wavelets(self, scal_hp_lm, wav_hp_lm):
@@ -376,7 +389,7 @@ def weights_theta(L):
     wr = np.zeros(2 * L - 1, dtype=complex)
     for i, m in enumerate(range(-(L - 1), L)):
         wr[i] = mw_weights(m) * np.exp(-1j * m * np.pi / (2 * L - 1))
-    wr = (np.fft.fft(np.fft.ifftshift(wr)) * 2 * np.pi / (2 * L - 1)**2).real
+    wr = (np.fft.fft(np.fft.ifftshift(wr)) * 2 * np.pi / (2 * L - 1) ** 2).real
     return wr
 
 
