@@ -50,24 +50,17 @@ class IdentityTransform(Transform):
 
 class WaveletTransform(Transform):
     def __init__(
-        self,
-        L,
-        B,
-        J_min,
-        Nside=None,
-        dirs=1,
-        spin=0,
+        self, L, B, J_min, dirs=1, spin=0,
     ):
         self.L = L
         self.B = B
         self.J_min = J_min
-        self.Nside = Nside
         self.J_max = pys2let.pys2let_j_max(self.B, self.L, self.J_min)
         self.nscales = self.J_max - self.J_min + 1
         self.dirs = dirs
         self.spin = spin
 
-        self._get_nparams()
+        self._get_ncoefs()
 
     def forward(self, X):
         """
@@ -101,22 +94,26 @@ class WaveletTransform(Transform):
         """
         if not isinstance(X, complex):
             X = X.astype(complex)
-        X_wav, X_scal = pys2let.synthesis_adjoint_axisym_wav_mw(X, self.B, self.L, self.J_min)
+        X_wav, X_scal = pys2let.synthesis_adjoint_px2wav(
+            X, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
+        )
         return flatten_mlm(X_wav, X_scal)
 
     def forward_adjoint(self, X):
         """
         X is a vector of wavlet and scaling functions
         """
-        wav, scal = expand_mlm(X, self.nscales, flatten_wavs=True)
+        wav, scal = expand_mlm(X, nscalcoefs=self.nscal)
         if not isinstance(scal, complex):
             scal = scal.astype(complex)
         if not isinstance(scal, complex):
             scal = scal.astype(complex)
-        X = pys2let.analysis_adjoint_axisym_wav_mw(wav, scal, self.B, self.L, self.J_min)
+        X = pys2let.analysis_adjoint_wav2px(
+            wav, scal, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
+        )
         return X
 
-    def _get_nparams(self):
+    def _get_ncoefs(self):
         """
         Counts the number of wavelet and scaling coefs for
         the multiresolution algorithm
@@ -126,4 +123,4 @@ class WaveletTransform(Transform):
             f_mw, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
         )
         self.nwav, self.nscal = (f_wav.shape[0], f_scal.shape[0])
-        self.nparams = self.nwav + self.nscal
+        self.ncoefs = self.nwav + self.nscal
