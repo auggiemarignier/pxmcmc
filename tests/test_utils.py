@@ -16,9 +16,20 @@ def test_flattenmlm():
 
 def test_expandmlm():
     mlm = np.ones((8610,))
-    f_wav_lm, f_scal_lm = utils.expand_mlm(mlm, 9)
+    f_wav_lm, f_scal_lm = utils.expand_mlm(mlm, nscales=9)
     assert f_wav_lm.shape == (861, 9)
     assert f_scal_lm.shape == (861,)
+
+
+def test_flatten_expand_multires(L, B, J_min):
+    f_mw = np.empty(pyssht.sample_length(L), dtype=complex)
+    f_wav, f_scal = pys2let.analysis_px2wav(f_mw, B, L, J_min, 1, 0, upsample=0)
+    f_scalwav = utils.flatten_mlm(f_wav, f_scal)
+    f_scal_expanded, f_wav_expanded = utils.expand_mlm(
+        f_scalwav, nscal=len(f_scal), nwav=len(f_wav)
+    )
+    assert np.array_equal(f_scal, f_scal_expanded)
+    assert np.array_equal(f_wav, f_wav_expanded)
 
 
 @pytest.mark.parametrize(
@@ -238,7 +249,7 @@ def test_s2_integrate(L):
             ind_pm = pyssht.elm2ind(el, m)
             ind_nm = pyssht.elm2ind(el, -m)
             flm[ind_pm] = np.random.randn() + 1j * np.random.randn()
-            flm[ind_nm] = (-1)**m * np.conj(flm[ind_pm])
+            flm[ind_nm] = (-1) ** m * np.conj(flm[ind_pm])
     I0 = flm[0] * np.sqrt(4 * np.pi)
     f = pyssht.inverse(flm, L, Method="MW", Reality=True).flatten()
 
