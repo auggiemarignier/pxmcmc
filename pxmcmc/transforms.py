@@ -82,7 +82,7 @@ class WaveletTransform(Transform):
         if not isinstance(scal, complex):
             scal = scal.astype(complex)
         if not isinstance(scal, complex):
-            scal = scal.astype(complex)
+            wav = wav.astype(complex)
         X = pys2let.synthesis_wav2px(
             wav, scal, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
         )
@@ -107,7 +107,7 @@ class WaveletTransform(Transform):
         if not isinstance(scal, complex):
             scal = scal.astype(complex)
         if not isinstance(scal, complex):
-            scal = scal.astype(complex)
+            wav = wav.astype(complex)
         X = pys2let.analysis_adjoint_wav2px(
             wav, scal, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
         )
