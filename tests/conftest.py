@@ -18,7 +18,7 @@ def L():
 
 @pytest.fixture
 def B():
-    return 1.5
+    return 2
 
 
 @pytest.fixture
