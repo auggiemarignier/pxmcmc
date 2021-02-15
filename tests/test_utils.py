@@ -21,11 +21,11 @@ def test_expandmlm():
     assert f_scal_lm.shape == (861,)
 
 
-def test_flatten_expand_multires(L, B, J_min):
-    f_mw = np.empty(pyssht.sample_length(L), dtype=complex)
+def test_flatten_expand_multires(simpledata, L, B, J_min):
+    f_mw = simpledata.astype(complex)
     f_wav, f_scal = pys2let.analysis_px2wav(f_mw, B, L, J_min, 1, 0, upsample=0)
     f_scalwav = utils.flatten_mlm(f_wav, f_scal)
-    f_scal_expanded, f_wav_expanded = utils.expand_mlm(
+    f_wav_expanded, f_scal_expanded = utils.expand_mlm(
         f_scalwav, nscalcoefs=len(f_scal)
     )
     assert np.array_equal(f_scal, f_scal_expanded)
