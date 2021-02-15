@@ -1,13 +1,14 @@
 import numpy as np
 import pytest
+import pys2let
 
 from pxmcmc.utils import flatten_mlm
 from pxmcmc.transforms import WaveletTransform
 
 
 @pytest.fixture
-def wvlttransform(L, B, J_min, Nside):
-    return WaveletTransform(L, B, J_min, Nside)
+def wvlttransform(L, B, J_min):
+    return WaveletTransform(L, B, J_min)
 
 
 def test_wavelet_fwdback(wvlttransform, simpledata):
@@ -21,20 +22,20 @@ def test_wavelet_fwd_adjoint_dot(wvlttransform, simpledata):
     x = np.copy(simpledata)
     y = wvlttransform.forward(x)
 
-    scal_lm = np.copy(simpledata)
-    wav_lm = np.column_stack([simpledata for _ in range(wvlttransform.nscales)])
-    f = flatten_mlm(wav_lm, scal_lm)
-    g = wvlttransform.forward_adjoint(f)
+    scal = np.random.rand(wvlttransform.nscal)
+    wav = np.random.rand(wvlttransform.nwav)
+    f = flatten_mlm(wav, scal)
+    g = wvlttransform.forward_adjoint(f.astype(complex))
 
     dot_diff = f.conj().T.dot(y) - g.conj().T.dot(x)
     assert np.isclose(dot_diff, 0)
 
 
 def test_wavelet_inv_adjoint_dot(wvlttransform, simpledata):
-    scal_lm = np.copy(simpledata)
-    wav_lm = np.column_stack([simpledata for _ in range(wvlttransform.nscales)])
-    x = flatten_mlm(wav_lm, scal_lm)
-    y = wvlttransform.inverse(x)
+    scal = np.random.rand(wvlttransform.nscal)
+    wav = np.random.rand(wvlttransform.nwav)
+    x = flatten_mlm(wav, scal)
+    y = wvlttransform.inverse(x.astype(complex))
 
     f = np.copy(simpledata)
     g = wvlttransform.inverse_adjoint(f)
