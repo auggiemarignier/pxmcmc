@@ -1,4 +1,6 @@
 import pys2let
+import pyssht
+import numpy as np
 
 from pxmcmc.utils import expand_mlm, flatten_mlm, WaveletFormatter
 
@@ -74,6 +76,7 @@ class WaveletTransform(Transform):
         self.spin = spin
 
         self._formatter = WaveletFormatter(L, B, J_min, Nside, spin=spin)
+        self._get_nparams()
 
         self.fwd_in_type = fwd_in_type
         self.fwd_out_type = fwd_out_type
@@ -208,3 +211,15 @@ class WaveletTransform(Transform):
             raise ValueError(f"Wrong input format: {in_type}")
         if out_type not in ["harmonic_mw", "harmonic_hp", "pixel_mw", "pixel_hp"]:
             raise ValueError(f"Wrong output format: {out_type}")
+
+    def _get_nparams(self):
+        """
+        Counts the number of wavelet and scaling coefs for
+        the multiresolution algorithm
+        """
+        f_mw = np.empty(pyssht.sample_length(self.L), dtype=complex)
+        f_wav, f_scal = pys2let.analysis_px2wav(
+            f_mw, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
+        )
+        self.nwav, self.nscal = (f_wav.shape, f_scal.shape)
+        self.nparams = self.nwav + self.nscal
