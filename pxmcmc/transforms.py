@@ -101,12 +101,10 @@ class WaveletTransform(Transform):
         X = self._intype2mwpx(X, in_type)
         if not isinstance(X, complex):
             X = X.astype(complex)
-        X_wav, X_scal = pys2let.analysis_axisym_wav_mw(
-            X, self.B, self.L, self.J_min
+        X_wav, X_scal = pys2let.analysis_px2wav(
+            X, self.B, self.L, self.J_min, N=1, spin=0, upsample=0
         )
-        X_scal_out, X_wav_out = self._wavelets_mwpx2outtype(
-            X_scal, X_wav, out_type
-        )
+        X_scal_out, X_wav_out = self._wavelets_mwpx2outtype(X_scal, X_wav, out_type)
         return flatten_mlm(X_wav_out, X_scal_out)
 
     def inverse(self, X, in_type=None, out_type=None):
@@ -119,13 +117,15 @@ class WaveletTransform(Transform):
             out_type = self.inv_out_type
         self._check_inout_types(in_type, out_type)
 
-        wav, scal = expand_mlm(X, self.nscales, flatten_wavs=True)
+        wav, scal = expand_mlm(X, nscalcoefs=self.nscal)
         scal, wav = self._wavelets_intype2mwpx(scal, wav, in_type)
         if not isinstance(scal, complex):
             scal = scal.astype(complex)
         if not isinstance(scal, complex):
             scal = scal.astype(complex)
-        X = pys2let.synthesis_axisym_wav_mw(wav, scal, self.B, self.L, self.J_min)
+        X = pys2let.synthesis_wav2px(
+            wav, scal, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
+        )
         return self._mwpx2outtype(X, out_type)
 
     def inverse_adjoint(self, X, in_type=None, out_type=None):
@@ -221,5 +221,5 @@ class WaveletTransform(Transform):
         f_wav, f_scal = pys2let.analysis_px2wav(
             f_mw, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
         )
-        self.nwav, self.nscal = (f_wav.shape, f_scal.shape)
+        self.nwav, self.nscal = (f_wav.shape[0], f_scal.shape[0])
         self.nparams = self.nwav + self.nscal
