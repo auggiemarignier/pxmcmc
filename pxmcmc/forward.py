@@ -69,24 +69,19 @@ class ForwardOperator:
 
 class WaveletTransformOperator(ForwardOperator):
     def __init__(self, data, sig_d, setting, L, B, J_min, dirs=1, spin=0):
-        map_type = "pixel_mw"
         transform = WaveletTransform(
             L,
             B,
             J_min,
             dirs=dirs,
             spin=spin,
-            inv_in_type=map_type,
-            inv_out_type=map_type,
-            inv_adj_in_type=map_type,
-            inv_adj_out_type=map_type,
         )
         measurement = Identity(len(data), mw_size(L))
 
         if setting == "analysis":
             nparams = mw_size(L)
         else:
-            nparams = mw_size(L) * (transform.nscales + 1)
+            nparams = transform.ncoefs
 
         super().__init__(
             data,
@@ -100,24 +95,19 @@ class WaveletTransformOperator(ForwardOperator):
 
 class PathIntegralOperator(ForwardOperator):
     def __init__(self, pathmatrix, data, sig_d, setting, L, B, J_min, dirs=1, spin=0):
-        map_type = "pixel_mw"
         transform = WaveletTransform(
             L,
             B,
             J_min,
             dirs=dirs,
             spin=spin,
-            inv_in_type=map_type,
-            inv_out_type=map_type,
-            inv_adj_in_type=map_type,
-            inv_adj_out_type=map_type,
         )
         measurement = PathIntegral(pathmatrix)
 
         if setting == "analysis":
             nparams = mw_size(L)
         else:
-            nparams = mw_size(L) * (transform.nscales + 1)
+            nparams = transform.ncoefs
 
         super().__init__(
             data,
