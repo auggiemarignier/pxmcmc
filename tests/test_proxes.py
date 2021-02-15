@@ -42,10 +42,5 @@ def test_S2_Wavlets_L1(S2_Wavs_L1reg):
     Since the soft thresholding and weighting have been tested individually
     just make sure it runs
     """
-    data = np.ones(sample_length(S2_Wavs_L1reg.L))
-    if S2_Wavs_L1reg.setting == "analysis":
-        S2_Wavs_L1reg.proxf(data)
-    else:
-        S2_Wavs_L1reg.proxf(
-            np.concatenate([data for _ in range(S2_Wavs_L1reg.nscales + 1)])
-        )
+    data = np.ones(S2_Wavs_L1reg.map_weights.shape)
+    S2_Wavs_L1reg.proxf(data)
