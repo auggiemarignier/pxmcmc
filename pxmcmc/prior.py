@@ -84,6 +84,5 @@ class S2_Wavelets_L1(L1):
         gamma_l = np.vstack([phi_l, psi_l])
         bandlimits = np.zeros(gamma_l.shape[0], dtype=int)
         for j, gamma in enumerate(gamma_l):
-            pass
             bandlimits[j] = np.nonzero(gamma)[0].max() + 1
         return bandlimits
