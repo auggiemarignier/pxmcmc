@@ -17,7 +17,8 @@ h5py = "^2.10.0"
 pyssht = "^1.3.2"
 pys2let = "^2.1.0-rc.2"
 Cartopy = {version = "^0.18.0", optional = true}
-greatcirclepaths = {git = "git@github.com:auggiemarignier/GreatCirclePaths.git"}
+greatcirclepaths = "^1.0.0"
+
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
