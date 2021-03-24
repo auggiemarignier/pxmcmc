@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest" ]
+        os: [ "macos-latest" ]
     runs-on: ${{ matrix.os }}
     steps:
       #----------------------------------------------
@@ -56,7 +56,5 @@ jobs:
       #----------------------------------------------
       - name: Run tests
         run: |
-          source .venv/bin/activate
-          pytest tests/
           source .venv/bin/activate
           pytest tests/
