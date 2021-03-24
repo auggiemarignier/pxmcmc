@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest", "macos-latest" ]
+        os: [ "ubuntu-latest" ]
     runs-on: ${{ matrix.os }}
     steps:
       #----------------------------------------------
@@ -49,12 +49,7 @@ jobs:
       #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-      #----------------------------------------------
-      # install your root project, if required 
-      #----------------------------------------------      
-      - name: Install library
-        run: poetry install --no-interaction
+        run: poetry install
       #----------------------------------------------
       #              run test suite   
       #----------------------------------------------
