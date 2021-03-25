@@ -22,8 +22,21 @@ def test_L1(L1regulariser):
     assert np.alltrue(L1regulariser.proxf(X) == soft(X, L1regulariser.T))
 
 
-@pytest.fixture
-def S2_Wavs_L1reg(setting, L, B, J_min):
+@pytest.mark.parametrize(
+    "setting",
+    [
+        "synthesis",
+        pytest.param(
+            "analysis",
+            marks=pytest.mark.xfail(reason="Analysis prox not yet implemented"),
+        ),
+    ],
+)
+def test_S2_Wavlets_L1(setting, L, B, J_min):
+    """
+    Since the soft thresholding and weighting have been tested individually
+    just make sure it runs
+    """
     reg = S2_Wavelets_L1(setting, None, None, 1, L, B, J_min)
 
     def identity(X):
@@ -34,13 +47,9 @@ def S2_Wavs_L1reg(setting, L, B, J_min):
 
     reg.fwd = identity
     reg.adj = identity
-    return reg
 
-
-def test_S2_Wavlets_L1(S2_Wavs_L1reg):
-    """
-    Since the soft thresholding and weighting have been tested individually
-    just make sure it runs
-    """
-    data = np.ones(S2_Wavs_L1reg.map_weights.shape)
-    S2_Wavs_L1reg.proxf(data)
+    data = np.ones(sample_length(reg.L))
+    if reg.setting == "analysis":
+        reg.proxf(data)
+    else:
+        reg.proxf(np.concatenate([data for _ in range(reg.nscales + 1)]))
