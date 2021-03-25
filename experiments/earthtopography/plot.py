@@ -38,10 +38,6 @@ wvlttrans = WaveletTransform(
     L,
     B,
     J_min,
-    inv_out_type="pixel_mw",
-    inv_in_type="pixel_mw",
-    fwd_out_type="pixel_mw",
-    fwd_in_type="pixel_mw",
 )
 mw_shape = pyssht.sample_shape(L, Method="MW")
 

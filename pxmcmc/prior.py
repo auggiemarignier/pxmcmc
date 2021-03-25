@@ -1,6 +1,5 @@
 import numpy as np
 import pys2let
-import pyssht
 
 from pxmcmc.utils import soft, mw_map_weights
 
@@ -45,19 +44,22 @@ class S2_Wavelets_L1(L1):
     Performs some weighting to avoid overemphasizing pixels at the poles
     """
 
-    def __init__(self, setting, fwd, adj, T, L, B, J_min):
+    def __init__(self, setting, fwd, adj, T, L, B, J_min, dirs=1, spin=0):
         super().__init__(setting, fwd, adj, T)
         self.L = L
-        B = B
-        J_min = J_min
-        J_max = pys2let.pys2let_j_max(B, L, J_min)
-        self.nscales = J_max - J_min + 1
-        self.map_size = pyssht.sample_length(L, Method="MW")
-        self.map_weights = mw_map_weights(L)
+        self.B = B
+        self.J_min = J_min
+        self.J_max = pys2let.pys2let_j_max(B, L, J_min)
+        self.nscales = self.J_max - J_min + 1
+        self.dirs = dirs
+        self.spin = spin
         if setting == "synthesis":
+            bls = self._get_bandlimits()
             self.map_weights = np.concatenate(
-                [self.map_weights for _ in range(self.nscales + 1)]
+                [mw_map_weights(l) for l in bls]
             )
+        else:
+            self.map_weights = mw_map_weights(L)
         self.T *= self.map_weights ** 2
 
     def prior(self, X):
@@ -69,3 +71,16 @@ class S2_Wavelets_L1(L1):
 
     def _proxf_analysis(self, X):
         raise NotImplementedError
+
+    def _get_bandlimits(self):
+        phi_l, psi_lm = pys2let.wavelet_tiling(
+            self.B, self.L, self.dirs, self.J_min, self.spin
+        )
+        psi_l = np.zeros((psi_lm.shape[1], self.L))
+        for j, psi in enumerate(psi_lm.T):
+            psi_l[j, :] = np.array([psi[l ** 2 + l] for l in range(self.L)])
+        gamma_l = np.vstack([phi_l, psi_l])
+        bandlimits = np.zeros(gamma_l.shape[0], dtype=int)
+        for j, gamma in enumerate(gamma_l):
+            bandlimits[j] = np.nonzero(gamma)[0].max() + 1
+        return bandlimits

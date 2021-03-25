@@ -33,10 +33,6 @@ wvlttrans = WaveletTransform(
     L,
     B,
     J_min,
-    inv_out_type="pixel_mw",
-    inv_in_type="pixel_mw",
-    fwd_out_type="pixel_mw",
-    fwd_in_type="pixel_mw",
 )
 mw_shape = pyssht.sample_shape(L, Method="MW")
 
@@ -96,18 +92,24 @@ mean = np.mean(chain_pix, axis=0).reshape(mw_shape)
 mean_map = plotting.plot_map(mean, title="Mean solution", cmap="seismic_r", centre0=True)
 mean_map.savefig(filename("mean"))
 
+diff_mean = truth - mean
+
 print(f"MAP SNR: {snr(truth, diff):.2f} dB")
 print(f"Mean SNR: {snr(truth, truth - mean):.2f} dB")
 
-path_matrix = sparse.load_npz("MWdistances32.npz")
+path_matrix = sparse.load_npz("squaredtruth_pm.npz")
 pathint = PathIntegral(path_matrix)
-preds = pathint.forward(MAP.flatten())
 data_obs = np.loadtxt("squaredtruth_data.txt")[:, 4]
+preds = pathint.forward(MAP.flatten())
 rel_squared_error = (norm(preds - data_obs) / norm(data_obs))**2
-print(f"MAP R2E: {rel_squared_error:.2f}")
+print(f"MAP R2E: {rel_squared_error:.2e}")
+preds = pathint.forward(mean.flatten())
+rel_squared_error = (norm(preds - data_obs) / norm(data_obs))**2
+print(f"Mean R2E: {rel_squared_error:.2e}")
 
 if args.save_npy:
     np.save(filename("mean", "npy"), mean)
     np.save(filename("MAP", "npy"), MAP)
     np.save(filename("CI", "npy"), ci_range)
     np.save(filename("diff", "npy"), diff)
+    np.save(filename("diff_mean", "npy"), diff_mean)

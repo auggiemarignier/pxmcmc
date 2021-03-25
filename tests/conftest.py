@@ -18,7 +18,7 @@ def L():
 
 @pytest.fixture
 def B():
-    return 1.5
+    return 2
 
 
 @pytest.fixture
@@ -47,29 +47,6 @@ def simpledata_lm(L):
 @pytest.fixture
 def simpledata(simpledata_lm, L):
     return pys2let.alm2map_mw(simpledata_lm, L, 0).astype(float)
-
-
-@pytest.fixture
-def simpledata_hp_lm(L):
-    return np.random.rand(L * (L + 1) // 2).astype(np.complex)
-
-
-@pytest.fixture
-def simpledata_hp(simpledata_hp_lm, Nside):
-    return alm2map(simpledata_hp_lm, Nside)
-
-
-@pytest.fixture
-def all_data(
-    simpledata_lm, simpledata_hp_lm, simpledata, simpledata_hp,
-):
-    data = {
-        "harmonic_mw": simpledata_lm,
-        "harmonic_hp": simpledata_hp_lm,
-        "pixel_mw": simpledata,
-        "pixel_hp": simpledata_hp,
-    }
-    return data
 
 
 def case_sig_d_int():

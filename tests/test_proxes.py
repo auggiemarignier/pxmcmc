@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from pyssht import sample_length
 
 from pxmcmc.prior import L1, S2_Wavelets_L1
 
@@ -40,16 +39,10 @@ def test_S2_Wavlets_L1(setting, L, B, J_min):
     reg = S2_Wavelets_L1(setting, None, None, 1, L, B, J_min)
 
     def identity(X):
-        if setting == "analysis":
-            return np.matmul(np.eye(L * (2 * L - 1)), X)
-        else:
-            return np.matmul(np.eye((reg.nscales + 1) * L * (2 * L - 1)), X)
+        return np.matmul(np.eye(reg.map_weights.size), X)
 
     reg.fwd = identity
     reg.adj = identity
 
-    data = np.ones(sample_length(reg.L))
-    if reg.setting == "analysis":
-        reg.proxf(data)
-    else:
-        reg.proxf(np.concatenate([data for _ in range(reg.nscales + 1)]))
+    data = np.ones(reg.map_weights.size)
+    reg.proxf(data)
