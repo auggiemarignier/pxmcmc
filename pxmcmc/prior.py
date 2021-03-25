@@ -1,6 +1,5 @@
 import numpy as np
 import pys2let
-import pyssht
 
 from pxmcmc.utils import soft, mw_map_weights
 
@@ -54,7 +53,6 @@ class S2_Wavelets_L1(L1):
         self.nscales = self.J_max - J_min + 1
         self.dirs = dirs
         self.spin = spin
-        self.map_size = pyssht.sample_length(L, Method="MW")
         if setting == "synthesis":
             bls = self._get_bandlimits()
             self.map_weights = np.concatenate(
