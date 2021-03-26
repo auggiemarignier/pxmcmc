@@ -44,9 +44,7 @@ class ForwardOperator:
         return self.measurement.forward(X)
 
     def _forward_synthesis(self, X):
-        realspace = self.transform.inverse(X)
-        prediction = self.measurement.forward(realspace)
-        return prediction
+        return self.measurement.forward(self.transform.inverse(X))
 
     def _gradg_analysis(self, preds):
         return self.measurement.adjoint(
