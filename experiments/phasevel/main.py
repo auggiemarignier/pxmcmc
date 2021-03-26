@@ -15,20 +15,15 @@ from pxmcmc.saving import save_mcmc
 def read_datafile(datafile):
     """
     Expects a file with the following columns for each path:
-    start_lat, start_lon, stop_lat, stop_lon, data, error
+    start_lat, start_lon, stop_lat, stop_lon, data, error, minor/majorm, n_similar
     Coordinates given in degrees
-    TODO: Figure out what to do with minor/major and nsim
     """
-    all_data = np.loadtxt(datafile)
-    start_lat = all_data[:, 0]
-    start_lon = all_data[:, 1]
+    start_lat, start_lon, stop_lat, stop_lon, data, sig_d, mima, nsim = np.loadtxt(
+        datafile, unpack=True
+    )
     start = np.stack([start_lat, start_lon], axis=1)
-    stop_lat = all_data[:, 2]
-    stop_lon = all_data[:, 3]
     stop = np.stack([stop_lat, stop_lon], axis=1)
-    data = all_data[:, 4]
-    sig_d = all_data[:, 5]
-    return start, stop, data, sig_d
+    return start, stop, data, sig_d, mima, nsim
 
 
 parser = argparse.ArgumentParser()
@@ -45,6 +40,9 @@ parser.add_argument("--setting", type=str, default="synthesis")
 parser.add_argument("--delta", type=float, default=1e-6)
 parser.add_argument("--mu", type=float, default=1)
 parser.add_argument("--L", type=int, default=20)
+parser.add_argument(
+    "--nsim", action="store_true", help="Applies wieghting for number of similar paths"
+)
 
 args = parser.parse_args()
 L = args.L
@@ -68,7 +66,7 @@ def get_path_matrix(start, stop, processes=16):
     return sparse.csr_matrix(paths)
 
 
-start, stop, data, sig_d = read_datafile(args.infile)
+start, stop, data, sig_d, _, nsim = read_datafile(args.infile)
 if path.exists(args.pathsfile):
     path_matrix = sparse.load_npz(args.pathsfile)
 else:
@@ -76,6 +74,9 @@ else:
     sparse.save_npz(args.pathsfile, path_matrix)
 
 assert path_matrix.shape[0] == len(data)
+
+if args.nsim:
+    sig_d *= np.sqrt(nsim)  # sig_d will get squared later
 
 forwardop = PathIntegralOperator(path_matrix, data, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
@@ -127,4 +128,5 @@ save_mcmc(
     nparams=forwardop.nparams,
     setting=setting,
     time=str(datetime.datetime.now() - NOW),
+    nsim=True if args.nsim else False
 )
