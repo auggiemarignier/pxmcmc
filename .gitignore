@@ -7,6 +7,8 @@ __pycache__
 *.hdf5
 *.ipynb*
 *nohup.out
-experiments/phasevel/hvh.000S061.asc.rwt3_std4
+experiments/phasevel/realdatainvs
+experiments/phasevel/ekstrom
+experiments/phasevel/run_realdatainvs.sh
 *.npz
 *.npy
