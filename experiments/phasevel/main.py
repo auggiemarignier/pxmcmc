@@ -5,6 +5,7 @@ from scipy import sparse
 from greatcirclepaths import GreatCirclePath
 from multiprocessing import Pool
 import datetime
+from warnings import warn
 
 from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
 from pxmcmc.forward import PathIntegralOperator
@@ -23,6 +24,9 @@ def read_datafile(datafile):
     )
     start = np.stack([start_lat, start_lon], axis=1)
     stop = np.stack([stop_lat, stop_lon], axis=1)
+    if np.any(sig_d < 0):
+        warn("Some of the data errors read in are negative. Forcing positivity.")
+        sig_d = np.abs(sig_d)
     return start, stop, data, sig_d, mima, nsim
 
 
@@ -52,7 +56,7 @@ setting = args.setting
 
 
 def build_path(start, stop):
-    path = GreatCirclePath(start, stop, "MW", L=args.L, weighting="distances")
+    path = GreatCirclePath(start, stop, "MW", L=args.L, weighting="average")
     path.get_points(points_per_rad=160)
     path.fill()
     return path.map
