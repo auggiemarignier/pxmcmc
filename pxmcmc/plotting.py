@@ -64,10 +64,11 @@ def plot_map(
     return fig
 
 
-def plot_wavelet_maps(f, L, B, J_min, dirs=1, spin=0, **map_args):
+def plot_wavelet_maps(f, L, B, J_min, dirs=1, spin=0, same_scale=True, **map_args):
     """
-    Plots the wavelet maps of f.  Assumes f is a MW map bandlimited at L.
-    map_args is a dictionary of the optional arguments for plot_map
+    Plots the scaling and wavelet maps of f.  Assumes f is a MW map bandlimited at L.
+    If same_scale=True, wavelet maps are plotted on same colour scale
+    map_args is a dictionary of the optional arguments for plot_map.
     Returns list of figures
     """
     bls = _multires_bandlimits(L, B, J_min, dirs, spin)
@@ -81,6 +82,9 @@ def plot_wavelet_maps(f, L, B, J_min, dirs=1, spin=0, **map_args):
         base_title = ""
     map_args["title"] = f"{base_title} Scaling function"
     figs.append(plot_map(f_scal.reshape(pyssht.sample_shape(bls[0])), **map_args))
+
+    if same_scale:
+        map_args["vmax"] = np.max(f_wav).real
 
     scale_start = 0
     for i, bl in enumerate(bls[1:], 1):
