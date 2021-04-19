@@ -97,7 +97,7 @@ def alm2map(alm, nside, **kwargs):
 
 def _multires_bandlimits(L, B, J_min, dirs=1, spin=0):
     phi_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, J_min, spin)
-    psi_l = np.zeros((psi_lm.shape[1], L))
+    psi_l = np.zeros((psi_lm.shape[1], L), dtype=complex)
     for j, psi in enumerate(psi_lm.T):
         psi_l[j, :] = np.array([psi[el ** 2 + el] for el in range(L)])
     gamma_l = np.vstack([phi_l, psi_l])

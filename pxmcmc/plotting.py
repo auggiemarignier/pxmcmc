@@ -5,7 +5,11 @@ from matplotlib import cm
 import copy
 import pyssht
 import pys2let
-from cartopy.crs import Mollweide
+
+try:
+    from cartopy.crs import Mollweide
+except ModuleNotFoundError:
+    print("cartopy not found.  Cannot plot coasts.")
 
 from pxmcmc.utils import suppress_stdout, _multires_bandlimits
 
@@ -67,7 +71,9 @@ def plot_wavelet_maps(f, L, B, J_min, dirs=1, spin=0, **map_args):
     Returns list of figures
     """
     bls = _multires_bandlimits(L, B, J_min, dirs, spin)
-    f_wav, f_scal = pys2let.analysis_px2wav(f, B, L, J_min, dirs, spin, upsample=0)
+    f_wav, f_scal = pys2let.analysis_px2wav(
+        f.flatten().astype(complex), B, L, J_min, dirs, spin, upsample=0
+    )
     figs = []
     if "title" in map_args:
         base_title = map_args["title"]
@@ -79,9 +85,10 @@ def plot_wavelet_maps(f, L, B, J_min, dirs=1, spin=0, **map_args):
     scale_start = 0
     for i, bl in enumerate(bls[1:], 1):
         scale_length = pyssht.sample_length(bl)
-        wav = f[scale_start:scale_length]
+        wav = f_wav[scale_start : scale_start + scale_length]
         map_args["title"] = f"{base_title} Wavelet scale {i}"
         figs.append(plot_map(wav.reshape(pyssht.sample_shape(bl)), **map_args))
+        scale_start += scale_length
 
     return figs
 
