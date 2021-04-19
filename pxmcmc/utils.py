@@ -36,7 +36,7 @@ def expand_mlm(mlm, nscales=None, nscalcoefs=None, flatten_wavs=False):
             wav_lm[:, i] = mlm[(i + 1) * v_len : (i + 2) * v_len]
         if flatten_wavs:
             wav_lm = np.concatenate([wav_lm[:, i] for i in range(nscales)])
-    elif nscalcoefs is not None :
+    elif nscalcoefs is not None:
         scal_lm = mlm[:nscalcoefs]
         wav_lm = mlm[nscalcoefs:]
     return wav_lm, scal_lm
@@ -100,6 +100,22 @@ def get_parameter_from_chain(chain, L, base, el, em):
     base_start = base * (L) ** 2
     index_in_base = el * el + el + em
     return chain[:, base_start + index_in_base]
+
+
+def wavelet_basis(L, B, J_min, spin=0, dirs=1):
+    phi_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, J_min, spin)
+
+
+def _multires_bandlimits(L, B, J_min, dirs=1, spin=0):
+    phi_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, J_min, spin)
+    psi_l = np.zeros((psi_lm.shape[1], L))
+    for j, psi in enumerate(psi_lm.T):
+        psi_l[j, :] = np.array([psi[el ** 2 + el] for el in range(L)])
+    gamma_l = np.vstack([phi_l, psi_l])
+    bandlimits = np.zeros(gamma_l.shape[0], dtype=int)
+    for j, gamma in enumerate(gamma_l):
+        bandlimits[j] = np.nonzero(gamma)[0].max() + 1
+    return bandlimits
 
 
 def chebyshev1(X, order):
