@@ -95,13 +95,6 @@ def alm2map(alm, nside, **kwargs):
         return hp.alm2map(alm, nside, **kwargs)
 
 
-def get_parameter_from_chain(chain, L, base, el, em):
-    assert np.abs(em) <= el
-    base_start = base * (L) ** 2
-    index_in_base = el * el + el + em
-    return chain[:, base_start + index_in_base]
-
-
 def _multires_bandlimits(L, B, J_min, dirs=1, spin=0):
     phi_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, J_min, spin)
     psi_l = np.zeros((psi_lm.shape[1], L))
