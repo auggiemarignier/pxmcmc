@@ -102,10 +102,6 @@ def get_parameter_from_chain(chain, L, base, el, em):
     return chain[:, base_start + index_in_base]
 
 
-def wavelet_basis(L, B, J_min, spin=0, dirs=1):
-    phi_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, J_min, spin)
-
-
 def _multires_bandlimits(L, B, J_min, dirs=1, spin=0):
     phi_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, J_min, spin)
     psi_l = np.zeros((psi_lm.shape[1], L))
