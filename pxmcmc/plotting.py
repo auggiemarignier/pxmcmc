@@ -4,9 +4,10 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import copy
 import pyssht
+import pys2let
 from cartopy.crs import Mollweide
 
-from pxmcmc.utils import suppress_stdout
+from pxmcmc.utils import suppress_stdout, _multires_bandlimits
 
 
 def plot_map(
@@ -57,6 +58,32 @@ def plot_map(
         coast_ax.coastlines(linewidth=2)
         coast_ax.patch.set_alpha(0)
     return fig
+
+
+def plot_wavelet_maps(f, L, B, J_min, dirs=1, spin=0, **map_args):
+    """
+    Plots the wavelet maps of f.  Assumes f is a MW map bandlimited at L.
+    map_args is a dictionary of the optional arguments for plot_map
+    Returns list of figures
+    """
+    bls = _multires_bandlimits(L, B, J_min, dirs, spin)
+    f_wav, f_scal = pys2let.analysis_px2wav(f, B, L, J_min, dirs, spin, upsample=0)
+    figs = []
+    if "title" in map_args:
+        base_title = map_args["title"]
+    else:
+        base_title = ""
+    map_args["title"] = f"{base_title} Scaling function"
+    figs.append(plot_map(f_scal.reshape(pyssht.sample_shape(bls[0])), **map_args))
+
+    scale_start = 0
+    for i, bl in enumerate(bls[1:], 1):
+        scale_length = pyssht.sample_length(bl)
+        wav = f[scale_start:scale_length]
+        map_args["title"] = f"{base_title} Wavelet scale {i}"
+        figs.append(plot_map(wav.reshape(pyssht.sample_shape(bl)), **map_args))
+
+    return figs
 
 
 def mollview(image, figsize=(10, 8), **kwargs):
