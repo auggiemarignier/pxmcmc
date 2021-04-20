@@ -36,7 +36,7 @@ def expand_mlm(mlm, nscales=None, nscalcoefs=None, flatten_wavs=False):
             wav_lm[:, i] = mlm[(i + 1) * v_len : (i + 2) * v_len]
         if flatten_wavs:
             wav_lm = np.concatenate([wav_lm[:, i] for i in range(nscales)])
-    elif nscalcoefs is not None :
+    elif nscalcoefs is not None:
         scal_lm = mlm[:nscalcoefs]
         wav_lm = mlm[nscalcoefs:]
     return wav_lm, scal_lm
@@ -95,39 +95,16 @@ def alm2map(alm, nside, **kwargs):
         return hp.alm2map(alm, nside, **kwargs)
 
 
-def get_parameter_from_chain(chain, L, base, el, em):
-    assert np.abs(em) <= el
-    base_start = base * (L) ** 2
-    index_in_base = el * el + el + em
-    return chain[:, base_start + index_in_base]
-
-
-def wavelet_basis(L, B, J_min, dirs=1, spin=0):
-    theta_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, spin, J_min)
-    psi_lm = psi_lm[:, J_min:]
-    theta_lm = _fix_theta(L, B, J_min)
-    basis = np.concatenate((theta_lm, psi_lm), axis=1)
-    return basis
-
-
-def _fix_theta(L, B, J_min):
-    J_max = pys2let.pys2let_j_max(B, L, J_min)
-    nscales = J_max - J_min + 1
-    dummy_psilm = np.zeros(((L) ** 2, nscales), dtype=np.complex)
-    dummy_thetalm = np.zeros(((L) ** 2), dtype=np.complex)
-    for ell in range(L):
-        for em in range(-ell, ell + 1):
-            dummy_thetalm[ell * ell + ell + em] = np.sqrt((2 * ell + 1) / (4 * np.pi))
-
-    dummy_psilm_hp = np.zeros(
-        (L * (L + 1) // 2, dummy_psilm.shape[1]), dtype=np.complex
-    )
-    dummy_thetalm_hp = pys2let.lm2lm_hp(dummy_thetalm.flatten(), L)
-    dummy_lm_hp = pys2let.synthesis_axisym_lm_wav(
-        dummy_psilm_hp, dummy_thetalm_hp, B, L, J_min
-    )
-    theta_lm = pys2let.lm_hp2lm(dummy_lm_hp, L)
-    return np.expand_dims(theta_lm, axis=1)
+def _multires_bandlimits(L, B, J_min, dirs=1, spin=0):
+    phi_l, psi_lm = pys2let.wavelet_tiling(B, L, dirs, J_min, spin)
+    psi_l = np.zeros((psi_lm.shape[1], L), dtype=complex)
+    for j, psi in enumerate(psi_lm.T):
+        psi_l[j, :] = np.array([psi[el ** 2 + el] for el in range(L)])
+    gamma_l = np.vstack([phi_l, psi_l])
+    bandlimits = np.zeros(gamma_l.shape[0], dtype=int)
+    for j, gamma in enumerate(gamma_l):
+        bandlimits[j] = np.nonzero(gamma)[0].max() + 1
+    return bandlimits
 
 
 def chebyshev1(X, order):

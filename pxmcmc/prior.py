@@ -1,7 +1,7 @@
 import numpy as np
 import pys2let
 
-from pxmcmc.utils import soft, mw_map_weights
+from pxmcmc.utils import soft, mw_map_weights, _multires_bandlimits
 
 
 class L1:
@@ -54,10 +54,8 @@ class S2_Wavelets_L1(L1):
         self.dirs = dirs
         self.spin = spin
         if setting == "synthesis":
-            bls = self._get_bandlimits()
-            self.map_weights = np.concatenate(
-                [mw_map_weights(l) for l in bls]
-            )
+            bls = _multires_bandlimits(L, B, J_min, dirs, spin)
+            self.map_weights = np.concatenate([mw_map_weights(el) for el in bls])
         else:
             self.map_weights = mw_map_weights(L)
         self.T *= self.map_weights ** 2
@@ -71,16 +69,3 @@ class S2_Wavelets_L1(L1):
 
     def _proxf_analysis(self, X):
         raise NotImplementedError
-
-    def _get_bandlimits(self):
-        phi_l, psi_lm = pys2let.wavelet_tiling(
-            self.B, self.L, self.dirs, self.J_min, self.spin
-        )
-        psi_l = np.zeros((psi_lm.shape[1], self.L))
-        for j, psi in enumerate(psi_lm.T):
-            psi_l[j, :] = np.array([psi[l ** 2 + l] for l in range(self.L)])
-        gamma_l = np.vstack([phi_l, psi_l])
-        bandlimits = np.zeros(gamma_l.shape[0], dtype=int)
-        for j, gamma in enumerate(gamma_l):
-            bandlimits[j] = np.nonzero(gamma)[0].max() + 1
-        return bandlimits

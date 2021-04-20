@@ -2,12 +2,16 @@ import numpy as np
 import healpy as hp
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from scipy.stats import laplace
 import copy
 import pyssht
-from cartopy.crs import Mollweide
+import pys2let
 
-from pxmcmc.utils import suppress_stdout
+try:
+    from cartopy.crs import Mollweide
+except ModuleNotFoundError:
+    print("cartopy not found.  Cannot plot coasts.")
+
+from pxmcmc.utils import suppress_stdout, _multires_bandlimits
 
 
 def plot_map(
@@ -60,6 +64,39 @@ def plot_map(
     return fig
 
 
+def plot_wavelet_maps(f, L, B, J_min, dirs=1, spin=0, same_scale=True, **map_args):
+    """
+    Plots the scaling and wavelet maps of f.  Assumes f is a MW map bandlimited at L.
+    If same_scale=True, wavelet maps are plotted on same colour scale
+    map_args is a dictionary of the optional arguments for plot_map.
+    Returns list of figures
+    """
+    bls = _multires_bandlimits(L, B, J_min, dirs, spin)
+    f_wav, f_scal = pys2let.analysis_px2wav(
+        f.flatten().astype(complex), B, L, J_min, dirs, spin, upsample=0
+    )
+    figs = []
+    if "title" in map_args:
+        base_title = map_args["title"]
+    else:
+        base_title = ""
+    map_args["title"] = f"{base_title} Scaling function"
+    figs.append(plot_map(f_scal.reshape(pyssht.sample_shape(bls[0])), **map_args))
+
+    if same_scale:
+        map_args["vmax"] = np.max(f_wav).real
+
+    scale_start = 0
+    for i, bl in enumerate(bls[1:], 1):
+        scale_length = pyssht.sample_length(bl)
+        wav = f_wav[scale_start : scale_start + scale_length]
+        map_args["title"] = f"{base_title} Wavelet scale {i}"
+        figs.append(plot_map(wav.reshape(pyssht.sample_shape(bl)), **map_args))
+        scale_start += scale_length
+
+    return figs
+
+
 def mollview(image, figsize=(10, 8), **kwargs):
     i = np.random.randint(1000)
     fig = plt.figure(
@@ -100,90 +137,6 @@ def plot_chain_sample(X, figsize=(10, 8)):
     plt.plot(X.real)
     plt.subplot(2, 1, 2)
     plt.plot(X.imag)
-    return fig
-
-
-def plot_posterior_marginals(
-    chain, els, L, B, J_min, xrange=(-0.25, 0.25), figsize=(20, 20)
-):
-    from pxmcmc.utils import get_parameter_from_chain, wavelet_basis
-
-    basis = wavelet_basis(L, B, J_min)
-    nb = basis.shape[1]
-    fig = plt.figure(figsize=figsize)
-    x = np.linspace(*xrange)
-    for i, el in enumerate(els):
-        for base in range(nb):
-            print(f"\r{i},{base}", end="")
-            X = [
-                get_parameter_from_chain(chain, L, base, el, em).real
-                for em in range(-el, el + 1)
-            ]
-            ax = fig.add_subplot(nb, len(els), base * len(els) + i + 1)
-            ax.hist(X)
-
-            ax1 = ax.twinx()
-            ax1.plot(x, laplace.pdf(x), c="red")
-            ax1.set_ylim([0, 1])
-            ax1.tick_params(axis="y", colors="red")
-    return fig
-
-
-def plot_basis_els(
-    chain, L, B, J_min, ylim=None, figsize=(20, 20), realpart=True, inflate_mads=1
-):
-    from pxmcmc.utils import get_parameter_from_chain, wavelet_basis
-
-    basis = wavelet_basis(L, B, J_min)
-    fig = plt.figure(figsize=figsize)
-    for b, base in enumerate(basis.T):
-        medians = np.zeros(L)
-        mads = np.zeros(L)
-        for el in range(L):
-            try:
-                if realpart:
-                    X = get_parameter_from_chain(chain, L, b, el, 0).real
-                else:
-                    X = get_parameter_from_chain(chain, L, b, el, 0).imag
-
-            except AssertionError:
-                continue
-            median = np.median(X)
-            mad = np.mean(np.abs(X - median))
-            medians[el] = median
-            mads[el] = mad * inflate_mads
-
-        ax = fig.add_subplot(basis.shape[1], 1, b + 1)
-        ax.plot(medians.real if realpart else medians.imag, c="blue")
-        ax.fill_between(
-            np.arange(L), medians + mads, medians - mads, alpha=0.5, color="blue"
-        )
-        ax.set_ylim(ylim)
-        ax.set_xlim([0, L])
-        ax.tick_params(axis="y", colors="blue")
-
-        base_l0s = [base[l ** 2 + l].real for l in range(L)]
-        base_l0s /= np.max(base_l0s)
-        ax1 = ax.twinx()
-        ax1.plot(base_l0s, c="red")
-        ax1.set_ylim([0, 1])
-        ax1.tick_params(axis="y", colors="red")
-    return fig
-
-
-def plot_meds_mads(medians, mads, L, B, J_min, figsize=(10, 8)):
-    from pxmcmc.utils import wavelet_basis
-
-    basis = wavelet_basis(L, B, J_min)
-    nb = basis.shape[1]
-
-    nparams = len(medians)
-    fig = plt.figure(figsize=figsize)
-    plt.scatter(np.arange(nparams), medians, s=0.5)
-    plt.errorbar(np.arange(nparams), medians, yerr=mads, elinewidth=0.5)
-    wvltbndrs = [n * nparams // nb for n in range(1, nb)]
-    for bndr in wvltbndrs:
-        plt.axvline(bndr, ls="--", c="k", zorder=0, alpha=0.5)
     return fig
 
 

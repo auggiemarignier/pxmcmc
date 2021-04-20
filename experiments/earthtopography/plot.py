@@ -4,8 +4,6 @@ import numpy as np
 import pys2let
 import pyssht
 import healpy as hp
-from math import floor, ceil
-
 
 from pxmcmc import plotting
 from pxmcmc import uncertainty
@@ -19,6 +17,7 @@ parser.add_argument("directory", type=str)
 parser.add_argument("--suffix", type=str, default="")
 parser.add_argument("--burn", type=int, default=3000)
 parser.add_argument("--chain_mwlm", action="store_true", help="Convert chain to mwlm")
+parser.add_argument("--save_npy", action="store_true")
 args = parser.parse_args()
 
 
@@ -49,6 +48,8 @@ evo.savefig(filename("evolution"))
 
 topo = hp.read_map("ETOPO1_Ice_hpx_256.fits", verbose=False, dtype=np.float64,)
 truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=True) / 1000
+truthp = plotting.plot_map(truth, title="Truth")
+truthp.savefig(filename("truth"))
 
 MAP_idx = np.where(logpi == max(logpi))
 MAP_X = file["chain"][MAP_idx][0]
@@ -63,8 +64,7 @@ maxapost = plotting.plot_map(MAP, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
 
 diff = truth - MAP
-diff_perc = 100 * diff / np.max(abs(truth))
-cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
+cbar_end = max([abs(np.min(diff)), np.max(diff)])
 diffp = plotting.plot_map(
     diff,
     title="True - MAP",
@@ -91,14 +91,39 @@ ci_map = plotting.plot_map(
 )
 ci_map.savefig(filename("ci_map"))
 
+mean = np.mean(chain_pix, axis=0).reshape(mw_shape)
+mean_map = plotting.plot_map(mean, title="Mean solution")
+mean_map.savefig(filename("mean"))
+
+diff_mean = truth - mean
+cbar_end = max([abs(np.min(diff_mean)), np.max(diff_mean)])
+diffpmean = plotting.plot_map(
+    diff_mean,
+    title="True - mean",
+    cmap="PuOr",
+    vmin=-cbar_end,
+    vmax=cbar_end,
+)
+diffpmean.savefig(filename("diff_mean"))
+
 if "noise" in params:
-    noise = params["noise"].reshape((L, 2 * L - 1))
+    noise = params["noise"].reshape((L, 2 * L - 1)) / 1000
     noise_map = plotting.plot_map(
         noise, title="Added noise", cmap="binary", oversample=False
     )
     noise_map.savefig(filename("noise"))
-
-
-if "noise" in params:
     print(f"Input SNR: {snr(truth, noise):.2f} dB")
+
+print(f"Mean SNR: {snr(truth, diff_mean):.2f} dB")
 print(f"MAP SNR: {snr(truth, diff):.2f} dB")
+
+if args.save_npy:
+    np.save(filename("mean", "npy"), mean)
+    np.save(filename("MAP", "npy"), MAP)
+    np.save(filename("CI", "npy"), ci_range)
+    np.save(filename("diff", "npy"), diff)
+    np.save(filename("diff_mean", "npy"), diff_mean)
+
+print(f"Filename: {args.datafile}")
+for attr in file.attrs.keys():
+    print(f"{attr}: {file.attrs[attr]}")
