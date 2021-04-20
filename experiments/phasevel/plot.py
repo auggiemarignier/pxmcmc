@@ -9,7 +9,7 @@ from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import WaveletTransform
 from pxmcmc.measurements import PathIntegral
-from pxmcmc.utils import snr, norm, _multires_bandlimits
+from pxmcmc.utils import snr, norm
 
 
 parser = argparse.ArgumentParser()
@@ -80,26 +80,13 @@ ci_map = plotting.plot_map(
 )
 ci_map.savefig(filename("ci_map"))
 
-bls = _multires_bandlimits(L, B, J_min)
-scale_start = 0
+wav_ci_ranges = uncertainty.wavelet_credible_interval_range(
+    file["chain"][args.burn :], L, B, J_min
+)
 vmax = 0
-for i, bl in enumerate(bls):
-    scale_length = pyssht.sample_length(bl)
-    wav = file["chain"][args.burn :, scale_start : scale_start + scale_length]
-    wav_ci_range = uncertainty.credible_interval_range(wav).reshape(
-        pyssht.sample_shape(bl)
-    )
+for wav_ci_range in wav_ci_ranges:
     vmax = max([vmax, np.max(plotting._oversample(wav_ci_range, 256))])
-    scale_start += scale_length
-
-scale_start = 0
-for i, bl in enumerate(bls):
-    scale_length = pyssht.sample_length(bl)
-    wav = file["chain"][args.burn :, scale_start : scale_start + scale_length]
-    wav_ci_range = uncertainty.credible_interval_range(wav).reshape(
-        pyssht.sample_shape(bl)
-    )
-
+for i, wav_ci_range in enumerate(wav_ci_ranges):
     title = "95% credible interval range"
     if i == 0:
         title += " Scaling function"
@@ -108,15 +95,7 @@ for i, bl in enumerate(bls):
     wav_ci_map = plotting.plot_map(
         wav_ci_range, title=title, cmap="viridis", vmin=0, vmax=vmax
     )
-    wav_ci_map.savefig(filename(f"ci_map_scale{i}_2"))
-    scale_start += scale_length
-
-
-figs = plotting.plot_wavelet_maps(
-    ci_range, L, B, J_min, title="95% credible interval range", cmap="viridis", vmin=0
-)
-for i, fig in enumerate(figs):
-    fig.savefig(filename(f"ci_map_scale{i}"))
+    wav_ci_map.savefig(filename(f"ci_map_scale{i}"))
 
 mean = np.mean(chain_pix, axis=0).reshape(mw_shape)
 mean_map = plotting.plot_map(
