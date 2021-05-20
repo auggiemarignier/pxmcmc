@@ -3,8 +3,29 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pxmcmc's documentation!
+PXMCMC
 ==================================
+
+A python package for performing proximal Markov Chain Monte Carlo.  This package contains the MCMC methods and base classes for building different forward operators and priors as needed, as well as routines for calculating simple uncertainties based on the MCMC chains.  Example scripts are also provided.
+
+Installation
+============
+
+Installation is currently managed by `poetry <https://python-poetry.org/>`_ to handle dependencies when installing from source
+
+.. code-block:: bash
+
+    $ git clone https://github.com/auggiemarignier/pxmcmc.git
+    $ cd pxmcmc
+    $ poetry install
+    $ source <venv>/bin/install
+
+where :code:`<venv>` will depend on your :code:`poetry` configuration.
+
+.. todo::
+
+   Will be made available on PyPI to be pip installable.
+
 
 .. toctree::
    :maxdepth: 2
