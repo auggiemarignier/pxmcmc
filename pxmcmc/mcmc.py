@@ -48,8 +48,8 @@ class PxMCMC:
     Base class with general PxMCMC functions.
     Children of this class must implement a run function.
 
-    :param forward: type :class:`pxmcmc.forward.ForwardOperator` for forward modelling and gradient calculation.
-    :param prior: object that implements prior and proximal calculations e.g. :class:`pxmcmc.prior.L1`.
+    :param forward: type :class:`forward.ForwardOperator` for forward modelling and gradient calculation.
+    :param prior: object that implements prior and proximal calculations e.g. :class:`prior.L1`.
     :param mcmcparams: type :class:`.PxMCMCParams`
     """
 
