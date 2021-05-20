@@ -1,0 +1,4 @@
+Uncertainty
+============
+
+.. automodule:: uncertainty

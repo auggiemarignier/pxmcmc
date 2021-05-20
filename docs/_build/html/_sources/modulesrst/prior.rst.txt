@@ -1,0 +1,4 @@
+Prior
+============
+
+.. automodule:: prior
