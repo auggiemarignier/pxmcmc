@@ -2,3 +2,4 @@ Uncertainty
 ============
 
 .. automodule:: uncertainty
+   :members: 

@@ -2,3 +2,4 @@ Prior
 ============
 
 .. automodule:: prior
+   :members: 

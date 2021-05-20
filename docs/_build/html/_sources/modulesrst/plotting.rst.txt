@@ -2,3 +2,4 @@ Plotting
 ============
 
 .. automodule:: plotting
+   :members: 

@@ -2,3 +2,4 @@ Measurements
 ============
 
 .. automodule:: measurements
+    :members: 

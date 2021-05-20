@@ -172,7 +172,47 @@
   <div class="section" id="mcmc">
 <h1>MCMC<a class="headerlink" href="#mcmc" title="Permalink to this headline">¶</a></h1>
 <p>Documentation for the MCMC module</p>
-<span class="target" id="module-mcmc"></span></div>
+<span class="target" id="module-mcmc"></span><dl class="py class">
+<dt class="sig sig-object py" id="mcmc.MYULA">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mcmc.</span></span><span class="sig-name descname"><span class="pre">MYULA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">forward</span></em>, <em class="sig-param"><span class="pre">prox</span></em>, <em class="sig-param"><span class="pre">mcmcparams=&lt;mcmc.PxMCMCParams</span> <span class="pre">object&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mcmc.MYULA" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="mcmc.MYULA.chain_step">
+<span class="sig-name descname"><span class="pre">chain_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mcmc.MYULA.chain_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a step in the chain.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mcmc.PxMALA">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mcmc.</span></span><span class="sig-name descname"><span class="pre">PxMALA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">forward</span></em>, <em class="sig-param"><span class="pre">prox</span></em>, <em class="sig-param"><span class="pre">mcmcparams=&lt;mcmc.PxMCMCParams</span> <span class="pre">object&gt;</span></em>, <em class="sig-param"><span class="pre">tune_delta=True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mcmc.PxMALA" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="mcmc.PxMALA.calc_logtransition">
+<span class="sig-name descname"><span class="pre">calc_logtransition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mcmc.PxMALA.calc_logtransition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the transition probability of stepping from model X1 to model X2 i.e. q(X2|X1).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mcmc.PxMCMC">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mcmc.</span></span><span class="sig-name descname"><span class="pre">PxMCMC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">forward</span></em>, <em class="sig-param"><span class="pre">prior</span></em>, <em class="sig-param"><span class="pre">mcmcparams=&lt;mcmc.PxMCMCParams</span> <span class="pre">object&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mcmc.PxMCMC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class with general PxMCMC functions.
+Children of this class must implement a run function.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mcmc.PxMCMC.logpi">
+<span class="sig-name descname"><span class="pre">logpi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mcmc.PxMCMC.logpi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the log(posterior), L2-norm and prior-norm of a model X.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mcmc.SKROCK">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mcmc.</span></span><span class="sig-name descname"><span class="pre">SKROCK</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">forward</span></em>, <em class="sig-param"><span class="pre">prox</span></em>, <em class="sig-param"><span class="pre">mcmcparams=&lt;mcmc.PxMCMCParams</span> <span class="pre">object&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mcmc.SKROCK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
 
 
            </div>

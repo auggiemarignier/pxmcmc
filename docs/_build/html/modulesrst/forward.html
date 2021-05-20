@@ -171,6 +171,25 @@
             
   <div class="section" id="module-forward">
 <span id="forward"></span><h1>Forward<a class="headerlink" href="#module-forward" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="forward.ForwardOperator">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">forward.</span></span><span class="sig-name descname"><span class="pre">ForwardOperator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sig_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nparams</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#forward.ForwardOperator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base Forward operator. Combines a transform and a measurement operator
+Children of this class must define analysis/synthesis forward and gradg functions
+Children must also take data and sig_d in the constructor
+Number of model parameters must also be given</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="forward.PathIntegralOperator">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">forward.</span></span><span class="sig-name descname"><span class="pre">PathIntegralOperator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pathmatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sig_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">J_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#forward.PathIntegralOperator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="forward.WaveletTransformOperator">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">forward.</span></span><span class="sig-name descname"><span class="pre">WaveletTransformOperator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sig_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">J_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#forward.WaveletTransformOperator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 
 

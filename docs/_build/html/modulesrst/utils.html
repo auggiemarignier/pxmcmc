@@ -170,6 +170,74 @@
             
   <div class="section" id="module-utils">
 <span id="utils"></span><h1>Utils<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.cheb1der">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">cheb1der</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.cheb1der" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates the derivative of the Chebyshev polynomial of the first kind of the given order at point X.
+Uses the relation</p>
+<blockquote>
+<div><p>dT_{n}/dx = nU_{n-1}</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.chebyshev1">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">chebyshev1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.chebyshev1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Chebyshev polynomial of the first kind of the given order at point X.
+Uses the recurrence relation</p>
+<blockquote>
+<div><p>T_{k+1}(X) = 2XT_{k}(X) - T_{k-1}(X)
+T_{1}(X) = X
+T_{0}(X) = 1</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.chebyshev2">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">chebyshev2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.chebyshev2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Chebyshev polynomial of the second kind of the given order at point X.
+Uses the recurrence relation</p>
+<blockquote>
+<div><p>U_{k+1}(X) = 2XU_{k}(X) - U_{k-1}(X)
+U_{1}(X) = 2X
+U_{0}(X) = 1</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.expand_mlm">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">expand_mlm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mlm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nscales</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nscalcoefs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten_wavs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.expand_mlm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sepatates scaling and wavelet coefficients from a single vector to separate arrays.
+Must be given one of ‘nscales’ or ‘nscalcoefs’.
+‘nscales’ is number of wavlet scales + 1 scaling function (not multires)
+‘nscalcoefs’ is number of scaling coefficients in multiresolution</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.flatten_mlm">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">flatten_mlm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wav_lm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scal_lm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.flatten_mlm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a set of wavelet and scaling coefficients and flattens them into a single vector</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.hard">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">hard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.hard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hard thresholding of a vector X with fraction threshold T. T is the fraction kept, i.e. the largest 100T% absolute values are kept, the others are thresholded to 0.
+TODO: What happens when all elements of X are equal?</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.soft">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">soft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.soft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Soft thresholding of a vector X with threshold T.  If Xi is less than T, then soft(Xi) = 0, otherwise soft(Xi) = Xi-T.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.suppress_stdout">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">suppress_stdout</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#utils.suppress_stdout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Suppresses stdout from some healpy functions</p>
+</dd></dl>
+
 </div>
 
 
