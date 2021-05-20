@@ -1,5 +1,0 @@
-Uncertainty
-============
-
-.. automodule:: uncertainty
-   :members: 

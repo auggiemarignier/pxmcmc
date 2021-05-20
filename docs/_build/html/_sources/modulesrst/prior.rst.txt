@@ -1,5 +1,0 @@
-Prior
-============
-
-.. automodule:: prior
-   :members: 
