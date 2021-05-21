@@ -26,6 +26,22 @@ def plot_map(
     centre0=False,
     coasts=False,
 ):
+    """
+    Plots a single `MW <https://arxiv.org/abs/1110.6298>`_ sampled spherical map.
+
+    :param array f: MW sampled image.  Shape :math:`(L, 2L - 1)`.
+    :param string title: Figure title
+    :param bool cbar: if :code:`True`, plot the colour bar
+    :param string cmap: Name of a `matplotlib colour map <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_
+    :param float vmin: Minimum value.  If :code:`None`, will default to lowest value in :code:`f`.
+    :param float vmax: Maximum value.  If :code:`None`, will default to highest value in :code:`f`.
+    :param string cbar_label: Label for the colour bar. Requires :code:`cbar=True`
+    :param bool oversample: if :code:`True`, oversamples :code:`f` to bandlimit :math:`L=256` so the image is not pixelated
+    :param bool centre0: if :code:`True`, forces the colour map to be centred at 0.  Overrides :code:`vmin,vmax`.
+    :param bool coasts: if :code:`True`, plots coastlines.
+
+    :return: matplotlib figure
+    """
     cmap = copy.copy(cm.get_cmap(cmap))
     cmap.set_bad(alpha=0)
 
@@ -66,10 +82,18 @@ def plot_map(
 
 def plot_wavelet_maps(f, L, B, J_min, dirs=1, spin=0, same_scale=True, **map_args):
     """
-    Plots the scaling and wavelet maps of f.  Assumes f is a MW map bandlimited at L.
-    If same_scale=True, wavelet maps are plotted on same colour scale
-    map_args is a dictionary of the optional arguments for plot_map.
-    Returns list of figures
+    Plots the scaling and wavelet maps of spherical map :code:`f`.  
+    
+    :param array f: MW sampled image.  Shape :math:`(L, 2L - 1)`.
+    :param int L: angular bandlimit
+    :param float B: wavelet scale parameter
+    :param int J_min: minimum wavelet scale
+    :param int dirs: azimuthal bandlimit for directional wavelets
+    :param int spin: spin number of spherical signal
+    :param bool same_scale: if :code:`True`, wavelet maps are plotted on same colour scale
+    :param \**map_args: optional arguments for :meth:`plot_map`
+
+    :return: List of figures
     """
     bls = _multires_bandlimits(L, B, J_min, dirs, spin)
     f_wav, f_scal = pys2let.analysis_px2wav(
@@ -109,6 +133,16 @@ def mollview(image, figsize=(10, 8), **kwargs):
 
 
 def plot_evolution(logposteriors, L2s, L1s, figsize=(10, 8)):
+    """
+    Plot the evolution of the MCMC chain.
+
+    :param logposteriors: array of log posterior probabilities of the saved MCMC samples. Plot shows the negative log posterior.
+    :param L2s: array of log gaussian data fidelities (L2 error norms)
+    :param L1s: array of log Laplacian priors (L1 norms)
+    :param tuple figsize: Figure size
+
+    :return: matplotlib figure
+    """
     MAP_idx = np.where(logposteriors == max(logposteriors))
     fig = plt.figure(figsize=figsize)
     plt.subplot(3, 1, 1)
@@ -132,6 +166,14 @@ def plot_evolution(logposteriors, L2s, L1s, figsize=(10, 8)):
 
 
 def plot_chain_sample(X, figsize=(10, 8)):
+    """
+    Plots the real and imaginary parts of an MCMC sample
+
+    :param X: MCMC sample
+    :param tuple figsize: Figure size
+
+    :return: matplotlib figure
+    """
     fig = plt.figure(figsize=figsize)
     plt.subplot(2, 1, 1)
     plt.plot(X.real)
