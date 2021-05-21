@@ -49,6 +49,14 @@ where :code:`<venv>` will depend on your :code:`poetry` configuration.
 
    examplesrst/quickstart
    examplesrst/customops
+
+.. toctree::
+   :maxdepth: 1
+   :caption: About
+
+   aboutrst/LICENSE
+   aboutrst/CITATION
+   aboutrst/CONTRIBUTING
    
 
 Indices and tables
