@@ -8,6 +8,8 @@ PXMCMC
 
 A python package for performing proximal Markov Chain Monte Carlo.  This package contains the MCMC methods and base classes for building different forward operators and priors as needed, as well as routines for calculating simple uncertainties based on the MCMC chains.  Example scripts are also provided.
 
+This code was originally written for solving high-dimensional MCMC for spherical inverse problems, although the implementation should be general enough to solve planar problems as well.
+
 Installation
 ============
 
@@ -18,7 +20,7 @@ Installation is currently managed by `poetry <https://python-poetry.org/>`_ to h
     $ git clone https://github.com/auggiemarignier/pxmcmc.git
     $ cd pxmcmc
     $ poetry install
-    $ source <venv>/bin/install
+    $ source <venv>/bin/activate
 
 where :code:`<venv>` will depend on your :code:`poetry` configuration.
 
@@ -28,8 +30,8 @@ where :code:`<venv>` will depend on your :code:`poetry` configuration.
 
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Modules:
+   :maxdepth: 1
+   :caption: Modules
 
    modulesrst/mcmc
    modulesrst/forward
@@ -40,6 +42,13 @@ where :code:`<venv>` will depend on your :code:`poetry` configuration.
    modulesrst/saving
    modulesrst/plotting
    modulesrst/utils
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Examples
+
+   examplesrst/quickstart
+   examplesrst/customops
    
 
 Indices and tables
