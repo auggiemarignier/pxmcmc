@@ -4,6 +4,20 @@ from pxmcmc.utils import chebyshev1, cheb1der
 
 
 class PxMCMCParams:
+    """
+    Class to store tuning and runtime parameters
+
+    :param lmda: prox parameter. tuned to make proxf abritrarily close to f
+    :param delta: Forward-Euler approximation step-size (MYULA, PxMALA)
+    :param mu: regularization parameter
+    :param s: max order of Chebyshev polynomials (SKROCK)
+    :param nsamples: number of desired samples to be saved
+    :param nburn: burn-in size
+    :param ngap: Thinning parameter=number of iterations between saved samples
+    :param complex: :code:`True` if sampled parameters are complex. Default :code:`False`.
+    :param verbosity: print every :code:`verbosity` samples to console
+    :param track: list of variables to keep track of
+    """
     def __init__(
         self,
         lmda=3e-5,
@@ -17,28 +31,29 @@ class PxMCMCParams:
         verbosity=100,
         track=["logposterior", "L2", "prior", "chain"],
     ):
-        self.lmda = lmda  # prox parameter. tuned to make proxf abritrarily close to f
-        self.delta = delta  # Forward-Euler approximation step-size
-        self.mu = mu  # regularization parameter
-        self.s = s  # max order of Chebyshev polynomials
-        self.nsamples = nsamples  # number of desired samples
-        self.nburn = nburn  # burn-in size
-        self.ngap = ngap  # Thinning parameter=number of iterations between samples. reduces correlations between samples
+        self.lmda = lmda
+        self.delta = delta
+        self.mu = mu
+        self.s = s
+        self.nsamples = nsamples
+        self.nburn = nburn
+        self.ngap = ngap
         self.complex = complex
-        self.verbosity = verbosity  # print every verbosity samples
-        self.track = track  # list of variables to keep track of
+        self.verbosity = verbosity
+        self.track = track
 
 
 class PxMCMC:
     """
     Base class with general PxMCMC functions.
     Children of this class must implement a run function.
+
+    :param forward: type :class:`forward.ForwardOperator` for forward modelling and gradient calculation.
+    :param prior: object that implements prior and proximal calculations e.g. :class:`prior.L1`.
+    :param mcmcparams: type :class:`.PxMCMCParams`
     """
 
     def __init__(self, forward, prior, mcmcparams=PxMCMCParams()):
-        """
-        Initialises proximal MCMC algorithm.
-        """
         self.forward = forward
         self.prior = prior
         for attr in mcmcparams.__dict__.keys():
@@ -50,7 +65,10 @@ class PxMCMC:
 
     def logpi(self, X, preds):
         """
-        Calculates the log(posterior), L2-norm and prior-norm of a model X.
+        Calculates the log(posterior), L2-norm and prior-norm of a model.
+
+        :param X: vector of model parameters
+        :param preds: vector of data predictions from model X
         """
         L2 = (self.forward.data - preds).T.dot(
             self.forward.invcov.dot((self.forward.data - preds))
@@ -111,10 +129,16 @@ class PxMCMC:
 
 
 class MYULA(PxMCMC):
+    """
+    Implements the MYULA chain
+    """
     def __init__(self, forward, prox, mcmcparams=PxMCMCParams()):
         super().__init__(forward, prox, mcmcparams)
 
     def run(self):
+        """
+        Run the algorithm
+        """
         i = 0  # total samples
         j = 0  # saved samples (excludes burn-in and thinned samples)
         X_curr, curr_preds = self._initial_sample()
@@ -149,6 +173,10 @@ class MYULA(PxMCMC):
     def chain_step(self, X, proxf, gradg):
         """
         Takes a step in the chain.
+
+        :param X: current sample
+        :param proxf: prox of prior probablity
+        :param grardg: gradient of data fidelity
         """
         w = np.random.randn(self.forward.nparams)
         if self.complex:
@@ -162,11 +190,23 @@ class MYULA(PxMCMC):
 
 
 class PxMALA(MYULA):
+    """
+    Implements the PxMALA algorithm (MYULA + MH acceptance)
+
+    :param bool tune_delta: if :code:`True`, tunes  :code:`delta` parameter to achieve an acceptance probablity of 0.5
+    
+    .. todo::
+
+       Option to tune :code:`delta` to any desired acceptance probability.
+    """
     def __init__(self, forward, prox, mcmcparams=PxMCMCParams(), tune_delta=True):
         super().__init__(forward, prox, mcmcparams)
         self.tune_delta = tune_delta
 
     def run(self):
+        """
+        Run the algorithm
+        """
         self.acceptance_trace = []
         self.deltas_trace = [self.delta]
         i = 0
@@ -238,6 +278,13 @@ class PxMALA(MYULA):
 
 
 class SKROCK(PxMCMC):
+    """
+    Implements the SKROCK algorithm
+
+    .. warning::
+    
+       This algorithm hasn't been used in practice yet from this code package
+    """
     def __init__(self, forward, prox, mcmcparams=PxMCMCParams()):
 
         super().__init__(forward, prox, mcmcparams=mcmcparams)
@@ -247,6 +294,9 @@ class SKROCK(PxMCMC):
         self._recursion_coefs()
 
     def run(self):
+        """
+        Run the algorithm
+        """
         i = 0  # total samples
         j = 0  # saved samples (excludes burn-in and thinned samples)
         X_curr, curr_preds = self._initial_sample()
@@ -274,6 +324,11 @@ class SKROCK(PxMCMC):
         print("\nDONE")
 
     def chain_step(self, X):
+        """
+        Takes a step in the chain.
+
+        :param X: current sample
+        """
         Z = np.random.randn(len(X))
         if self.complex:
             Z = Z + np.random.randn(len(X)) * 1j

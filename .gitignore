@@ -12,3 +12,6 @@ experiments/phasevel/ekstrom
 experiments/phasevel/run_realdatainvs.sh
 *.npz
 *.npy
+docs/_build
+docs/_static
+docs/templates

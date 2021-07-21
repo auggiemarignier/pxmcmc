@@ -6,49 +6,64 @@ from pxmcmc.utils import expand_mlm, flatten_mlm
 
 
 class Transform:
+    """Base class to wrap transformations."""
     def forward(self):
         """
-        e.g. spherical image to spherical harmonics
+        e.g. spherical image to spherical harmonics.  Implemented by user in custom child class.
         """
         raise NotImplementedError
 
     def inverse(self):
         """
-        e.g. spherical harmonics to spherical image
+        e.g. spherical harmonics to spherical image.  Implemented by user in custom child class.
         """
         raise NotImplementedError
 
     def forward_adjoint(self):
         """
-        e.g. spherical harmonics to spherical image
+        e.g. spherical harmonics to spherical image.  Implemented by user in custom child class.
         """
         raise NotImplementedError
 
     def inverse_adjoint(self):
         """
-        e.g. spherical image to spherical harmonics
+        e.g. spherical image to spherical harmonics.  Implemented by user in custom child class.
         """
         raise NotImplementedError
 
 
 class IdentityTransform(Transform):
+    """Identity transform i.e. does nothing"""
     def __init__(self):
         pass
 
     def forward(self, X):
+        """:meta private:"""
         return X
 
     def forward_adjoint(self, X):
+        """:meta private:"""
         return X
 
     def inverse(self, X):
+        """:meta private:"""
         return X
 
     def inverse_adjoint(self, X):
+        """:meta private:"""
         return X
 
 
 class WaveletTransform(Transform):
+    """
+    Spherical wavelet transforms
+
+    :param int L: angular bandlimit
+    :param float B: wavelet scale parameter
+    :param int J_min: minimum wavelet scale
+    :param int dirs: azimuthal bandlimit for directional wavelets
+    :param int spin: spin number of spherical signal
+    """
     def __init__(
         self, L, B, J_min, dirs=1, spin=0,
     ):
@@ -64,8 +79,10 @@ class WaveletTransform(Transform):
 
     def forward(self, X):
         """
-        X is an input map in either pixel or harmonic space
-        Returns a vector of scaling and wavelet coefficients in either pixel or harmonic space
+        Transform image to spherical wavelet space.
+
+        :param X: spherical image as a 1D array
+        :return: 1D array of spherical wavelet coefficients
         """
         if not isinstance(X, complex):
             X = X.astype(complex)
@@ -76,7 +93,10 @@ class WaveletTransform(Transform):
 
     def inverse(self, X):
         """
-        X is a vector of wavlet and scaling
+        Transform spherical wavelet to image space.
+
+        :param X: 1D array of spherical wavelet coefficients
+        :return: spherical image as a 1D array
         """
         wav, scal = expand_mlm(X, nscalcoefs=self.nscal)
         if not isinstance(scal, complex):
@@ -90,7 +110,10 @@ class WaveletTransform(Transform):
 
     def inverse_adjoint(self, X):
         """
-        X is a input map
+        Adjoint transform image to spherical wavelet space.
+
+        :param X: spherical image as a 1D array
+        :return: 1D array of spherical wavelet coefficients
         """
         if not isinstance(X, complex):
             X = X.astype(complex)
@@ -101,7 +124,10 @@ class WaveletTransform(Transform):
 
     def forward_adjoint(self, X):
         """
-        X is a vector of wavlet and scaling functions
+        Transform spherical wavelet to image space.
+
+        :param X: 1D array of spherical wavelet coefficients
+        :return: spherical image as a 1D array
         """
         wav, scal = expand_mlm(X, nscalcoefs=self.nscal)
         if not isinstance(scal, complex):
