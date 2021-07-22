@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/pxmcmc/badge/?version=latest)](https://pxmcmc.readthedocs.io/en/latest/?badge=latest)
+
 # Python ProxMCMC
 
 ## Installation
