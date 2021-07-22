@@ -1,4 +1,5 @@
 import numpy as np
+import healpy as hp
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import copy
@@ -118,6 +119,17 @@ def plot_wavelet_maps(f, L, B, J_min, dirs=1, spin=0, same_scale=True, **map_arg
         scale_start += scale_length
 
     return figs
+
+
+def mollview(image, figsize=(10, 8), **kwargs):
+    i = np.random.randint(1000)
+    fig = plt.figure(
+        num=i, figsize=figsize
+    )  # this figure number thing is a bit hacky...
+    with suppress_stdout():
+        hp.mollview(image, fig=i, **kwargs)
+        hp.graticule(30)
+    return fig
 
 
 def plot_evolution(logposteriors, L2s, L1s, figsize=(10, 8)):

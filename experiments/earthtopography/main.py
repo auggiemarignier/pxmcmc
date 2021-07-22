@@ -1,3 +1,4 @@
+import healpy as hp
 import numpy as np
 import datetime
 import argparse
@@ -32,8 +33,15 @@ B = 1.5
 J_min = 2
 sigma = args.sigma
 setting = args.setting
-topo = np.load(args.infile)
-topo_d = topo.reshape((L, 2 * L - 1))
+if "_hpx_" in args.infile:
+    topo = hp.read_map(args.infile, verbose=False)
+    topo_d_lm = hp.map2alm(topo, L - 1)
+    topo_d = pys2let.alm2map_mw(pys2let.lm_hp2lm(topo_d_lm, L), L, 0)
+elif "_mw_" in args.infile:
+    topo = np.load(args.infile)
+    topo_d = topo.reshape((L, 2 * L - 1))
+else:
+    raise ValueError("Check filename")
 
 if args.makenoise:
     np.random.seed(2)
