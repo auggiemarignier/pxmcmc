@@ -5,21 +5,7 @@ description = ""
 authors = ["Auggie Marignier <augustin.marignier.14@ucl.ac.uk>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
-healpy = "^1.13.0"
-cython = "^0.29.17"
-scipy = "^1.4.1"
-matplotlib = "^3.2.1"
-jupyter = "^1.0.0"
-jupyterlab = "^2.1.2"
-ipykernel = "^5.2.1"
-h5py = "^3.2.1"
-pyssht = "^1.3.2"
-pys2let = "^2.1.0-rc.2"
-Cartopy = {version = "^0.18.0", optional = true}
-greatcirclepaths = "^1.1.0"
-sphinx = {version = "^4.0.1", optional = true}
-sphinx-rtd-theme = {version = "^0.5.2", optional = true}
+python = ">=3.7, <3.10"
 
 
 [tool.poetry.dev-dependencies]
@@ -33,4 +19,3 @@ requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry.extras]
-docs = ["sphinx", "sphinx-rtd-theme"]
