@@ -1,5 +1,4 @@
 import numpy as np
-import healpy as hp
 from contextlib import contextmanager
 import os
 import sys
@@ -100,16 +99,6 @@ def suppress_stdout():
             yield
         finally:
             sys.stdout = old_stdout
-
-
-def map2alm(image, lmax, **kwargs):
-    with suppress_stdout():
-        return hp.map2alm(image, lmax, **kwargs)
-
-
-def alm2map(alm, nside, **kwargs):
-    with suppress_stdout():
-        return hp.alm2map(alm, nside, **kwargs)
 
 
 def _multires_bandlimits(L, B, J_min, dirs=1, spin=0):

@@ -3,8 +3,6 @@ from pytest_cases import parametrize_with_cases, fixture
 import numpy as np
 import pys2let
 
-from pxmcmc.utils import alm2map
-
 
 @pytest.fixture
 def Nside():

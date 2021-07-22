@@ -3,12 +3,11 @@ import h5py
 import numpy as np
 import pys2let
 import pyssht
-import healpy as hp
 
 from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import WaveletTransform
-from pxmcmc.utils import map2alm, snr
+from pxmcmc.utils import snr
 
 
 parser = argparse.ArgumentParser()
@@ -46,8 +45,8 @@ L1s = file["priors"][()]
 evo = plotting.plot_evolution(logpi, L2s, L1s)
 evo.savefig(filename("evolution"))
 
-topo = hp.read_map("ETOPO1_Ice_hpx_256.fits", verbose=False, dtype=np.float64,)
-truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=True) / 1000
+# topo = hp.read_map("ETOPO1_Ice_hpx_256.fits", verbose=False, dtype=np.float64,)
+# truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=True) / 1000
 truthp = plotting.plot_map(truth, title="Truth")
 truthp.savefig(filename("truth"))
 
