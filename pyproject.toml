@@ -30,3 +30,4 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry.extras]
 docs = ["sphinx", "sphinx-rtd-theme"]
+cartopy = ["Cartopy"]
