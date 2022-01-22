@@ -124,7 +124,7 @@ class WeakLensingHarmonic(Measurement):
         # Intrinsic ellipticity dispersion
         self.var_e = 0.37 ** 2
 
-    def dir_op(self, klm):
+    def forward(self, klm):
         """Spherical weak lensing measurement operator
 
         Args:
@@ -134,7 +134,7 @@ class WeakLensingHarmonic(Measurement):
         # Map to shear harmonic coefficients
         return self.harmonic_mapping(klm)
 
-    def adj_op(self, glm):
+    def adjoint(self, glm):
         """Spherical weak lensing adjoint measurement operator
 
         Args:
