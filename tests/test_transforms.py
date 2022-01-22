@@ -3,12 +3,12 @@ import pytest
 import pys2let
 
 from pxmcmc.utils import flatten_mlm
-from pxmcmc.transforms import WaveletTransform
+from pxmcmc.transforms import SphericalWaveletTransform
 
 
 @pytest.fixture
 def wvlttransform(L, B, J_min):
-    return WaveletTransform(L, B, J_min)
+    return SphericalWaveletTransform(L, B, J_min)
 
 
 def test_wavelet_fwdback(wvlttransform, simpledata):

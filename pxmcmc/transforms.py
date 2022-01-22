@@ -54,7 +54,7 @@ class IdentityTransform(Transform):
         return X
 
 
-class WaveletTransform(Transform):
+class SphericalWaveletTransform(Transform):
     """
     Spherical wavelet transforms
 

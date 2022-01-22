@@ -7,7 +7,7 @@ from scipy import sparse
 
 from pxmcmc import plotting
 from pxmcmc import uncertainty
-from pxmcmc.transforms import WaveletTransform
+from pxmcmc.transforms import SphericalWaveletTransform
 from pxmcmc.measurements import PathIntegral
 from pxmcmc.utils import snr, norm
 
@@ -29,7 +29,7 @@ file = h5py.File(args.datafile, "r")
 params = {attr: file.attrs[attr] for attr in file.attrs.keys()}
 L, B, J_min, setting = params["L"], params["B"], params["J_min"], params["setting"]
 nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
-wvlttrans = WaveletTransform(L, B, J_min,)
+wvlttrans = SphericalWaveletTransform(L, B, J_min,)
 mw_shape = pyssht.sample_shape(L, Method="MW")
 
 logpi = file["logposterior"][()]

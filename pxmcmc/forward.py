@@ -2,7 +2,7 @@ from pys2let import mw_size
 from scipy import sparse
 
 from pxmcmc.measurements import Identity, PathIntegral
-from pxmcmc.transforms import WaveletTransform
+from pxmcmc.transforms import SphericalWaveletTransform
 
 
 class ForwardOperator:
@@ -81,7 +81,7 @@ class ForwardOperator:
             raise TypeError("sig_d must be a float scalar, vector or 2D matrix")
 
 
-class WaveletTransformOperator(ForwardOperator):
+class SphericalWaveletTransformOperator(ForwardOperator):
     """
     Forward operator with a spherical wavelet transform and identity operator.
 
@@ -92,7 +92,7 @@ class WaveletTransformOperator(ForwardOperator):
     :param int spin: spin number of spherical signal
     """
     def __init__(self, data, sig_d, setting, L, B, J_min, dirs=1, spin=0):
-        transform = WaveletTransform(
+        transform = SphericalWaveletTransform(
             L,
             B,
             J_min,
@@ -131,7 +131,7 @@ class PathIntegralOperator(ForwardOperator):
     :param int spin: spin number of spherical signal
     """
     def __init__(self, pathmatrix, data, sig_d, setting, L, B, J_min, dirs=1, spin=0):
-        transform = WaveletTransform(
+        transform = SphericalWaveletTransform(
             L,
             B,
             J_min,

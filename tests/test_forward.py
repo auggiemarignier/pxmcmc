@@ -3,14 +3,14 @@ from scipy import sparse
 import numpy as np
 from pytest_cases import parametrize_with_cases
 
-from pxmcmc.forward import WaveletTransformOperator, PathIntegralOperator
+from pxmcmc.forward import SphericalWaveletTransformOperator, PathIntegralOperator
 
 # These tests only test output size, to ensure something is returned
 # Tests on individal transform and measurement operators are more valuable
 
 
 def case_swtoperator(simpledata, sig_d, L, B, J_min, setting):
-    return WaveletTransformOperator(simpledata, sig_d, setting, L, B, J_min)
+    return SphericalWaveletTransformOperator(simpledata, sig_d, setting, L, B, J_min)
 
 
 def case_pathintoperator(simpledata, sig_d, setting, L, B, J_min):
