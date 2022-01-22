@@ -6,7 +6,7 @@ import pys2let
 import pyssht
 
 from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
-from pxmcmc.forward import WaveletTransformOperator
+from pxmcmc.forward import SphericalWaveletTransformOperator
 from pxmcmc.prior import S2_Wavelets_L1, L1
 from pxmcmc.saving import save_mcmc
 from pxmcmc.utils import calc_pixel_areas
@@ -65,7 +65,7 @@ else:
     sig_d = sigma
     noise = None
 
-forwardop = WaveletTransformOperator(topo_d / 1000, sig_d, setting, L, B, J_min)
+forwardop = SphericalWaveletTransformOperator(topo_d / 1000, sig_d, setting, L, B, J_min)
 params = PxMCMCParams(
     nsamples=int(1e4),
     nburn=int(0),
