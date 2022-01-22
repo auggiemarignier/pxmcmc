@@ -2,7 +2,7 @@ import numpy as np
 import pyssht
 from scipy import sparse
 
-from pxmcmc.measurements import PathIntegral
+from pxmcmc.measurements import PathIntegral, WeakLensingHarmonic
 
 
 def test_pathintegral_dot(L):
@@ -43,3 +43,28 @@ def test_pathintegral_fwd_weights(L):
     pred = pathint.forward(X)
 
     assert np.isclose(pred, 2 * np.pi)
+
+
+def test_weaklensingharmonic_dot(L):
+    operator = WeakLensingHarmonic(L)
+
+    # Generate random convergence
+    klm = np.random.rand(L * L) + 1j * np.random.rand(L * L)
+    klm[:4] = 0  # remove mono/dipole
+
+    # Generate random shear
+    glm = np.random.rand(L * L) + 1j * np.random.rand(L * L)
+    glm[:4] = 0  # remove mono/dipole
+
+    # Apply operator
+    k_to_g = operator.forward(klm)
+    g_to_k = operator.adjoint(glm)
+
+    # Perform adjoint operator dot test.
+    a = abs(np.vdot(klm, g_to_k))
+    b = abs(np.vdot(glm, k_to_g))
+    assert np.count_nonzero(klm) > 0
+    assert np.count_nonzero(glm) > 0
+    assert np.count_nonzero(k_to_g) > 0
+    assert np.count_nonzero(g_to_k) > 0
+    assert np.isclose(a, b)
