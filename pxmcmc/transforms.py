@@ -7,6 +7,7 @@ from pxmcmc.utils import expand_mlm, flatten_mlm
 
 class Transform:
     """Base class to wrap transformations."""
+
     def forward(self):
         """
         e.g. spherical image to spherical harmonics.  Implemented by user in custom child class.
@@ -34,6 +35,7 @@ class Transform:
 
 class IdentityTransform(Transform):
     """Identity transform i.e. does nothing"""
+
     def __init__(self):
         pass
 
@@ -63,10 +65,10 @@ class SphericalWaveletTransform(Transform):
     :param int J_min: minimum wavelet scale
     :param int dirs: azimuthal bandlimit for directional wavelets
     :param int spin: spin number of spherical signal
+    :param bool harmonic: inputs and outputs in spherical harmonic space
     """
-    def __init__(
-        self, L, B, J_min, dirs=1, spin=0,
-    ):
+
+    def __init__(self, L, B, J_min, dirs=1, spin=0, harmonic=False):
         self.L = L
         self.B = B
         self.J_min = J_min
@@ -74,6 +76,26 @@ class SphericalWaveletTransform(Transform):
         self.nscales = self.J_max - self.J_min + 1
         self.dirs = dirs
         self.spin = spin
+
+        self.params = {
+            "B": B,
+            "L": L,
+            "J_min": J_min,
+            "N": dirs,
+            "spin": spin,
+            "upsample": 0,
+        }
+
+        if harmonic:
+            self.fwd = pys2let.analysis_lm2lmn
+            self.fwd_adj = pys2let.analysis_adjoint_lmn2lm
+            self.inv = pys2let.synthesis_lmn2lm
+            self.inv_adj = pys2let.synthesis_adjoint_lm2lmn
+        else:
+            self.fwd = pys2let.analysis_px2wav
+            self.fwd_adj = pys2let.analysis_adjoint_wav2px
+            self.inv = pys2let.synthesis_wav2px
+            self.inv_adj = pys2let.synthesis_adjoint_px2wav
 
         self._get_ncoefs()
 
@@ -86,9 +108,7 @@ class SphericalWaveletTransform(Transform):
         """
         if not isinstance(X, complex):
             X = X.astype(complex)
-        X_wav, X_scal = pys2let.analysis_px2wav(
-            X, self.B, self.L, self.J_min, N=1, spin=0, upsample=0
-        )
+        X_wav, X_scal = self.fwd(X, **self.params)
         return flatten_mlm(X_wav, X_scal)
 
     def inverse(self, X):
@@ -103,9 +123,7 @@ class SphericalWaveletTransform(Transform):
             scal = scal.astype(complex)
         if not isinstance(scal, complex):
             wav = wav.astype(complex)
-        X = pys2let.synthesis_wav2px(
-            wav, scal, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
-        )
+        X = self.inv(wav, scal, **self.params)
         return X
 
     def inverse_adjoint(self, X):
@@ -117,9 +135,7 @@ class SphericalWaveletTransform(Transform):
         """
         if not isinstance(X, complex):
             X = X.astype(complex)
-        X_wav, X_scal = pys2let.synthesis_adjoint_px2wav(
-            X, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
-        )
+        X_wav, X_scal = self.inv_adj(X, **self.params)
         return flatten_mlm(X_wav, X_scal)
 
     def forward_adjoint(self, X):
@@ -134,19 +150,17 @@ class SphericalWaveletTransform(Transform):
             scal = scal.astype(complex)
         if not isinstance(scal, complex):
             wav = wav.astype(complex)
-        X = pys2let.analysis_adjoint_wav2px(
-            wav, scal, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
-        )
+        X = self.fwd_adj(wav, scal, **self.params)
         return X
 
     def _get_ncoefs(self):
         """
         Counts the number of wavelet and scaling coefs for
         the multiresolution algorithm
+
+        TODO: CHECK THIS FOR HARMONIC
         """
         f_mw = np.empty(pyssht.sample_length(self.L), dtype=complex)
-        f_wav, f_scal = pys2let.analysis_px2wav(
-            f_mw, self.B, self.L, self.J_min, self.dirs, self.spin, upsample=0
-        )
+        f_wav, f_scal = pys2let.analysis_px2wav(f_mw, **self.params)
         self.nwav, self.nscal = (f_wav.shape[0], f_scal.shape[0])
         self.ncoefs = self.nwav + self.nscal
