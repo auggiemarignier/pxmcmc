@@ -10,6 +10,7 @@ __pycache__
 experiments/phasevel/realdatainvs
 experiments/phasevel/ekstrom
 experiments/phasevel/run_realdatainvs.sh
+experiments/weaklensing/read.py
 *.npz
 *.npy
 docs/_build
