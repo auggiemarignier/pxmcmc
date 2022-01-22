@@ -1,7 +1,6 @@
 from scipy import sparse
 import numpy as np
 from warnings import warn
-import pyssht
 
 
 class Measurement:
