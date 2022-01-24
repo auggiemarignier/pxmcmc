@@ -159,7 +159,7 @@ class WeakLensingHarmonic(Measurement):
             for m in range(-l, l + 1):
                 el = float(l)
                 k[index] = -1.0 * np.sqrt(((el + 2.0) * (el - 1.0)) / ((el + 1.0) * el))
-                ++index
+                index += 1
         return k
 
     def harmonic_mapping(self, flm):
