@@ -1,5 +1,6 @@
 from scipy import sparse
 import numpy as np
+import pyssht
 from warnings import warn
 
 
@@ -10,6 +11,7 @@ class Measurement:
     :param int ndata: number of observed data points
     :param int npix: number of pixels in image
     """
+
     def __init__(self, ndata, npix):
         self.ndata = ndata
         self.npix = npix
@@ -37,6 +39,7 @@ class Identity(Measurement):
     """
     Identity measurement operator i.e. what goes in comes out.
     """
+
     def __init__(self, ndata, npix):
         super().__init__(ndata, npix)
         self.eye = sparse.eye(self.ndata, self.npix)
@@ -62,6 +65,7 @@ class PathIntegral(Measurement):
 
     :param path_matrix: :math:`N_{\mathrm{paths}}\\times N_{\mathrm{pix}}` matrix describing a set of paths.
     """
+
     def __init__(self, path_matrix):
         self.path_matrix = path_matrix
         self.path_matrix_adj = self.path_matrix.getH()
@@ -82,11 +86,6 @@ class PathIntegral(Measurement):
 class WeakLensingHarmonic(Measurement):
     """
     Weak Gravitational Lensing spherical Forward model in spherical harmonic space
-
-    Supports additional complexity which should simply
-    be appended to the dir_op and adj_op objects
-    appropriately (e.g. psf degridding step, psf
-    deconvolution etc.)
     """
 
     def __init__(self, L, mask=None, ngal=None):
@@ -109,13 +108,11 @@ class WeakLensingHarmonic(Measurement):
             raise ValueError("Bandlimit {} must be greater than 0.".format(L))
 
         if L > 1024:
-            warn(
-                "Bandlimit {} is very large, computational price is large.".format(L)
-            )
+            warn("Bandlimit {} is very large, computational price is large.".format(L))
 
         # General class members
         self.L = L
-        self.shape = (self.L ** 2, )
+        self.shape = (self.L ** 2,)
 
         # Define harmonic transforms and kernel mapping
         self.harmonic_kernel = self.compute_harmonic_kernel()
@@ -183,3 +180,111 @@ class WeakLensingHarmonic(Measurement):
         out = flm / self.harmonic_kernel
         out[:4] = 0
         return out
+
+
+class WeakLensing(WeakLensingHarmonic):
+    """
+    Weak Gravitational Lensing spherical Forward model in pixel space
+    """
+    def __init__(self, L, mask=None, ngal=None):
+        super().__init__(L, mask, ngal)
+
+        self.shape = (self.L, 2 * self.L - 1)
+
+        # Define realspace masking
+        if mask is None:
+            self.mask = np.ones(self.shape, dtype=bool)
+        else:
+            self.mask = mask.astype(bool)
+
+        # Define observational covariance
+        if ngal is None:
+            self.inv_cov = self.mask_forward(np.ones(self.shape))
+        else:
+            self.inv_cov = self.ngal_to_inv_cov(ngal)
+
+        if self.mask.shape != self.shape:
+            raise ValueError("Shape of mask map is incorrect!")
+
+    def forward(self, kappa):
+        """Spherical weak lensing measurement operator
+
+        Args:
+
+                kappa (complex array): Convergence signal
+        """
+        kappa = kappa.reshape(self.shape)
+        klm = pyssht.forward(kappa, self.L, Spin=0)
+        glm = super().forward(klm)
+        gamma = pyssht.inverse(glm, self.L, Spin=2)
+        return self.cov_weight(self.mask_forward(gamma))
+
+    def adjoint(self, gamma):
+        gamma = self.mask_adjoint(self.cov_weight(gamma))
+        glm = pyssht.inverse_adjoint(gamma, self.L, Spin=2)
+        klm = super().adjoint(glm)
+        return pyssht.forward_adjoint(klm, self.L, Spin=0)
+
+    def mask_forward(self, f):
+        """Applies given mask to a field.
+
+        Args:
+
+                f (complex array): Realspace Signal
+
+        Raises:
+
+                ValueError: Raised if signal is nan
+                ValueError: Raised if signal is of incorrect shape.
+
+        """
+        if f is not f:
+            raise ValueError("Signal is NaN.")
+
+        if f.shape != self.shape:
+            raise ValueError("Signal shape is incorrect for mw-sampling")
+
+        return f[self.mask]
+
+    def mask_adjoint(self, x):
+        """Applies given mask adjoint to observations
+
+        Args:
+
+                x (complex array): Set of observations.
+
+        Raises:
+
+                ValueError: Raised if signal is nan
+
+        """
+        if x is not x:
+            raise ValueError("Signal is NaN.")
+
+        f = np.zeros(self.shape, dtype=complex)
+        f[self.mask] = x
+        return f
+
+    def ngal_to_inv_cov(self, ngal):
+        """Converts galaxy number density map to
+        data covariance.
+
+        Assumes no correlation between pixels.
+
+        Args:
+                ngal (real array): pixel space map of number of observations per pixel.
+
+        """
+        ngal_m = self.mask_forward(ngal)
+        return np.sqrt((2.0 * ngal_m) / (self.var_e))
+
+    def cov_weight(self, x):
+        """Applies covariance weighting to observations.
+
+        Assumes no correlation between pixels.
+
+        Args:
+                x (array): pixel space map to be inverse covariance weighted.
+
+        """
+        return x * self.inv_cov
