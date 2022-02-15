@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from pytest_cases import parametrize_with_cases, fixture
 
 from pxmcmc.utils import flatten_mlm
@@ -7,7 +6,9 @@ from pxmcmc.transforms import SphericalWaveletTransform
 
 
 @fixture
-@parametrize_with_cases("harmonic", cases=[lambda: True, lambda: False])
+@parametrize_with_cases(
+    "harmonic", cases=[lambda: False]
+)  # add true case when functions are added to pys2let
 def wvlttransform(L, B, J_min, harmonic):
     return SphericalWaveletTransform(L, B, J_min, harmonic=harmonic)
 
