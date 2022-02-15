@@ -227,7 +227,7 @@ class WeakLensing(WeakLensingHarmonic):
             gamma = self.mask_forward(gamma)
         if cov_weighting:
             gamma = self.cov_weight(gamma)
-        return gamma
+        return gamma.flatten()
 
     def _adjoint(self, gamma, masking=False, cov_weighting=False):
         if cov_weighting:
@@ -237,7 +237,7 @@ class WeakLensing(WeakLensingHarmonic):
         glm = pyssht.inverse_adjoint(gamma, self.L, Spin=2)
         klm = super().adjoint(glm)
         kappa = pyssht.forward_adjoint(klm, self.L, Spin=0)
-        return kappa
+        return kappa.flatten()
 
     def mask_forward(self, f):
         """Applies given mask to a field.
