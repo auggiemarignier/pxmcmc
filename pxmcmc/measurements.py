@@ -213,17 +213,31 @@ class WeakLensing(WeakLensingHarmonic):
 
                 kappa (complex array): Convergence signal
         """
+        return self._forward(kappa, masking=True, cov_weighting=True)
+
+    def adjoint(self, gamma):
+        return self._adjoint(gamma, masking=True, cov_weighting=True)
+
+    def _forward(self, kappa, masking=False, cov_weighting=False):
         kappa = kappa.reshape(self.shape)
         klm = pyssht.forward(kappa, self.L, Spin=0)
         glm = super().forward(klm)
         gamma = pyssht.inverse(glm, self.L, Spin=2)
-        return self.cov_weight(self.mask_forward(gamma))
+        if masking:
+            gamma = self.mask_forward(gamma)
+        if cov_weighting:
+            gamma = self.cov_weight(gamma)
+        return gamma
 
-    def adjoint(self, gamma):
-        gamma = self.mask_adjoint(self.cov_weight(gamma))
+    def _adjoint(self, gamma, masking=False, cov_weighting=False):
+        if cov_weighting:
+            gamma = self.cov_weight(gamma)
+        if masking:
+            gamma = self.mask_adjoint(gamma)
         glm = pyssht.inverse_adjoint(gamma, self.L, Spin=2)
         klm = super().adjoint(glm)
-        return pyssht.forward_adjoint(klm, self.L, Spin=0)
+        kappa = pyssht.forward_adjoint(klm, self.L, Spin=0)
+        return kappa
 
     def mask_forward(self, f):
         """Applies given mask to a field.
