@@ -49,10 +49,11 @@ def build_mask(L):
     return mask
 
 
-def load_gammas(kappa_fits_file, L):
+def load_gammas(kappa_fits_file: str, L: int, wl: WeakLensing):
     """
     Loads a fits file containing the kappa ground truth
     Expects kappa in healpix format
+    Needs a WL operator with initialised mask
 
     Returns gamma predictions in MW format
     """
@@ -64,8 +65,7 @@ def load_gammas(kappa_fits_file, L):
     kappa_s = hp.smoothing(kappa_bl, sigma=sigma)
     kappa_mw = pyssht.inverse(lm_hp2lm(hp.map2alm(kappa_s, lmax), L), L)
 
-    wl_operator = WeakLensing(L)
-    return wl_operator.forward(kappa_mw)
+    return wl.forward(kappa_mw)
 
 
 if __name__ == "__main__":
@@ -89,14 +89,14 @@ if __name__ == "__main__":
     J_min = 2
     setting = args.setting
 
-    gammas_truth = load_gammas(args.infile, L)
     mask = build_mask(L)
+    measurement = WeakLensing(L, mask, ngal=np.full_like(mask, 30))
+    gammas_truth = load_gammas(args.infile, L, measurement)
 
     transform = SphericalWaveletTransform(L, B, J_min)
-    measurement = WeakLensing(L, mask, ngal=np.full_like(mask, 30))
     forward_operator = ForwardOperator(
-        gammas_truth.flatten(),
-        1 / measurement.inv_cov.flatten(),
+        gammas_truth,
+        1 / measurement.inv_cov,
         setting,
         transform=transform,
         measurement=measurement,
@@ -125,7 +125,7 @@ if __name__ == "__main__":
         J_min=J_min,
     )
 
-print(f"Number of data points: {gammas_truth.size()}")
+print(f"Number of data points: {gammas_truth.size}")
 print(f"Number of model parameters: {forward_operator.nparams}")
 
 NOW = datetime.datetime.now()
