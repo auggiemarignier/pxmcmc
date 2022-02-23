@@ -1,5 +1,6 @@
 from pys2let import mw_size
 from scipy import sparse
+import numpy as np
 
 from pxmcmc.measurements import Identity, PathIntegral
 from pxmcmc.transforms import SphericalWaveletTransform
@@ -64,14 +65,16 @@ class ForwardOperator:
 
     def _gradg_analysis(self, preds):
         return self.measurement.adjoint(
-            self.invcov.dot(sparse.csr_matrix(preds - self.data).T).toarray().flatten()
+            (self.invcov @ sparse.csr_matrix(preds - self.data).T).toarray().flatten()
         )
 
     def _gradg_synthesis(self, preds):
         return self.transform.inverse_adjoint(self._gradg_analysis(preds))
 
     def _build_inverse_covariance_matrix(self, sig_d):
-        if isinstance(sig_d, float) or isinstance(sig_d, int):
+        if np.iscomplexobj(self.data) and not np.iscomplexobj(sig_d):
+            sig_d = sig_d / np.sqrt(2) * (1 + 1j)
+        if isinstance(sig_d, float) or isinstance(sig_d, int) or isinstance(sig_d, complex):
             return sparse.identity(len(self.data)).dot(1 / sig_d ** 2)
         elif sig_d.size == len(self.data) and len(sig_d.shape) == 1:
             return sparse.diags(1 / sig_d ** 2)
