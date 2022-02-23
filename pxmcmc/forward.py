@@ -72,14 +72,18 @@ class ForwardOperator:
         return self.transform.inverse_adjoint(self._gradg_analysis(preds))
 
     def _build_inverse_covariance_matrix(self, sig_d):
-        if np.iscomplexobj(self.data) and not np.iscomplexobj(sig_d):
-            sig_d = sig_d / np.sqrt(2) * (1 + 1j)
-        if isinstance(sig_d, float) or isinstance(sig_d, int) or isinstance(sig_d, complex):
-            return sparse.identity(len(self.data)).dot(1 / sig_d ** 2)
-        elif sig_d.size == len(self.data) and len(sig_d.shape) == 1:
-            return sparse.diags(1 / sig_d ** 2)
-        elif len(sig_d.shape) == 2:
+        if len(sig_d.shape) == 2:
+            if sig_d.shape[0] != sig_d.shape[1]:
+                raise ValueError("Covariance matrix should be square")
             return sparse.linalg.inv(sig_d)
+
+        var = sig_d ** 2
+        if np.iscomplexobj(self.data) and not np.iscomplexobj(var):
+            var = var / np.sqrt(2) * (1 + 1j)
+        if isinstance(var, float) or isinstance(var, int) or isinstance(var, complex):
+            return sparse.identity(len(self.data)).dot(1 / var)
+        elif var.size == len(self.data) and len(var.shape) == 1:
+            return sparse.diags(1 / var)
         else:
             raise TypeError("sig_d must be a float scalar, vector or 2D matrix")
 
