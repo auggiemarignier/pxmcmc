@@ -25,6 +25,7 @@ def plot_map(
     oversample=True,
     centre0=False,
     coasts=False,
+    mask=None,
 ):
     """
     Plots a single `MW <https://arxiv.org/abs/1110.6298>`_ sampled spherical map.
@@ -39,6 +40,7 @@ def plot_map(
     :param bool oversample: if :code:`True`, oversamples :code:`f` to bandlimit :math:`L=256` so the image is not pixelated
     :param bool centre0: if :code:`True`, forces the colour map to be centred at 0.  Overrides :code:`vmin,vmax`.
     :param bool coasts: if :code:`True`, plots coastlines.
+    :param boolarray mask: A binary MW mask. Mask is applied after any oversampling, so should be a higher resolution than :code:`f`
 
     :return: matplotlib figure
     """
@@ -56,6 +58,8 @@ def plot_map(
         vmax = cbar_end
         vmin = -cbar_end
 
+    if mask is not None:
+        f[mask] = np.nan
     f_plt, _ = pyssht.mollweide_projection(f, L)
     fig = plt.figure(figsize=(20, 10))
     if not cbar:
