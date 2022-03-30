@@ -103,17 +103,17 @@ class PxMCMC:
             self.logPi = np.zeros(self.nsamples)
         if "predictions" in self.track:
             self.preds = np.zeros(
-                (self.nsamples, len(self.forward.data)), dtype=np.float
+                (self.nsamples, len(self.forward.data)), dtype=float
             )
         if "chain" in self.track:
             self.chain = np.zeros(
                 (self.nsamples, self.forward.nparams),
-                dtype=np.complex if self.complex else np.float,
+                dtype=complex if self.complex else float,
             )
         if "L2" in self.track:
-            self.L2s = np.zeros(self.nsamples, dtype=np.float)
+            self.L2s = np.zeros(self.nsamples, dtype=float)
         if "prior" in self.track:
-            self.priors = np.zeros(self.nsamples, dtype=np.float)
+            self.priors = np.zeros(self.nsamples, dtype=float)
 
     def _tracking(self, j, X_curr, curr_preds, logPi, L2, prior):
         if hasattr(self, "logPi"):

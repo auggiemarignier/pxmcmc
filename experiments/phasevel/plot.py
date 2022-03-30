@@ -47,7 +47,7 @@ if setting == "synthesis":
 else:
     MAP = np.copy(MAP_X)
     MAP_wvlt = wvlttrans.forward(MAP_X)
-MAP = MAP.reshape(mw_shape).astype(float)
+MAP = MAP.reshape(mw_shape).real
 maxapost = plotting.plot_map(
     MAP, title="Maximum a posetriori solution", cmap="seismic_r", centre0=True
 )

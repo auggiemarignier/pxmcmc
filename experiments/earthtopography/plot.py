@@ -46,7 +46,7 @@ L1s = file["priors"][()]
 evo = plotting.plot_evolution(logpi, L2s, L1s)
 evo.savefig(filename("evolution"))
 
-topo = hp.read_map("ETOPO1_Ice_hpx_256.fits", verbose=False, dtype=np.float64,)
+topo = hp.read_map("ETOPO1_Ice_hpx_256.fits", verbose=False, dtype=float,)
 truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=True) / 1000
 truthp = plotting.plot_map(truth, title="Truth")
 truthp.savefig(filename("truth"))
@@ -59,7 +59,7 @@ if setting == "synthesis":
 else:
     MAP = np.copy(MAP_X)
     MAP_wvlt = wvlttrans.forward(MAP_X)
-MAP = MAP.reshape(mw_shape).astype(float)
+MAP = MAP.reshape(mw_shape).real
 maxapost = plotting.plot_map(MAP, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
 
