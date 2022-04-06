@@ -79,7 +79,6 @@ if __name__ == "__main__":
         path_matrix = get_path_matrix(start, stop, L)
         sparse.save_npz(args.pathsfile, path_matrix)
 
-    raise SystemExit
     assert path_matrix.shape[0] == len(data)
 
     if args.nsim:
