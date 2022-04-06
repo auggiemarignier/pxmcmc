@@ -30,14 +30,15 @@ def read_datafile(datafile):
     return start, stop, data, sig_d, mima, nsim
 
 
-def get_path_matrix(start, stop, L=32, processes=16):
-    def build_path(start, stop):
-        path = GreatCirclePath(start, stop, "MW", L=L, weighting="average", latlon=True)
-        path.get_points(points_per_rad=160)
-        path.fill()
-        return path.map
+def build_path(start, stop, L):
+    path = GreatCirclePath(start, stop, "MW", L=L, weighting="average", latlon=True)
+    path.get_points(points_per_rad=160)
+    path.fill()
+    return path.map
 
-    itrbl = [(stt, stp) for (stt, stp) in zip(start, stop)]
+
+def get_path_matrix(start, stop, L=32, processes=16):
+    itrbl = [(stt, stp, L) for (stt, stp) in zip(start, stop)]
     with Pool(processes) as p:
         result = p.starmap_async(build_path, itrbl)
         paths = result.get()
@@ -60,7 +61,9 @@ if __name__ == "__main__":
     parser.add_argument("--mu", type=float, default=1)
     parser.add_argument("--L", type=int, default=20)
     parser.add_argument(
-        "--nsim", action="store_true", help="Applies wieghting for number of similar paths"
+        "--nsim",
+        action="store_true",
+        help="Applies wieghting for number of similar paths",
     )
 
     args = parser.parse_args()
@@ -69,12 +72,11 @@ if __name__ == "__main__":
     J_min = 2
     setting = args.setting
 
-
     start, stop, data, sig_d, _, nsim = read_datafile(args.infile)
     if path.exists(args.pathsfile):
         path_matrix = sparse.load_npz(args.pathsfile)
     else:
-        path_matrix = get_path_matrix(start, stop)
+        path_matrix = get_path_matrix(start, stop, L)
         sparse.save_npz(args.pathsfile, path_matrix)
 
     raise SystemExit
@@ -121,7 +123,9 @@ if __name__ == "__main__":
         raise ValueError
     mcmc.run()
 
-    filename = f"{args.algo}_{args.setting}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}"
+    filename = (
+        f"{args.algo}_{args.setting}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}"
+    )
     save_mcmc(
         mcmc,
         params,
