@@ -56,7 +56,7 @@ setting = args.setting
 
 
 def build_path(start, stop):
-    path = GreatCirclePath(start, stop, "MW", L=args.L, weighting="average")
+    path = GreatCirclePath(start, stop, "MW", L=args.L, weighting="average", latlon=True)
     path.get_points(points_per_rad=160)
     path.fill()
     return path.map
@@ -77,6 +77,7 @@ else:
     path_matrix = get_path_matrix(start, stop)
     sparse.save_npz(args.pathsfile, path_matrix)
 
+raise SystemExit
 assert path_matrix.shape[0] == len(data)
 
 if args.nsim:
