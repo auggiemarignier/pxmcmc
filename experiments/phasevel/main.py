@@ -30,6 +30,20 @@ def read_datafile(datafile):
     return start, stop, data, sig_d, mima, nsim
 
 
+def get_path_matrix(start, stop, L=32, processes=16):
+    def build_path(start, stop):
+        path = GreatCirclePath(start, stop, "MW", L=L, weighting="average", latlon=True)
+        path.get_points(points_per_rad=160)
+        path.fill()
+        return path.map
+
+    itrbl = [(stt, stp) for (stt, stp) in zip(start, stop)]
+    with Pool(processes) as p:
+        result = p.starmap_async(build_path, itrbl)
+        paths = result.get()
+    return sparse.csr_matrix(paths)
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("infile", type=str)
 parser.add_argument(
@@ -53,21 +67,6 @@ L = args.L
 B = 2
 J_min = 2
 setting = args.setting
-
-
-def build_path(start, stop):
-    path = GreatCirclePath(start, stop, "MW", L=args.L, weighting="average", latlon=True)
-    path.get_points(points_per_rad=160)
-    path.fill()
-    return path.map
-
-
-def get_path_matrix(start, stop, processes=16):
-    itrbl = [(stt, stp) for (stt, stp) in zip(start, stop)]
-    with Pool(processes) as p:
-        result = p.starmap_async(build_path, itrbl)
-        paths = result.get()
-    return sparse.csr_matrix(paths)
 
 
 start, stop, data, sig_d, _, nsim = read_datafile(args.infile)
@@ -133,5 +132,5 @@ save_mcmc(
     nparams=forwardop.nparams,
     setting=setting,
     time=str(datetime.datetime.now() - NOW),
-    nsim=True if args.nsim else False
+    nsim=True if args.nsim else False,
 )
