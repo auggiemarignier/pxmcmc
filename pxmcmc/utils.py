@@ -40,7 +40,7 @@ def expand_mlm(mlm, nscales=None, nscalcoefs=None, flatten_wavs=False):
         v_len = mlm.size // (nscales + 1)
         assert v_len > 0
         scal_lm = mlm[:v_len]
-        wav_lm = np.zeros((v_len, nscales), dtype=np.complex)
+        wav_lm = np.zeros((v_len, nscales), dtype=complex)
         for i in range(nscales):
             wav_lm[:, i] = mlm[(i + 1) * v_len : (i + 2) * v_len]
         if flatten_wavs:
@@ -234,7 +234,7 @@ def calc_pixel_areas(L, r=1):
     """
     thetas, phis = pyssht.sample_positions(L)
     nthetas, nphis = thetas.shape[0], phis.shape[0]
-    areas = np.zeros((nthetas, nphis), dtype=np.float64)
+    areas = np.zeros((nthetas, nphis), dtype=float)
     phis = np.append(phis, [2 * np.pi])
     areas[0] = polar_cap_area(r, thetas[0]) / nphis
     for t, theta1 in enumerate(thetas[:-1]):

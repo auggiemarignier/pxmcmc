@@ -33,11 +33,11 @@ def setting(request):
 
 @pytest.fixture
 def simpledata_lm(L):
-    data = np.zeros(L * L, dtype=np.complex)
+    data = np.zeros(L * L, dtype=complex)
     for el in range(L):
         em = 0
         while em <= el:
-            rand = np.asarray(np.random.rand(), dtype=np.complex)
+            rand = np.asarray(np.random.rand(), dtype=complex)
             data[el * el + el - em] = pow(-1.0, -em) * rand.conjugate()
             data[el * el + el + em] = rand
             em += 1
@@ -46,7 +46,7 @@ def simpledata_lm(L):
 
 @pytest.fixture
 def simpledata(simpledata_lm, L):
-    return pys2let.alm2map_mw(simpledata_lm, L, 0).astype(float)
+    return pys2let.alm2map_mw(simpledata_lm, L, 0).real
 
 
 def case_sig_d_int():
