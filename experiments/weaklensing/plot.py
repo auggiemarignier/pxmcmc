@@ -3,9 +3,9 @@ import h5py
 import numpy as np
 import pys2let
 import pyssht
-import random
 import healpy as hp
 from astropy.coordinates import SkyCoord
+import warnings
 
 from pxmcmc import plotting
 from pxmcmc import uncertainty
@@ -50,6 +50,7 @@ parser.add_argument("directory", type=str)
 parser.add_argument("--suffix", type=str, default="")
 parser.add_argument("--burn", type=int, default=1000)
 parser.add_argument("--save_npy", action="store_true")
+parser.add_argument("--no-mask", action="store_true")
 args = parser.parse_args()
 
 
@@ -63,6 +64,7 @@ L, B, J_min, setting = params["L"], params["B"], params["J_min"], params["settin
 nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
 wvlttrans = SphericalWaveletTransform(L, B, J_min,)
 mw_shape = pyssht.sample_shape(L, Method="MW")
+oversample = L < 256
 
 logpi = file["logposterior"][()]
 L2s = file["L2s"][()]
@@ -70,17 +72,23 @@ L1s = file["priors"][()]
 evo = plotting.plot_evolution(logpi, L2s, L1s)
 evo.savefig(filename("evolution"))
 
-kappa = hp.read_map("takahasi_4096_000_zs16_kappa.fits")
 lmax = L - 1
 nside = 3 * lmax - 1
-kappa_bl = hp.alm2map(hp.map2alm(kappa, lmax=lmax), nside=nside)
-sigma = np.radians(50 / 60)  # 50 arcmin
-kappa_s = hp.smoothing(kappa_bl, sigma=sigma)
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    kappa = hp.read_map("takahasi_4096_000_zs16_kappa.fits")
+    kappa_bl = hp.alm2map(hp.map2alm(kappa, lmax=lmax), nside=nside)
+    sigma = np.radians(50 / 60)  # 50 arcmin
+    kappa_s = hp.smoothing(kappa_bl, sigma=sigma)
 truth = pyssht.inverse(pys2let.lm_hp2lm(hp.map2alm(kappa_s, lmax), L), L)
 
-mask = build_mask(L).astype(bool)
+if args.no_mask:
+    mask = highL_mask = None
+else:
+    mask = build_mask(L).astype(bool)
+    highL_mask = ~build_mask(256).astype(bool) if oversample else np.copy(mask)
+
 wl = WeakLensing(L, mask)
-highL_mask = ~build_mask(256).astype(bool)
 
 MAP_idx = np.where(logpi == max(logpi))
 MAP_X = file["chain"][MAP_idx][0]
@@ -90,27 +98,28 @@ if setting == "synthesis":
 else:
     MAP = np.copy(MAP_X)
     MAP_wvlt = wvlttrans.forward(MAP_X)
-MAP = MAP.reshape(mw_shape)
+MAP = np.ascontiguousarray(MAP.reshape(mw_shape).real)
 maxapost = plotting.plot_map(
     MAP,
     title="Maximum a posetriori solution",
     cmap="cividis",
     centre0=False,
-    mask=mask,
-    oversample=False
+    mask=highL_mask,
+    oversample=oversample,
 )
 maxapost.savefig(filename("MAP"))
 
-diff = truth - MAP
+diff = np.ascontiguousarray(truth - MAP)
 diff_perc = 100 * diff / np.max(abs(truth))
 cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
 diffp = plotting.plot_map(
-    np.abs(diff),
+    np.abs(diff.real),
     title="|True - MAP|",
     cmap="binary",
     vmin=0,
     vmax=cbar_end,
     mask=highL_mask,
+    oversample=oversample,
 )
 diffp.savefig(filename("diff"))
 
@@ -129,25 +138,35 @@ for i, sample in enumerate(file["chain"][args.burn :]):
         chain_pix[i] = np.copy(sample)
 ci_range = uncertainty.credible_interval_range(chain_pix).reshape(mw_shape)
 ci_map = plotting.plot_map(
-    ci_range,
+    np.ascontiguousarray(ci_range.real),
     title="95% credible interval range",
     cmap="viridis",
     vmin=0,
     mask=highL_mask,
+    oversample=oversample,
 )
 ci_map.savefig(filename("ci_map"))
 
 mean = np.mean(chain_pix, axis=0).reshape(mw_shape)
 mean_map = plotting.plot_map(
-    mean, title="Mean solution", cmap="cividis", centre0=False, mask=highL_mask,
+    np.ascontiguousarray(mean.real),
+    title="Mean solution",
+    cmap="cividis",
+    centre0=False,
+    mask=highL_mask,
+    oversample=oversample,
 )
 mean_map.savefig(filename("mean"))
 
 diff_mean = truth - mean
 
-mask = mask.astype(bool)
-print(f"MAP SNR: {snr(truth[mask], diff[mask]):.2f} dB")
-print(f"Mean SNR: {snr(truth[mask], diff_mean[mask]):.2f} dB")
+if mask is not None:
+    mask = mask.astype(bool)
+    print(f"MAP SNR: {snr(truth[mask], diff[mask]):.2f} dB")
+    print(f"Mean SNR: {snr(truth[mask], diff_mean[mask]):.2f} dB")
+else:
+    print(f"MAP SNR: {snr(truth, diff):.2f} dB")
+    print(f"Mean SNR: {snr(truth, diff_mean):.2f} dB")
 
 data_obs = wl.forward(truth.flatten())
 preds = wl.forward(MAP.flatten())
