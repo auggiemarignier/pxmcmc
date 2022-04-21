@@ -16,3 +16,4 @@ experiments/phasevel/run_realdatainvs.sh
 docs/_build
 docs/_static
 docs/templates
+dist
