@@ -109,11 +109,11 @@ maxapost = plotting.plot_map(
 )
 maxapost.savefig(filename("MAP"))
 
-diff = np.ascontiguousarray(truth - MAP)
+diff = np.ascontiguousarray(truth - MAP).real
 diff_perc = 100 * diff / np.max(abs(truth))
 cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
 diffp = plotting.plot_map(
-    np.abs(diff.real),
+    np.abs(diff),
     title="|True - MAP|",
     cmap="binary",
     vmin=0,
