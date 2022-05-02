@@ -158,7 +158,19 @@ mean_map = plotting.plot_map(
 )
 mean_map.savefig(filename("mean"))
 
-diff_mean = truth - mean
+diff_mean = np.ascontiguousarray(truth - mean).real
+diff_perc = 100 * diff_mean / np.max(abs(truth))
+cbar_end = min(max([abs(np.min(diff_mean)), np.max(diff_mean)]), 100)
+diff_meanp = plotting.plot_map(
+    np.abs(diff_mean),
+    title="|True - mean|",
+    cmap="binary",
+    vmin=0,
+    vmax=cbar_end,
+    mask=highL_mask,
+    oversample=oversample,
+)
+diff_meanp.savefig(filename("diffmean"))
 
 if mask is not None:
     mask = mask.astype(bool)
