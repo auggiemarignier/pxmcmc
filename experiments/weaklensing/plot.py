@@ -83,10 +83,11 @@ with warnings.catch_warnings():
 truth = pyssht.inverse(pys2let.lm_hp2lm(hp.map2alm(kappa_s, lmax), L), L)
 
 if args.no_mask:
-    mask = highL_mask = None
+    mask = np.ones(pyssht.sample_shape(L)).astype(bool)
+    highL_mask = np.ones(pyssht.sample_shape(256)).astype(bool) if oversample else np.copy(mask)
 else:
     mask = build_mask(L).astype(bool)
-    highL_mask = ~build_mask(256).astype(bool) if oversample else np.copy(mask)
+    highL_mask = build_mask(256).astype(bool) if oversample else np.copy(mask)
 
 wl = WeakLensing(L, mask)
 
@@ -104,7 +105,7 @@ maxapost = plotting.plot_map(
     title="Maximum a posetriori solution",
     cmap="cividis",
     centre0=False,
-    mask=highL_mask,
+    mask=~highL_mask,
     oversample=oversample,
 )
 maxapost.savefig(filename("MAP"))
@@ -118,7 +119,7 @@ diffp = plotting.plot_map(
     cmap="binary",
     vmin=0,
     vmax=cbar_end,
-    mask=highL_mask,
+    mask=~highL_mask,
     oversample=oversample,
 )
 diffp.savefig(filename("diff"))
@@ -142,7 +143,7 @@ ci_map = plotting.plot_map(
     title="95% credible interval range",
     cmap="viridis",
     vmin=0,
-    mask=highL_mask,
+    mask=~highL_mask,
     oversample=oversample,
 )
 ci_map.savefig(filename("ci_map"))
@@ -153,7 +154,7 @@ mean_map = plotting.plot_map(
     title="Mean solution",
     cmap="cividis",
     centre0=False,
-    mask=highL_mask,
+    mask=~highL_mask,
     oversample=oversample,
 )
 mean_map.savefig(filename("mean"))
@@ -167,7 +168,7 @@ diff_meanp = plotting.plot_map(
     cmap="binary",
     vmin=0,
     vmax=cbar_end,
-    mask=highL_mask,
+    mask=~highL_mask,
     oversample=oversample,
 )
 diff_meanp.savefig(filename("diffmean"))
