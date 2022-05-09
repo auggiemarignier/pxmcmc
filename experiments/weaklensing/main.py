@@ -11,7 +11,7 @@ import healpy as hp
 from pxmcmc.measurements import WeakLensing
 from pxmcmc.transforms import SphericalWaveletTransform
 from pxmcmc.forward import ForwardOperator
-from pxmcmc.mcmc import PxMCMCParams, MYULA
+from pxmcmc.mcmc import PxMCMCParams, MYULA, PxMALA, SKROCK
 from pxmcmc.prior import S2_Wavelets_L1
 from pxmcmc.saving import save_mcmc
 
@@ -104,15 +104,14 @@ if __name__ == "__main__":
     )
 
     params = PxMCMCParams(
-        nsamples=int(2e3),
+        nsamples=int(4e3),
         nburn=0,
-        ngap=int(5e2),
+        ngap=int(5),
         delta=args.delta,
         lmda=args.delta / 2,
         mu=args.mu,
         complex=False,
         verbosity=1e3,
-        s=10,
     )
 
     prior = S2_Wavelets_L1(
@@ -129,7 +128,14 @@ print(f"Number of data points: {gammas_truth.size}")
 print(f"Number of model parameters: {forward_operator.nparams}")
 
 NOW = datetime.datetime.now()
-mcmc = MYULA(forward_operator, prior, params)
+if args.algo == "myula":
+    mcmc = MYULA(forward_operator, prior, params)
+elif args.algo == "pxmala":
+    mcmc = PxMALA(forward_operator, prior, params, tune_delta=True)
+elif args.algo == "skrock":
+    mcmc = SKROCK(forward_operator, prior, params)
+else:
+    raise ValueError
 mcmc.run()
 
 filename = f"{args.algo}_{args.setting}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}"
