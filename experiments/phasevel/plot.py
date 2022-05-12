@@ -49,16 +49,16 @@ else:
     MAP_wvlt = wvlttrans.forward(MAP_X)
 MAP = MAP.reshape(mw_shape).real
 maxapost = plotting.plot_map(
-    MAP, title="Maximum a posetriori solution", cmap="seismic_r", centre0=True
+    np.ascontiguousarray(MAP), title="Maximum a posetriori solution", cmap="seismic_r", centre0=True
 )
 maxapost.savefig(filename("MAP"))
 
-truth = np.load("ekstrom/ekstrom.npy")
+truth = np.load("ekstrom/ekstrom28.npy")
 diff = truth - MAP
 diff_perc = 100 * diff / np.max(abs(truth))
 cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
 diffp = plotting.plot_map(
-    np.abs(diff), title="|True - MAP|", cmap="plasma", vmin=0, vmax=cbar_end,
+    np.ascontiguousarray(np.abs(diff)), title="|True - MAP|", cmap="plasma", vmin=0, vmax=cbar_end,
 )
 diffp.savefig(filename("diff"))
 
@@ -74,9 +74,12 @@ for i, sample in enumerate(file["chain"][args.burn :]):
         chain_pix[i] = wvlttrans.inverse(sample)
     else:
         chain_pix[i] = np.copy(sample)
-ci_range = uncertainty.credible_interval_range(chain_pix).reshape(mw_shape)
+alpha = 0.01
+quantiles = np.quantile(chain_pix, (alpha / 2, 1 - alpha / 2), axis=0)
+in_ci = (truth.flatten() >= quantiles[0]) & (truth.flatten() <= quantiles[1])
+ci_range = np.diff(quantiles, axis=0)[0].reshape(mw_shape)
 ci_map = plotting.plot_map(
-    ci_range, title="95% credible interval range", cmap="viridis", vmin=0
+    np.ascontiguousarray(ci_range), title="95% credible interval range", cmap="viridis", vmin=0
 )
 ci_map.savefig(filename("ci_map"))
 
@@ -99,7 +102,7 @@ for i, wav_ci_range in enumerate(wav_ci_ranges):
 
 mean = np.mean(chain_pix, axis=0).reshape(mw_shape)
 mean_map = plotting.plot_map(
-    mean, title="Mean solution", cmap="seismic_r", centre0=True
+    np.ascontiguousarray(mean), title="Mean solution", cmap="seismic_r", centre0=True
 )
 mean_map.savefig(filename("mean"))
 
@@ -114,9 +117,9 @@ diff_mean = truth - mean
 print(f"MAP SNR: {snr(truth, diff):.2f} dB")
 print(f"Mean SNR: {snr(truth, diff_mean):.2f} dB")
 
-path_matrix = sparse.load_npz("/home/auggie/GDM/0S254.npz")
+path_matrix = sparse.load_npz("/home/auggie/GDM/0S254L28.npz")
 pathint = PathIntegral(path_matrix)
-data_obs = np.loadtxt("ekstrom/synthetic_GDM40_0S254_noise.txt")[:, 4]
+data_obs = np.loadtxt("ekstrom/synthetic_GDM40_0S254_L28.txt")[:, 4]
 preds = pathint.forward(MAP.flatten())
 rel_squared_error = (norm(preds - data_obs) / norm(data_obs)) ** 2
 print(f"MAP R2E: {rel_squared_error:.2e}")
