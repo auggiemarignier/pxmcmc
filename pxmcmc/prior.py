@@ -79,10 +79,6 @@ class S2_Wavelets_L1(L1):
             self.map_weights = mw_map_weights(L)
         self.T *= self.map_weights ** 2
 
-    def prior(self, X):
-        """:meta private:"""
-        return super().prior(self.map_weights * X)
-
     def _proxf_synthesis(self, X):
         WX = self.map_weights * X
         return X + (1 / self.map_weights) * (soft(WX, self.T) - WX)
