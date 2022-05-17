@@ -77,15 +77,12 @@ class S2_Wavelets_L1(L1):
             self.map_weights = np.concatenate([mw_map_weights(el) for el in bls])
         else:
             self.map_weights = mw_map_weights(L)
-        self.T *= self.map_weights ** 2
-
-    def prior(self, X):
-        """:meta private:"""
-        return super().prior(self.map_weights * X)
+        self.nu = self.map_weights.dot(self.map_weights)
+        self.T *= self.nu
 
     def _proxf_synthesis(self, X):
         WX = self.map_weights * X
-        return X + (1 / self.map_weights) * (soft(WX, self.T) - WX)
+        return X + (1 / self.nu) * self.map_weights * (soft(WX, self.T) - WX)
 
     def _proxf_analysis(self, X):
         raise NotImplementedError
