@@ -13,6 +13,12 @@ This code was originally written for solving high-dimensional MCMC for spherical
 Installation
 ============
 
+Available on PyPI
+
+.. code-block:: bash
+
+    $ pip install pxmcmc
+
 Installation is currently managed by `poetry <https://python-poetry.org/>`_ to handle dependencies when installing from source
 
 .. code-block:: bash
@@ -23,11 +29,6 @@ Installation is currently managed by `poetry <https://python-poetry.org/>`_ to h
     $ source <venv>/bin/activate
 
 where :code:`<venv>` will depend on your :code:`poetry` configuration.
-
-.. todo::
-
-   Will be made available on PyPI to be pip installable.
-
 
 .. toctree::
    :maxdepth: 1

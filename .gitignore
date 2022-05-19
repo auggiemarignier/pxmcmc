@@ -19,3 +19,4 @@ experiments/weaklensing/takahasi_4096_000_zs16_kappa.fits
 docs/_build
 docs/_static
 docs/templates
+dist
