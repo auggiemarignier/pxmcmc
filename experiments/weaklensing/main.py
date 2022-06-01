@@ -54,7 +54,7 @@ if __name__ == "__main__":
     J_min = 2
     setting = args.setting
 
-    mask = build_mask(L)
+    mask = build_mask(L, size=10)
     measurement = WeakLensing(L, mask, ngal=np.full_like(mask, 30))
     gammas_truth = load_gammas(args.infile, L, measurement)
 

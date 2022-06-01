@@ -55,8 +55,8 @@ if args.no_mask:
     mask = np.ones(pyssht.sample_shape(L)).astype(bool)
     highL_mask = np.ones(pyssht.sample_shape(256)).astype(bool) if oversample else np.copy(mask)
 else:
-    mask = build_mask(L).astype(bool)
-    highL_mask = build_mask(256).astype(bool) if oversample else np.copy(mask)
+    mask = build_mask(L, size=20).astype(bool)
+    highL_mask = build_mask(256, size=20).astype(bool) if oversample else np.copy(mask)
 
 wl = WeakLensing(L, mask)
 
