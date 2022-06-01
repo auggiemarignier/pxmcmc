@@ -78,3 +78,6 @@ class S2_Wavelets_L1(L1):
         else:
             self.map_weights = mw_map_weights(L)
         self.T *= self.map_weights
+
+    def prior(self, X):
+        return super().prior(self.map_weights * X)
