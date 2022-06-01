@@ -317,11 +317,13 @@ def snr(signal, noise):
     return 20 * np.log10(norm(signal) / norm(noise))
 
 
-def build_mask(L):
+def build_mask(L, size=20):
     """"
     Builds a mask for the galactic plane and ecliptic
     0 at positions to be masked
     i.e. to apply mask do map * mask
+
+    size is the width of each mask in degrees
 
     Mask in MW format
     """
@@ -329,7 +331,7 @@ def build_mask(L):
     thetas, phis = pyssht.sample_positions(L)
     for i, t in enumerate(thetas):
         for j, p in enumerate(phis):
-            if np.abs(90 - np.degrees(t)) < 20:
+            if np.abs(90 - np.degrees(t)) < size:
                 mask[i, j] = 0
 
     thetaarray, phiarray = pyssht.sample_positions(L, Grid=True)
@@ -341,7 +343,7 @@ def build_mask(L):
     degm = np.abs(d.b.degree)
     for i in range(L):
         for j in range(2 * L - 1):
-            if degm[i, j] < 20:
+            if degm[i, j] < size:
                 mask[i, j] = 0
 
     return mask
