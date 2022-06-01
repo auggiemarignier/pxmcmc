@@ -4,44 +4,13 @@ import numpy as np
 import pys2let
 import pyssht
 import healpy as hp
-from astropy.coordinates import SkyCoord
 import warnings
 
 from pxmcmc import plotting
 from pxmcmc import uncertainty
 from pxmcmc.transforms import SphericalWaveletTransform
 from pxmcmc.measurements import WeakLensing
-from pxmcmc.utils import snr, norm
-
-
-def build_mask(L):
-    """"
-    Builds a mask for the galactic plane and ecliptic
-    0 at positions to be masked
-    i.e. to apply mask do map * mask
-
-    Mask in MW format
-    """
-    mask = np.ones(pyssht.sample_shape(L))
-    thetas, phis = pyssht.sample_positions(L)
-    for i, t in enumerate(thetas):
-        for j, p in enumerate(phis):
-            if np.abs(90 - np.degrees(t)) < 20:
-                mask[i, j] = 0
-
-    thetaarray, phiarray = pyssht.sample_positions(L, Grid=True)
-    thetaarray = np.degrees(thetaarray) - 90
-    phiarray = np.degrees(phiarray) - 180
-
-    c = SkyCoord(phiarray, thetaarray, unit="deg")
-    d = c.transform_to("galactic")
-    degm = np.abs(d.b.degree)
-    for i in range(L):
-        for j in range(2 * L - 1):
-            if degm[i, j] < 20:
-                mask[i, j] = 0
-
-    return mask
+from pxmcmc.utils import snr, norm, build_mask
 
 
 parser = argparse.ArgumentParser()
