@@ -53,7 +53,9 @@ truth = pyssht.inverse(pys2let.lm_hp2lm(hp.map2alm(kappa_s, lmax), L), L)
 
 if args.no_mask:
     mask = np.ones(pyssht.sample_shape(L)).astype(bool)
-    highL_mask = np.ones(pyssht.sample_shape(256)).astype(bool) if oversample else np.copy(mask)
+    highL_mask = (
+        np.ones(pyssht.sample_shape(256)).astype(bool) if oversample else np.copy(mask)
+    )
 else:
     mask = build_mask(L, size=20).astype(bool)
     highL_mask = build_mask(256, size=20).astype(bool) if oversample else np.copy(mask)
@@ -81,7 +83,7 @@ maxapost.savefig(filename("MAP"))
 
 diff = np.ascontiguousarray(truth - MAP).real
 diff_perc = 100 * diff / np.max(abs(truth))
-cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
+cbar_end = min(max([abs(np.min(diff * mask)), np.max(diff * mask)]), 100)
 diffp = plotting.plot_map(
     np.abs(diff),
     title="|True - MAP|",
@@ -130,7 +132,7 @@ mean_map.savefig(filename("mean"))
 
 diff_mean = np.ascontiguousarray(truth - mean).real
 diff_perc = 100 * diff_mean / np.max(abs(truth))
-cbar_end = min(max([abs(np.min(diff_mean)), np.max(diff_mean)]), 100)
+cbar_end = min(max([abs(np.min(diff_mean * mask)), np.max(diff_mean * mask)]), 100)
 diff_meanp = plotting.plot_map(
     np.abs(diff_mean),
     title="|True - mean|",
