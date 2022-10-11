@@ -114,6 +114,7 @@ ci_map = plotting.plot_map(
     title="95% credible interval range",
     cmap="viridis",
     vmin=0,
+    # vmax=,
     mask=~highL_mask,
     oversample=oversample,
 )

@@ -69,9 +69,9 @@ if __name__ == "__main__":
     )
 
     params = PxMCMCParams(
-        nsamples=int(4e3),
-        nburn=0,
-        ngap=int(50),
+        nsamples=int(5e3),
+        nburn=10e6,
+        ngap=int(500),
         delta=args.delta,
         lmda=args.delta / 2,
         mu=args.mu,

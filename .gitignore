@@ -10,6 +10,7 @@ __pycache__
 *nohup.out
 experiments/phasevel/realdatainvs
 experiments/phasevel/ekstrom
+experiments/phasevel/run_synth.sh
 experiments/phasevel/run_realdatainvs.sh
 experiments/weaklensing/read.py
 experiments/weaklensing/run.sh
