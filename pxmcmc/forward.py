@@ -72,7 +72,7 @@ class ForwardOperator:
         return self.transform.inverse_adjoint(self._gradg_analysis(preds))
 
     def _build_inverse_covariance_matrix(self, sig_d):
-        if len(sig_d.shape) == 2:
+        if isinstance(sig_d, np.ndarray) and len(sig_d.shape) == 2:
             if sig_d.shape[0] != sig_d.shape[1]:
                 raise ValueError("Covariance matrix should be square")
             return sparse.linalg.inv(sig_d)
