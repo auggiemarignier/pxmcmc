@@ -7,7 +7,7 @@ import healpy as hp
 
 from pxmcmc import plotting
 from pxmcmc import uncertainty
-from pxmcmc.transforms import WaveletTransform
+from pxmcmc.transforms import SphericalWaveletTransform
 from pxmcmc.utils import map2alm, snr
 
 
@@ -33,7 +33,7 @@ try:
 except KeyError:
     setting = input("Specify setting:\t")
 nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
-wvlttrans = WaveletTransform(
+wvlttrans = SphericalWaveletTransform(
     L,
     B,
     J_min,

@@ -70,9 +70,8 @@ class PxMCMC:
         :param X: vector of model parameters
         :param preds: vector of data predictions from model X
         """
-        L2 = (self.forward.data - preds).T.dot(
-            self.forward.invcov.dot((self.forward.data - preds))
-        )
+        diff = self.forward.data - preds
+        L2 = np.vdot(diff, self.forward.invcov @ diff)
         prior = self.prior.prior(X)
         logPi = -self.mu * prior - L2
         return logPi, L2, prior
