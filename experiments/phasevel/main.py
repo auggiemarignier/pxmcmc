@@ -9,7 +9,7 @@ from warnings import warn
 
 from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
 from pxmcmc.forward import PathIntegralOperator
-from pxmcmc.prior import S2_Wavelets_L1
+from pxmcmc.prior import S2_Wavelets_L1_Power_Weights
 from pxmcmc.saving import save_mcmc
 
 
@@ -60,6 +60,7 @@ if __name__ == "__main__":
     parser.add_argument("--delta", type=float, default=1e-6)
     parser.add_argument("--mu", type=float, default=1)
     parser.add_argument("--L", type=int, default=20)
+    parser.add_argument("--eta", type=float, default=1)
     parser.add_argument(
         "--nsim",
         action="store_true",
@@ -97,7 +98,7 @@ if __name__ == "__main__":
         s=10,
     )
 
-    regulariser = S2_Wavelets_L1(
+    regulariser = S2_Wavelets_L1_Power_Weights(
         setting,
         forwardop.transform.inverse,
         forwardop.transform.inverse_adjoint,
@@ -105,6 +106,7 @@ if __name__ == "__main__":
         L=L,
         B=B,
         J_min=J_min,
+        eta=args.2
     )
 
     print(f"Number of data points: {len(data)}")
