@@ -106,7 +106,7 @@ if __name__ == "__main__":
         L=L,
         B=B,
         J_min=J_min,
-        eta=args.2
+        eta=args.eta
     )
 
     print(f"Number of data points: {len(data)}")
