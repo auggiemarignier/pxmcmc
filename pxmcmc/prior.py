@@ -100,7 +100,7 @@ class S2_Wavelets_L1_Power_Weights(S2_Wavelets_L1):
 
     def __init__(self, setting, fwd, adj, T, L, B, J_min, dirs=1, spin=0, eta=1):
         super().__init__(setting, fwd, adj, T, L, B, J_min, dirs, spin)
-        self.eta = 1
+        self.eta = eta
         if setting == "synthesis":
             self._get_weights()
         else:
