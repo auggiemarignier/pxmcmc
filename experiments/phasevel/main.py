@@ -139,4 +139,5 @@ if __name__ == "__main__":
         setting=setting,
         time=str(datetime.datetime.now() - NOW),
         nsim=True if args.nsim else False,
+        eta=args.eta
     )
