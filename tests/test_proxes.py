@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pxmcmc.prior import L1, S2_Wavelets_L1
+from pxmcmc.prior import L1, S2_Wavelets_L1, S2_Wavelets_L1_Power_Weights
 
 
 @pytest.fixture
@@ -37,6 +37,33 @@ def test_S2_Wavlets_L1(setting, L, B, J_min):
     just make sure it runs
     """
     reg = S2_Wavelets_L1(setting, None, None, 1, L, B, J_min)
+
+    def identity(X):
+        return np.matmul(np.eye(reg.map_weights.size), X)
+
+    reg.fwd = identity
+    reg.adj = identity
+
+    data = np.ones(reg.map_weights.size)
+    reg.proxf(data)
+
+
+@pytest.mark.parametrize(
+    "setting",
+    [
+        "synthesis",
+        pytest.param(
+            "analysis",
+            marks=pytest.mark.xfail(reason="Analysis prox not yet implemented"),
+        ),
+    ],
+)
+def test_S2_Wavelets_L1_Power_Weights(setting, L, B, J_min):
+    """
+    Since the soft thresholding and weighting have been tested individually
+    just make sure it runs
+    """
+    reg = S2_Wavelets_L1_Power_Weights(setting, None, None, 1, L, B, J_min, eta=1)
 
     def identity(X):
         return np.matmul(np.eye(reg.map_weights.size), X)
