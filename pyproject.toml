@@ -10,7 +10,7 @@ documentation = "https://pxmcmc.readthedocs.io/en/latest/index.html"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.8,<4.0"
 numpy = "^1.21.1"
 matplotlib = "^3.4.2"
 pyssht = "^1.4.0"
