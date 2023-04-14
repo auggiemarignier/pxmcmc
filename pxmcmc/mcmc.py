@@ -60,7 +60,12 @@ class PxMCMC:
             setattr(self, attr, getattr(mcmcparams, attr))
         self._initialise_tracking_arrays()
 
-    def run(self):
+    def run(self, start_point=None):
+        """
+        Implementation of the MCMC
+
+        :param start_point: vector of model parameters for the start point of the chain (default :code:`None`).
+        """
         raise NotImplementedError
 
     def logpi(self, X, preds):
@@ -89,11 +94,19 @@ class PxMCMC:
             + " - ".join([f"{k}: {kwargs[k]:.8e}" for k in kwargs]),
         )
 
-    def _initial_sample(self):
-        # TODO: flexibility for different priors
-        X_curr = laplace.rvs(size=self.forward.nparams)
-        if self.complex:
-            X_curr = X_curr + laplace.rvs(size=self.forward.nparams) * 1j
+    def _initial_sample(self, initial_sample=None):
+        if initial_sample is None:
+            # TODO: flexibility for different priors
+            X_curr = laplace.rvs(size=self.forward.nparams)
+            if self.complex:
+                X_curr = X_curr + laplace.rvs(size=self.forward.nparams) * 1j
+        else:
+            if not isinstance(initial_sample, np.ndarray) or np.ndim(initial_sample) != 1:
+                raise TypeError("Expected a 1D numpy array as an initial sample")
+            if initial_sample.size == self.forward.nparams:
+                X_curr = initial_sample
+            else:
+                raise ValueError("Inital sample given has incorrect size")
         curr_preds = self.forward.forward(X_curr)
         return X_curr, curr_preds
 
@@ -134,13 +147,13 @@ class MYULA(PxMCMC):
     def __init__(self, forward, prox, mcmcparams=PxMCMCParams()):
         super().__init__(forward, prox, mcmcparams)
 
-    def run(self):
+    def run(self, start_point=None):
         """
         Run the algorithm
         """
         i = 0  # total samples
         j = 0  # saved samples (excludes burn-in and thinned samples)
-        X_curr, curr_preds = self._initial_sample()
+        X_curr, curr_preds = self._initial_sample(start_point)
         while j < self.nsamples:
             gradg = self.forward.calc_gradg(curr_preds)
             proxf = self.prior.proxf(X_curr)
@@ -202,7 +215,7 @@ class PxMALA(MYULA):
         super().__init__(forward, prox, mcmcparams)
         self.tune_delta = tune_delta
 
-    def run(self):
+    def run(self, start_point=None):
         """
         Run the algorithm
         """
@@ -210,7 +223,7 @@ class PxMALA(MYULA):
         self.deltas_trace = [self.delta]
         i = 0
         j = 0
-        X_curr, curr_preds = self._initial_sample()
+        X_curr, curr_preds = self._initial_sample(start_point)
         gradg_curr = self.forward.calc_gradg(curr_preds)
         proxf_curr = self.prior.proxf(X_curr)
         logpiXc, L2Xc, priorXc = self.logpi(X_curr, curr_preds)
@@ -292,13 +305,13 @@ class SKROCK(PxMCMC):
         self.omega_1 = chebyshev1(self.omega_0, self.s) / cheb1der(self.omega_0, self.s)
         self._recursion_coefs()
 
-    def run(self):
+    def run(self, start_point=None):
         """
         Run the algorithm
         """
         i = 0  # total samples
         j = 0  # saved samples (excludes burn-in and thinned samples)
-        X_curr, curr_preds = self._initial_sample()
+        X_curr, curr_preds = self._initial_sample(start_point)
         while j < self.nsamples:
             X_prop = self.chain_step(X_curr)
             prop_preds = self.forward.forward(X_prop)

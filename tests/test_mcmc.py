@@ -45,3 +45,16 @@ def case_skrock(forwardop, prox, mcmcparams):
 @parametrize_with_cases("algo", cases=".")
 def test_algorithms(algo):
     algo.run()
+
+
+@parametrize_with_cases("algo", cases=".")
+def test_initial_sample(algo, simpledata):
+    start_point = simpledata
+    algo.run(start_point)
+
+
+@parametrize_with_cases("algo", cases=".")
+def test_initial_sample_failure(algo, simpledata):
+    start_point = simpledata[:5]
+    with pytest.raises(Exception):
+        algo.run(start_point)
