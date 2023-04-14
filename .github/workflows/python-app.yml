@@ -32,7 +32,7 @@ jobs:
       #  -----  install & configure poetry  -----      
       #----------------------------------------------
       - name: Install Poetry
-        uses: abatilo/actions-poetry@v2
+        uses: Gr1N/setup-poetry@v8
       #----------------------------------------------
       #       load cached venv if cache exists      
       #----------------------------------------------
@@ -40,8 +40,8 @@ jobs:
         id: cached-poetry-dependencies
         uses: actions/cache@v2
         with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
       #----------------------------------------------
       # install dependencies if cache does not exist 
       #----------------------------------------------
