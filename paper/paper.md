@@ -50,7 +50,6 @@ Examples provided in the package include a common problem in global seismic tomo
 
 # Acknowledgements
 
-We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
-Oh, and support from Kathryn Johnston during the genesis of this project.
+The author would like to acknowledge Jason D. McEwen for his general advice with proximal methods, and Ana M. G. Ferreira and Thomas D. Kitching for their support with the geophysical and astrophysical applications.
 
 # References
