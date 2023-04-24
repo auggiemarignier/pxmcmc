@@ -45,8 +45,8 @@ For example, gradient-based Hamiltonian Monte Carlo is implemented in `STAN` `[@
 To the author's knowledge, however, there exists no Python implementation of proximal MCMC readily available.
 `PxMCMC` is a Python package implementing proximal algorithms from `@Pereyra2019` and `@Pereyra2020`.
 The class-based API abstracts out the main components of MCMC into interoperable classes, thereby allowing users to implement their own forward models (physical model) and priors, and even their own MCMC sampler if desired.
-Originally developed to solve inverse imaging problems defined on spherical domains `[@Marignier2023]`, the package provides priors to promote sparsity in a spherical wavelet domain using transforms from the `S2LET` package `[@Leistedt2013]`.
-Examples provided in the package include a common problem in global seismic tomography and a full-sky cosmological mass-mapping problem, the details of which can be found in `@Marignier2023`.
+Originally developed to solve inverse imaging problems defined on spherical domains `[@Marignier2023; @Marignier2023thesis]`, the package provides priors to promote sparsity in a spherical wavelet domain using transforms from the `S2LET` package `[@Leistedt2013]`.
+Examples provided in the package include a common problem in global seismic tomography and a full-sky cosmological mass-mapping problem, the details of which can be found in `@Marignier2023` and `@Marignier2023thesis`.
 
 # Acknowledgements
 
