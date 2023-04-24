@@ -24,15 +24,13 @@ bibliography: paper.bib
 
 # Summary
 
-The forces on stars, galaxies, and dark matter under external gravitational
-fields lead to the dynamical evolution of structures in the universe. The orbits
-of these bodies are therefore key to understanding the formation, history, and
-future state of galaxies. The field of "galactic dynamics," which aims to model
-the gravitating components of galaxies to study their structure and evolution,
-is now well-established, commonly taught, and frequently used in astronomy.
-Aside from toy problems and demonstrations, the majority of problems require
-efficient numerical tools, many of which require the same base code (e.g., for
-performing numerical orbit integration).
+Markov Chain Monte Carlo (MCMC) methods form the dominant set of algorithms for Bayesian inference.
+The appeal of MCMC in the physical sciences is that it produces a set of samples from the posterior distribution of model parameters given the available data, integrating any prior information one may have about the parameters and providing a fully flexible way to quantify uncertainty.
+However, it is well known that in high dimensions (many model parameters) standard MCMC struggles to converge to a solution due the exponentially large space to be sampled.
+This led to the development of gradient-based MCMC algorithms, which use the gradient of the posterior distribution to efficiently navigate the parameter space.
+While this allows MCMC to scale to high dimensions, it restricts the form of the posterior to be continuously differentiable.
+Certain forms of prior information used in imaging problems, such as sparsity, use a non-smooth prior distribution, thus gradient-based MCMC cannot be used for these inference problems.
+Proximal MCMC leverages the proximity mapping operator, a form of generalised gradient, used in convex optimisation problems to efficiently navigate non-smooth parameter spaces.
 
 # Statement of need
 
