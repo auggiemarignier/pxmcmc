@@ -30,23 +30,23 @@ However, it is well known that in high dimensions (many model parameters) standa
 This led to the development of gradient-based MCMC algorithms, which use the gradient of the posterior distribution to efficiently navigate the parameter space.
 While this allows MCMC to scale to high dimensions, it restricts the form of the posterior to be continuously differentiable.
 Certain forms of prior information used in imaging problems, such as sparsity, use a non-smooth prior distribution, thus gradient-based MCMC cannot be used for these inference problems.
-Proximal MCMC leverages the proximity mapping operator `[@Moreau1962]`, a form of generalised gradient, used in convex optimisation problems to efficiently navigate non-smooth parameter spaces.
+Proximal MCMC leverages the proximity mapping operator [@Moreau1962], a form of generalised gradient, used in convex optimisation problems to efficiently navigate non-smooth parameter spaces.
 
 # Statement of need
 
 High-dimensional imaging inverse problems arise in many fields, including astrophysics, geophysics and medical imaging.
 They involve recovering the pixels of an image of, for example, the inside of a human body from attenuated X-rays.
-For applications where the data may be incomplete, as is often the case in geophysical and astrophysical imaging, compressed sensing `[@Donoho2006; @Candes2011]` has demonstrated that sparsity in a particular basis (typically wavelets) can be used to accurately recover signals from an underdetermined system..
-In a Bayesian setting, sparse priors come in the form of the non-differentiable Laplace distribution, resulting in the need for proximal mappings for optimisation problems `[@Moreau1962; @Parikh2014]`.
-The use of proximal operators in MCMC was first proposed by `@Pereyra2016`, modifying the gradient-based Langevin MCMC, and has since been used in astrophysical and geophysical applications (e.g. `@Cai2018; @Price2019; @Marignier2023`).
+For applications where the data may be incomplete, as is often the case in geophysical and astrophysical imaging, compressed sensing [@Donoho2006; @Candes2011] has demonstrated that sparsity in a particular basis (typically wavelets) can be used to accurately recover signals from an underdetermined system..
+In a Bayesian setting, sparse priors come in the form of the non-differentiable Laplace distribution, resulting in the need for proximal mappings for optimisation problems [@Moreau1962; @Parikh2014].
+The use of proximal operators in MCMC was first proposed by @Pereyra2016, modifying the gradient-based Langevin MCMC, and has since been used in astrophysical and geophysical applications (e.g. @Cai2018; @Price2019; @Marignier2023).
 
 MCMC methods already have popular implementations.
-For example, gradient-based Hamiltonian Monte Carlo is implemented in `STAN` `[@Stan]`, and `emcee` `[@Foreman-Mackey2013]` is a Python implementation of the affine-invariant ensemble sampler MCMC `[@Goodman2010]` popular in the astrophysics community.
+For example, gradient-based Hamiltonian Monte Carlo is implemented in `STAN` [@Stan], and emcee [@Foreman-Mackey2013] is a Python implementation of the affine-invariant ensemble sampler MCMC [@Goodman2010] popular in the astrophysics community.
 To the author's knowledge, however, there exists no Python implementation of proximal MCMC readily available.
-`PxMCMC` is a Python package implementing proximal algorithms from `@Pereyra2019` and `@Pereyra2020`.
+PxMCMC is a Python package implementing proximal algorithms from @Pereyra2019 and @Pereyra2020.
 The class-based API abstracts out the main components of MCMC into interoperable classes, thereby allowing users to implement their own forward models (physical model) and priors, and even their own MCMC sampler if desired.
-Originally developed to solve inverse imaging problems defined on spherical domains `[@Marignier2023; @Marignier2023thesis]`, the package provides priors to promote sparsity in a spherical wavelet domain using transforms from the `S2LET` package `[@Leistedt2013]`.
-Examples provided in the package include a common problem in global seismic tomography and a full-sky cosmological mass-mapping problem, the details of which can be found in `@Marignier2023` and `@Marignier2023thesis`.
+Originally developed to solve inverse imaging problems defined on spherical domains [@Marignier2023; @Marignier2023thesis], the package provides priors to promote sparsity in a spherical wavelet domain using transforms from the `S2LET` package [@Leistedt2013].
+Examples provided in the package include a common problem in global seismic tomography and a full-sky cosmological mass-mapping problem, the details of which can be found in @Marignier2023 and @Marignier2023thesis.
 
 # Acknowledgements
 
