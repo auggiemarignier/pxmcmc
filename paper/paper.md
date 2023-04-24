@@ -30,29 +30,23 @@ However, it is well known that in high dimensions (many model parameters) standa
 This led to the development of gradient-based MCMC algorithms, which use the gradient of the posterior distribution to efficiently navigate the parameter space.
 While this allows MCMC to scale to high dimensions, it restricts the form of the posterior to be continuously differentiable.
 Certain forms of prior information used in imaging problems, such as sparsity, use a non-smooth prior distribution, thus gradient-based MCMC cannot be used for these inference problems.
-Proximal MCMC leverages the proximity mapping operator, a form of generalised gradient, used in convex optimisation problems to efficiently navigate non-smooth parameter spaces.
+Proximal MCMC leverages the proximity mapping operator `[@Moreau1962]`, a form of generalised gradient, used in convex optimisation problems to efficiently navigate non-smooth parameter spaces.
 
 # Statement of need
 
-`Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
-enables wrapping low-level languages (e.g., C) for speed without losing
-flexibility or ease-of-use in the user-interface. The API for `Gala` was
-designed to provide a class-based and user-friendly interface to fast (C or
-Cython-optimized) implementations of common operations such as gravitational
-potential and force evaluation, orbit integration, dynamical transformations,
-and chaos indicators for nonlinear dynamics. `Gala` also relies heavily on and
-interfaces well with the implementations of physical units and astronomical
-coordinate systems in the `Astropy` package [@astropy] (`astropy.units` and
-`astropy.coordinates`).
+High-dimensional imaging inverse problems arise in many fields, including astrophysics, geophysics and medical imaging.
+They involve recovering the pixels of an image of, for example, the inside of a human body from attenuated X-rays.
+For applications where the data may be incomplete, as is often the case in geophysical and astrophysical imaging, compressed sensing `[@Donoho2006; @Candes2011]` has demonstrated that sparsity in a particular basis (typically wavelets) can be used to accurately recover signals from an underdetermined system..
+In a Bayesian setting, sparse priors come in the form of the non-differentiable Laplace distribution, resulting in the need for proximal mappings for optimisation problems `[@Moreau1962; @Parikh2014]`.
+The use of proximal operators in MCMC was first proposed by `@Pereyra2016`, modifying the gradient-based Langevin MCMC, and has since been used in astrophysical and geophysical applications (e.g. `@Cai2018; @Price2019; @Marignier2023`).
 
-`Gala` was designed to be used by both astronomical researchers and by
-students in courses on gravitational dynamics or astronomy. It has already been
-used in a number of scientific publications [@Pearson:2017] and has also been
-used in graduate courses on Galactic dynamics to, e.g., provide interactive
-visualizations of textbook material [@Binney:2008]. The combination of speed,
-design, and support for Astropy functionality in `Gala` will enable exciting
-scientific explorations of forthcoming data releases from the *Gaia* mission
-[@gaia] by students and experts alike.
+MCMC methods already have popular implementations.
+For example, gradient-based Hamiltonian Monte Carlo is implemented in `STAN` `[@Stan]`, and `emcee` `[@Foreman-Mackey2013]` is a Python implementation of the affine-invariant ensemble sampler MCMC `[@Goodman2010]` popular in the astrophysics community.
+To the author's knowledge, however, there exists no Python implementation of proximal MCMC readily available.
+`PxMCMC` is a Python package implementing proximal algorithms from `@Pereyra2019` and `@Pereyra2020`.
+The class-based API abstracts out the main components of MCMC into interoperable classes, thereby allowing users to implement their own forward models (physical model) and priors, and even their own MCMC sampler if desired.
+Originally developed to solve inverse imaging problems defined on spherical domains `[@Marignier2023]`, the package provides priors to promote sparsity in a spherical wavelet domain using transforms from the `S2LET` package `[@Leistedt2013]`.
+Examples provided in the package include a common problem in global seismic tomography and a full-sky cosmological mass-mapping problem, the details of which can be found in `@Marignier2023`.
 
 # Mathematics
 
