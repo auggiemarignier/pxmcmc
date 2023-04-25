@@ -6,7 +6,7 @@
 PXMCMC
 ==================================
 
-A python package for performing proximal Markov Chain Monte Carlo.  This package contains the MCMC methods and base classes for building different forward operators and priors as needed, as well as routines for calculating simple uncertainties based on the MCMC chains.  Example scripts are also provided.
+A python package for performing proximal Markov Chain Monte Carlo.  This package contains the MCMC methods and base classes for building different forward operators and priors as needed, as well as routines for calculating simple uncertainties based on the MCMC chains.  Example scripts are also provided. 
 
 This code was originally written for solving high-dimensional MCMC for spherical inverse problems, although the implementation should be general enough to solve planar problems as well.
 
