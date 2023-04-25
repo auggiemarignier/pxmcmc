@@ -1,4 +1,4 @@
-[![Documentation Status](https://readthedocs.org/projects/pxmcmc/badge/?version=latest)](https://pxmcmc.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/pxmcmc/badge/?version=latest)](https://pxmcmc.readthedocs.io/en/latest/?badge=latest) [![test](https://github.com/auggiemarignier/pxmcmc/actions/workflows/python-app.yml/badge.svg)](https://github.com/auggiemarignier/pxmcmc/actions/workflows/python-app.yml)
 
 # Python ProxMCMC
 
