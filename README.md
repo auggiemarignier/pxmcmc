@@ -1,4 +1,4 @@
-[![Documentation Status](https://readthedocs.org/projects/pxmcmc/badge/?version=latest)](https://pxmcmc.readthedocs.io/en/latest/?badge=latest) [![test](https://github.com/auggiemarignier/pxmcmc/actions/workflows/python-app.yml/badge.svg)](https://github.com/auggiemarignier/pxmcmc/actions/workflows/python-app.yml)
+[![Documentation Status](https://readthedocs.org/projects/pxmcmc/badge/?version=latest)](https://pxmcmc.readthedocs.io/en/latest/?badge=latest) [![test](https://github.com/auggiemarignier/pxmcmc/actions/workflows/python-app.yml/badge.svg)](https://github.com/auggiemarignier/pxmcmc/actions/workflows/python-app.yml) [![status](https://joss.theoj.org/papers/ed274b8490fbc89365e6e0a993f73d86/status.svg)](https://joss.theoj.org/papers/ed274b8490fbc89365e6e0a993f73d86)
 
 # Python ProxMCMC
 
