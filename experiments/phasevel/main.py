@@ -1,3 +1,10 @@
+"""
+Inverts global path averaged Rayleigh wave data to obtain
+a global map of phase velocity.
+This replicates the example shown in the RASTI paper
+https://doi.org/10.1093/rasti/rzac010
+"""
+
 import numpy as np
 import argparse
 from os import path
@@ -31,6 +38,9 @@ def read_datafile(datafile):
 
 
 def build_path(start, stop, L):
+    """
+    Find all the MW pixels a great circle passes through.
+    """
     path = GreatCirclePath(start, stop, "MW", L=L, weighting="average", latlon=True)
     path.get_points(points_per_rad=160)
     path.fill()
@@ -38,6 +48,10 @@ def build_path(start, stop, L):
 
 
 def get_path_matrix(start, stop, L=32, processes=16):
+    """
+    Build a matrix of all the great cricle paths.
+    This is effectively the measurement operator matrix.
+    """
     itrbl = [(stt, stp, L) for (stt, stp) in zip(start, stop)]
     with Pool(processes) as p:
         result = p.starmap_async(build_path, itrbl)
@@ -67,12 +81,14 @@ if __name__ == "__main__":
         help="Applies wieghting for number of similar paths",
     )
 
+    # Setup global parameters
     args = parser.parse_args()
     L = args.L
     B = 2
     J_min = 2
     setting = args.setting
 
+    # Read data and path matrix
     start, stop, data, sig_d, _, nsim = read_datafile(args.infile)
     if path.exists(args.pathsfile):
         path_matrix = sparse.load_npz(args.pathsfile)
@@ -85,7 +101,11 @@ if __name__ == "__main__":
     if args.nsim:
         sig_d *= np.sqrt(nsim)  # sig_d will get squared later
 
+    # Set up the forward operator, which is a combination of
+    # great circle path integration and a spherical wavelet transform
     forwardop = PathIntegralOperator(path_matrix, data, sig_d, setting, L, B, J_min)
+
+    # Set MCMC tuning parameters
     params = PxMCMCParams(
         nsamples=int(2e3),
         nburn=0,
@@ -98,6 +118,8 @@ if __name__ == "__main__":
         s=10,
     )
 
+    # Set up prior, in this case Laplace with weighting to account for
+    # pixel size and wavelet scale power
     regulariser = S2_Wavelets_L1_Power_Weights(
         setting,
         forwardop.transform.inverse,
@@ -112,8 +134,7 @@ if __name__ == "__main__":
     print(f"Number of data points: {len(data)}")
     print(f"Number of model parameters: {forwardop.nparams}")
 
-    NOW = datetime.datetime.now()
-
+    # Select MCMC sampler
     if args.algo == "myula":
         mcmc = MYULA(forwardop, regulariser, params)
     elif args.algo == "pxmala":
@@ -122,8 +143,12 @@ if __name__ == "__main__":
         mcmc = SKROCK(forwardop, regulariser, params)
     else:
         raise ValueError
+
+    # RUN!
+    NOW = datetime.datetime.now()
     mcmc.run()
 
+    # save
     filename = (
         f"{args.algo}_{args.setting}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}"
     )

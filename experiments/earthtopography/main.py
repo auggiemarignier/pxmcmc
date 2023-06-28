@@ -124,6 +124,8 @@ elif args.algo == "skrock":
     mcmc = SKROCK(forwardop, regulariser, params)
 else:
     raise ValueError
+
+# RUN!
 NOW = datetime.datetime.now()
 mcmc.run()
 
