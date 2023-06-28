@@ -32,3 +32,7 @@ Examples of how to use this code are found in the `experiments` directory.  Note
 cd experiments/phasevelocity
 python main.py --help
 ```
+
+## Contributing
+
+Contributions to the package are encouraged! If you wish to contribute, are experiencing problems with the code or need further support, please open an [issue](https://github.com/auggiemarignier/pxmcmc/issues/new) to start a discussion.  Changes will be integrated via pull requests.
