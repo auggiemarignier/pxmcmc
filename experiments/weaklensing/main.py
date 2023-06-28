@@ -1,3 +1,9 @@
+"""
+Solves the weak lensing mass-mapping problem with PxMCMC.
+This replicates the example in the RASTI paper
+https://doi.org/10.1093/rasti/rzac010
+"""
+
 import numpy as np
 import argparse
 import datetime
@@ -48,17 +54,23 @@ if __name__ == "__main__":
     parser.add_argument("--mu", type=float, default=1)
     parser.add_argument("--L", type=int, default=512)
 
+    # Set global parameters
     args = parser.parse_args()
     L = args.L
     B = 2
     J_min = 2
     setting = args.setting
 
+    # Build a Euclid-like mask and create synthetic shear data
     mask = build_mask(L, size=10)
     measurement = WeakLensing(L, mask, ngal=np.full_like(mask, 30))
     gammas_truth = load_gammas(args.infile, L, measurement)
 
+    # Choose transform
     transform = SphericalWaveletTransform(L, B, J_min)
+
+    # Combine measurement and transform operators into a single
+    # forward operator
     forward_operator = ForwardOperator(
         gammas_truth,
         1 / measurement.inv_cov,
@@ -68,6 +80,7 @@ if __name__ == "__main__":
         nparams=transform.ncoefs,
     )
 
+    # Set mcmc parameters
     params = PxMCMCParams(
         nsamples=int(5e3),
         nburn=10e6,
@@ -79,6 +92,7 @@ if __name__ == "__main__":
         verbosity=1e3,
     )
 
+    # Set prior (L1 norm with pixel area weighting)
     prior = S2_Wavelets_L1(
         setting,
         transform.inverse,
@@ -92,7 +106,7 @@ if __name__ == "__main__":
 print(f"Number of data points: {gammas_truth.size}")
 print(f"Number of model parameters: {forward_operator.nparams}")
 
-NOW = datetime.datetime.now()
+# Choose PxMCMC algorithm
 if args.algo == "myula":
     mcmc = MYULA(forward_operator, prior, params)
 elif args.algo == "pxmala":
@@ -101,8 +115,12 @@ elif args.algo == "skrock":
     mcmc = SKROCK(forward_operator, prior, params)
 else:
     raise ValueError
+
+# RUN
+NOW = datetime.datetime.now()
 mcmc.run()
 
+# Save
 filename = f"{args.algo}_{args.setting}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}"
 save_mcmc(
     mcmc,
