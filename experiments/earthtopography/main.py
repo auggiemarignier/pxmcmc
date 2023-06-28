@@ -1,3 +1,10 @@
+"""
+This example simply recovers an image of global Earth topography.
+Effectively, it is a long-winded way of obtaining the spherical wavelet coefficients of the topography image.
+Input: Earth topography
+Output: PxMCMC samples of Earth topography spherical wavelet coefficients
+"""
+
 import healpy as hp
 import numpy as np
 import datetime
@@ -27,12 +34,14 @@ parser.add_argument("--makenoise", action="store_true")
 parser.add_argument("--scaleafrica", type=int, default=0)
 args = parser.parse_args()
 
-
+# Set up wavelet parameters
 L = args.L
 B = 1.5
 J_min = 2
 sigma = args.sigma
 setting = args.setting
+
+# Read input data
 if "_hpx_" in args.infile:
     topo = hp.read_map(args.infile, verbose=False)
     topo_d_lm = hp.map2alm(topo, L - 1)
@@ -43,11 +52,11 @@ elif "_mw_" in args.infile:
 else:
     raise ValueError("Check filename")
 
-if args.makenoise:
+if args.makenoise:  # Adding noise to data, as noise would be present in real data
     np.random.seed(2)
     areas = calc_pixel_areas(L)
     sig_d = np.sqrt(sigma ** 2 / areas)
-    if args.scaleafrica:
+    if args.scaleafrica:  # Extra noisy in Africa
         thetas = np.deg2rad(np.linspace(60, 120, 100))
         phis = np.deg2rad(np.linspace(-30, 30, 100))
         block = np.zeros((L, 2 * L - 1))
@@ -65,7 +74,16 @@ else:
     sig_d = sigma
     noise = None
 
+# Set up forward operator (measurement and transform).
+# This makes data predictions for a given MCMC sample, and compares
+# with the observed data.
+# In this case, we're using a simple Identity measurement operator
+# and a spherical wavelet transform.
+# See the definition of SphericalWaveletTransformOperator and the
+# docs for ForwardOperator.
 forwardop = SphericalWaveletTransformOperator(topo_d / 1000, sig_d, setting, L, B, J_min)
+
+# Set MCMC tuning parameters
 params = PxMCMCParams(
     nsamples=int(1e4),
     nburn=int(0),
@@ -78,6 +96,11 @@ params = PxMCMCParams(
     s=10,
 )
 
+# Set up the regulariser/prior.
+# This calculates the prior probability of the MCMC sample,
+# and importantly calculates the proximal mapping of the prior
+# to more efficiently navigate the non-smooth parameter space.
+# See the docs of L1.
 regulariser = S2_Wavelets_L1(
     setting,
     forwardop.transform.inverse,
@@ -91,8 +114,8 @@ regulariser = S2_Wavelets_L1(
 print(f"Number of data points: {len(topo_d)}")
 print(f"Number of model parameters: {forwardop.nparams}")
 
-NOW = datetime.datetime.now()
-
+# Choose PxMCMC sampler.
+# Three different samplers have been implemented in this pacakge.
 if args.algo == "myula":
     mcmc = MYULA(forwardop, regulariser, params)
 elif args.algo == "pxmala":
@@ -101,8 +124,10 @@ elif args.algo == "skrock":
     mcmc = SKROCK(forwardop, regulariser, params)
 else:
     raise ValueError
+NOW = datetime.datetime.now()
 mcmc.run()
 
+# Save the results!
 filename = f"{args.algo}_{args.setting}_{NOW.strftime('%d%m%y_%H%M%S')}_{args.jobid}"
 save_mcmc(
     mcmc,
