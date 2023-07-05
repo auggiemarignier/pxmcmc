@@ -18,6 +18,7 @@ experiments/weaklensing/*.fits
 experiments/weaklensing/*.dat
 *.npz
 *.npy
+!experiments/phasevel/GDM40_L28.npy
 docs/_build
 docs/_static
 docs/templates

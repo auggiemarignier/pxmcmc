@@ -60,7 +60,7 @@ maxapost = plotting.plot_map(
 maxapost.savefig(filename("MAP"))
 
 # Load the ground truth image and plot the difference
-truth = np.load("ekstrom/ekstrom28.npy")
+truth = np.load("GDM40_L28.npy")
 diff = truth - MAP
 diff_perc = 100 * diff / np.max(abs(truth))
 cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
@@ -131,9 +131,9 @@ print(f"MAP SNR: {snr(truth, diff):.2f} dB")
 print(f"Mean SNR: {snr(truth, diff_mean):.2f} dB")
 
 # Calculate the prediction error
-path_matrix = sparse.load_npz("/home/auggie/GDM/0S254L28.npz")
+path_matrix = sparse.load_npz("0S254L28.npz")
 pathint = PathIntegral(path_matrix)
-data_obs = np.loadtxt("ekstrom/synthetic_GDM40_0S254_L28.txt")[:, 4]
+data_obs = np.loadtxt("synthetic_GDM40_0S254_L28.txt")[:, 4]
 preds = pathint.forward(MAP.flatten())
 rel_squared_error = (norm(preds - data_obs) / norm(data_obs)) ** 2
 print(f"MAP R2E: {rel_squared_error:.2e}")
