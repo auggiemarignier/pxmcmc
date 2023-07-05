@@ -19,19 +19,53 @@ from pxmcmc.saving import save_mcmc
 from pxmcmc.utils import calc_pixel_areas
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--infile", type=str, default="ETOPO1_Ice_hpx_256.fits")
-parser.add_argument("--outdir", type=str, default=".")
-parser.add_argument("--jobid", type=str, default="0")
-
-parser.add_argument("--algo", type=str, default="myula")
-parser.add_argument("--setting", type=str, default="synthesis")
-parser.add_argument("--delta", type=float, default=5e-8)
-parser.add_argument("--mu", type=float, default=1)
-
-parser.add_argument("--L", type=int, default=32)
-parser.add_argument("--sigma", type=float, default=1)
-parser.add_argument("--makenoise", action="store_true")
-parser.add_argument("--scaleafrica", type=int, default=0)
+parser.add_argument(
+    "--infile",
+    type=str,
+    default="ETOPO1_Ice_hpx_256.fits",
+    help="Path to input datafile.",
+)
+parser.add_argument(
+    "--outdir", type=str, default=".", help="Output directory. Default '.'."
+)
+parser.add_argument(
+    "--jobid",
+    type=str,
+    default="0",
+    help="Optional ID that will be added to the end of the output filename. Default '0'.",
+)
+parser.add_argument(
+    "--algo",
+    type=str,
+    default="myula",
+    help="PxMCMC algorithm to be used. One of ['myula', 'pxmala', 'skrock']. Default 'myula'.",
+)
+parser.add_argument(
+    "--setting",
+    type=str,
+    default="synthesis",
+    help="'synthesis' or 'analysis'. Default 'myula'.",
+)
+parser.add_argument(
+    "--delta", type=float, default=1e-6, help="PxMCMC step size. Default 1e-6"
+)
+parser.add_argument(
+    "--mu",
+    type=float,
+    default=1,
+    help="Regularisation parameter (prior width). Default 1.",
+)
+parser.add_argument("--L", type=int, default=32, help="Angular bandlimit. Default 32.")
+parser.add_argument("--makenoise", action="store_true", help="Add noise to data.")
+parser.add_argument(
+    "--sigma", type=float, default=1, help="Noise level to be added to data."
+)
+parser.add_argument(
+    "--scaleafrica",
+    type=int,
+    default=0,
+    help="Factor by which to increase the noise level in Africa.",
+)
 args = parser.parse_args()
 
 # Set up wavelet parameters
@@ -81,7 +115,9 @@ else:
 # and a spherical wavelet transform.
 # See the definition of SphericalWaveletTransformOperator and the
 # docs for ForwardOperator.
-forwardop = SphericalWaveletTransformOperator(topo_d / 1000, sig_d, setting, L, B, J_min)
+forwardop = SphericalWaveletTransformOperator(
+    topo_d / 1000, sig_d, setting, L, B, J_min
+)
 
 # Set MCMC tuning parameters
 params = PxMCMCParams(
@@ -108,7 +144,7 @@ regulariser = S2_Wavelets_L1(
     params.lmda * params.mu,
     L=L,
     B=B,
-    J_min=J_min
+    J_min=J_min,
 )
 
 print(f"Number of data points: {len(topo_d)}")
@@ -144,5 +180,5 @@ save_mcmc(
     setting=setting,
     sigma=sigma,
     scaleafrica=args.scaleafrica,
-    time=datetime.datetime.now() - NOW
+    time=datetime.datetime.now() - NOW,
 )

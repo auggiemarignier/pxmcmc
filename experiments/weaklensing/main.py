@@ -46,13 +46,39 @@ if __name__ == "__main__":
         type=str,
         help="A fits file containing the kappa ground truth in healpix format",
     )
-    parser.add_argument("--outdir", type=str, default=".")
-    parser.add_argument("--jobid", type=str, default="0")
-    parser.add_argument("--algo", type=str, default="myula")
-    parser.add_argument("--setting", type=str, default="synthesis")
-    parser.add_argument("--delta", type=float, default=1e-6)
-    parser.add_argument("--mu", type=float, default=1)
-    parser.add_argument("--L", type=int, default=512)
+    parser.add_argument(
+        "--outdir", type=str, default=".", help="Output directory. Default '.'."
+    )
+    parser.add_argument(
+        "--jobid",
+        type=str,
+        default="0",
+        help="Optional ID that will be added to the end of the output filename. Default '0'.",
+    )
+    parser.add_argument(
+        "--algo",
+        type=str,
+        default="myula",
+        help="PxMCMC algorithm to be used. One of ['myula', 'pxmala', 'skrock']. Default 'myula'.",
+    )
+    parser.add_argument(
+        "--setting",
+        type=str,
+        default="synthesis",
+        help="'synthesis' or 'analysis'. Default 'myula'.",
+    )
+    parser.add_argument(
+        "--delta", type=float, default=1e-6, help="PxMCMC step size. Default 1e-6"
+    )
+    parser.add_argument(
+        "--mu",
+        type=float,
+        default=1,
+        help="Regularisation parameter (prior width). Default 1.",
+    )
+    parser.add_argument(
+        "--L", type=int, default=512, help="Angular bandlimit. Default 512."
+    )
 
     # Set global parameters
     args = parser.parse_args()

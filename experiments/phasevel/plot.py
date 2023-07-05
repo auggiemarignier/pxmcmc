@@ -17,11 +17,24 @@ from pxmcmc.utils import snr, norm
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("datafile", type=str)
-parser.add_argument("directory", type=str)
-parser.add_argument("--suffix", type=str, default="")
-parser.add_argument("--burn", type=int, default=1000)
-parser.add_argument("--save_npy", action="store_true")
+parser.add_argument(
+    "datafile", type=str, help="Path to .hdf5 file with pxmcmc results."
+)
+parser.add_argument("directory", type=str, help="Directory in which to save plots.")
+parser.add_argument(
+    "--suffix", type=str, default="", help="Optional suffix to output filenames."
+)
+parser.add_argument(
+    "--burn",
+    type=int,
+    default=1000,
+    help="Ignore the first <burn> MCMC samples.  Default 100.",
+)
+parser.add_argument(
+    "--save_npy",
+    action="store_true",
+    help="Also save the output summary maps as .npy files",
+)
 args = parser.parse_args()
 
 
@@ -55,7 +68,10 @@ else:
     MAP_wvlt = wvlttrans.forward(MAP_X)
 MAP = MAP.reshape(mw_shape).real
 maxapost = plotting.plot_map(
-    np.ascontiguousarray(MAP), title="Maximum a posetriori solution", cmap="seismic_r", centre0=True
+    np.ascontiguousarray(MAP),
+    title="Maximum a posetriori solution",
+    cmap="seismic_r",
+    centre0=True,
 )
 maxapost.savefig(filename("MAP"))
 
@@ -65,7 +81,11 @@ diff = truth - MAP
 diff_perc = 100 * diff / np.max(abs(truth))
 cbar_end = min(max([abs(np.min(diff)), np.max(diff)]), 100)
 diffp = plotting.plot_map(
-    np.ascontiguousarray(np.abs(diff)), title="|True - MAP|", cmap="plasma", vmin=0, vmax=cbar_end,
+    np.ascontiguousarray(np.abs(diff)),
+    title="|True - MAP|",
+    cmap="plasma",
+    vmin=0,
+    vmax=cbar_end,
 )
 diffp.savefig(filename("diff"))
 
@@ -88,7 +108,10 @@ quantiles = np.quantile(chain_pix, (alpha / 2, 1 - alpha / 2), axis=0)
 in_ci = (truth.flatten() >= quantiles[0]) & (truth.flatten() <= quantiles[1])
 ci_range = np.diff(quantiles, axis=0)[0].reshape(mw_shape)
 ci_map = plotting.plot_map(
-    np.ascontiguousarray(ci_range), title="95% credible interval range", cmap="viridis", vmin=0
+    np.ascontiguousarray(ci_range),
+    title="95% credible interval range",
+    cmap="viridis",
+    vmin=0,
 )
 ci_map.savefig(filename("ci_map"))
 

@@ -61,20 +61,57 @@ def get_path_matrix(start, stop, L=32, processes=16):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("infile", type=str)
+    parser.add_argument(
+        "infile",
+        type=str,
+        default="synthetic_GDM40_0S254_L28.txt",
+        help="Path to input datafile.",
+    )
     parser.add_argument(
         "pathsfile",
         type=str,
+        default="0S254L28.npz",
         help="path to .npz file with scipy sparse matrix.  If file is not found, sparse matrix will be generated and saved here.",
     )
-    parser.add_argument("--outdir", type=str, default=".")
-    parser.add_argument("--jobid", type=str, default="0")
-    parser.add_argument("--algo", type=str, default="myula")
-    parser.add_argument("--setting", type=str, default="synthesis")
-    parser.add_argument("--delta", type=float, default=1e-6)
-    parser.add_argument("--mu", type=float, default=1)
-    parser.add_argument("--L", type=int, default=20)
-    parser.add_argument("--eta", type=float, default=1)
+    parser.add_argument(
+        "--outdir", type=str, default=".", help="Output directory. Default '.'."
+    )
+    parser.add_argument(
+        "--jobid",
+        type=str,
+        default="0",
+        help="Optional ID that will be added to the end of the output filename. Default '0'.",
+    )
+    parser.add_argument(
+        "--algo",
+        type=str,
+        default="myula",
+        help="PxMCMC algorithm to be used. One of ['myula', 'pxmala', 'skrock']. Default 'myula'.",
+    )
+    parser.add_argument(
+        "--setting",
+        type=str,
+        default="synthesis",
+        help="'synthesis' or 'analysis'. Default 'myula'.",
+    )
+    parser.add_argument(
+        "--delta", type=float, default=1e-6, help="PxMCMC step size. Default 1e-6"
+    )
+    parser.add_argument(
+        "--mu",
+        type=float,
+        default=1,
+        help="Regularisation parameter (prior width). Default 1.",
+    )
+    parser.add_argument(
+        "--L", type=int, default=28, help="Angular bandlimit. Default 28."
+    )
+    parser.add_argument(
+        "--eta",
+        type=float,
+        default=1,
+        help="Wavelet power decay factor.  See pxmcmc.prior.S2_Wavelets_L1_Power_Weights. Default 1.",
+    )
     parser.add_argument(
         "--nsim",
         action="store_true",
@@ -128,7 +165,7 @@ if __name__ == "__main__":
         L=L,
         B=B,
         J_min=J_min,
-        eta=args.eta
+        eta=args.eta,
     )
 
     print(f"Number of data points: {len(data)}")
@@ -164,5 +201,5 @@ if __name__ == "__main__":
         setting=setting,
         time=str(datetime.datetime.now() - NOW),
         nsim=True if args.nsim else False,
-        eta=args.eta
+        eta=args.eta,
     )

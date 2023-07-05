@@ -16,12 +16,24 @@ from pxmcmc.utils import map2alm, snr
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("datafile", type=str)
-parser.add_argument("directory", type=str)
-parser.add_argument("--suffix", type=str, default="")
-parser.add_argument("--burn", type=int, default=3000)
-parser.add_argument("--chain_mwlm", action="store_true", help="Convert chain to mwlm")
-parser.add_argument("--save_npy", action="store_true")
+parser.add_argument(
+    "datafile", type=str, help="Path to .hdf5 file with pxmcmc results."
+)
+parser.add_argument("directory", type=str, help="Directory in which to save plots.")
+parser.add_argument(
+    "--suffix", type=str, default="", help="Optional suffix to output filenames."
+)
+parser.add_argument(
+    "--burn",
+    type=int,
+    default=1000,
+    help="Ignore the first <burn> MCMC samples.  Default 100.",
+)
+parser.add_argument(
+    "--save_npy",
+    action="store_true",
+    help="Also save the output summary maps as .npy files",
+)
 args = parser.parse_args()
 
 
