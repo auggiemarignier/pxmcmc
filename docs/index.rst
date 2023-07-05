@@ -6,9 +6,15 @@
 PXMCMC
 ==================================
 
-A python package for performing proximal Markov Chain Monte Carlo.  This package contains the MCMC methods and base classes for building different forward operators and priors as needed, as well as routines for calculating simple uncertainties based on the MCMC chains.  Example scripts are also provided. 
+High-dimensional imaging inverse problems arise in many fields, including astrophysics, geophysics and medical imaging.
+They involve recovering the pixels of an image of, for example, the inside of a human body from attenuated X-rays.
+Proximal Markov Chain Monte Carlo algorithms can be used for sampling high-dimensional parameter spaces where the posterior distribution is non-differentiable, for example when using a sparse prior.
+The `proximity operator <https://en.wikipedia.org/wiki/Proximal_operator>`_ is used instead of the gradient to efficiently navigate the parameter space.
+The algorithms implemented here were first introduced in `Pereyra (2016) <https://link.springer.com/article/10.1007/s11222-015-9567-4>`_, modifying the gradient-based Langevin MCMC.
 
-This code was originally written for solving high-dimensional MCMC for spherical inverse problems, although the implementation should be general enough to solve planar problems as well.
+This is a python package for performing proximal MCMC.
+It contains the MCMC methods and base classes for building different forward operators and priors as needed, as well as routines for calculating simple uncertainties based on the MCMC chains.
+Example scripts are also provided. 
 
 Installation
 ============
