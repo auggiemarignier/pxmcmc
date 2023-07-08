@@ -1,5 +1,6 @@
 [tool.poetry]
 name = "PxMCMC"
+version = "0.1.5"
 authors = ["Auggie Marignier <augustin.marignier.14@ucl.ac.uk>"]
 description = "Proximal Markov Chain Monte Carlo"
 homepage = "https://github.com/auggiemarignier/pxmcmc"
@@ -31,17 +32,9 @@ flake8 = "^3.7.9"
 pytest-cases = "^3.6.13"
 
 [build-system]
-requires = ["poetry>=0.12", "versioneer[toml]==0.29"]
+requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry.extras]
 docs = ["sphinx", "sphinx-rtd-theme"]
 cartopy = ["Cartopy"]
-
-[tool.versioneer]
-VCS = "git"
-style = "pep440"
-versionfile_source = "pxmcmc/_version.py"
-versionfile_build = ""
-tag_prefix = "v"
-parentdir_prefix = ""
