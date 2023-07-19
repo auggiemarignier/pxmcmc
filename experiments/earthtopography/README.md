@@ -2,8 +2,25 @@
 
 A simple example that effectively just finds the wavelet coefficients of a map of Earth's topography using proximal MCMC.
 
+https://github.com/auggiemarignier/pxmcmc/assets/42379892/5992aad6-23eb-47cc-acf8-cf19a0ea3572
+
 Has the option of adding noise to the original image to make the problem more realistic.
 Can also create a block of very noisy data covering the African continent, resulting in higher uncertainty in the MCMC results in that area.
+
+## Quickstart
+
+If you just want to get something, run the following from this directory with your environment activated
+
+```bash
+python main.py --infile ETOPO1_Ice_hpx_256.fits
+python plot.py myula_synethesis_<timestamp>.hdf5 .
+```
+
+This will take a minute or so and will not converge, although you will start to see very rough outlines of the continents in the output plots.
+To run for longer, modify the parameters in `main.py` line 123.
+For the plotting command, replace the input filename accordingly.
+
+## Command Line Arguments
 
 ```text
 usage: main.py [-h] [--infile INFILE] [--outdir OUTDIR] [--jobid JOBID] [--algo ALGO] [--setting SETTING] [--delta DELTA] [--mu MU] [--L L] [--makenoise] [--sigma SIGMA]
@@ -35,6 +52,6 @@ positional arguments:
 options:
   -h, --help       show this help message and exit
   --suffix SUFFIX  Optional suffix to output filenames.
-  --burn BURN      Ignore the first <burn> MCMC samples. Default 100.
+  --burn BURN      Ignore the first <burn> MCMC samples. Default 0.
   --save_npy       Also save the output summary maps as .npy files
 ```
