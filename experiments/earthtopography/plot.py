@@ -26,7 +26,7 @@ parser.add_argument(
 parser.add_argument(
     "--burn",
     type=int,
-    default=1000,
+    default=0,
     help="Ignore the first <burn> MCMC samples.  Default 100.",
 )
 parser.add_argument(
@@ -80,7 +80,7 @@ if setting == "synthesis":
 else:
     MAP = np.copy(MAP_X)
     MAP_wvlt = wvlttrans.forward(MAP_X)
-MAP = MAP.reshape(mw_shape).real
+MAP = np.ascontiguousarray(MAP.reshape(mw_shape).real)
 maxapost = plotting.plot_map(MAP, title="Maximum a posetriori solution")
 maxapost.savefig(filename("MAP"))
 
@@ -135,7 +135,7 @@ diffpmean = plotting.plot_map(
 diffpmean.savefig(filename("diff_mean"))
 
 # If noise was added, plot it
-if "noise" in params:
+if "noise" in params and params["noise"]:
     noise = params["noise"].reshape((L, 2 * L - 1)) / 1000
     noise_map = plotting.plot_map(
         noise, title="Added noise", cmap="binary", oversample=False

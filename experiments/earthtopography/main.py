@@ -106,7 +106,7 @@ if args.makenoise:  # Adding noise to data, as noise would be present in real da
     np.random.seed(None)
 else:
     sig_d = sigma
-    noise = None
+    noise = 0
 
 # Set up forward operator (measurement and transform).
 # This makes data predictions for a given MCMC sample, and compares
@@ -121,11 +121,11 @@ forwardop = SphericalWaveletTransformOperator(
 
 # Set MCMC tuning parameters
 params = PxMCMCParams(
-    nsamples=int(1e4),
+    nsamples=int(1e2),  # In practice you would want much more than this
     nburn=int(0),
     ngap=int(5e2),
     delta=args.delta,
-    lmda=1e-7,
+    lmda=1e-6,
     mu=args.mu,
     complex=False,
     verbosity=5e3,
@@ -180,5 +180,5 @@ save_mcmc(
     setting=setting,
     sigma=sigma,
     scaleafrica=args.scaleafrica,
-    time=datetime.datetime.now() - NOW,
+    time=str(datetime.datetime.now() - NOW),
 )
