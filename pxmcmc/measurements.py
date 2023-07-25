@@ -1,6 +1,6 @@
 from scipy import sparse
 import numpy as np
-import pyssht
+import s2fft
 from warnings import warn
 
 

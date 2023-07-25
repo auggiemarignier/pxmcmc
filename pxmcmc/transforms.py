@@ -1,9 +1,9 @@
-import pys2let
-import pyssht
+import s2wav
+import s2fft
 import numpy as np
 from s2wav.utils.shapes import j_max
 
-from pxmcmc.utils import expand_mlm, flatten_mlm
+from pxmcmc.utils import expand_mlm, flatten_mlm, mw_sample_length
 
 
 class Transform:

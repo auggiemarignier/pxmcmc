@@ -5,8 +5,8 @@ Plot the results from main.py.
 import argparse
 import h5py
 import numpy as np
-import pys2let
-import pyssht
+import s2wav
+import s2fft
 from s2fft import sampling
 from s2wav.utils.shapes import j_max
 import healpy as hp

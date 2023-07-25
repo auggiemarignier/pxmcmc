@@ -1,8 +1,8 @@
 from pxmcmc import utils
 import numpy as np
 import pytest
-import pys2let
-import pyssht
+import s2wav
+import s2fft
 from s2fft import sampling
 
 

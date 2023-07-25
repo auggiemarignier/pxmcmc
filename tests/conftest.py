@@ -1,7 +1,7 @@
 import pytest
 from pytest_cases import parametrize_with_cases, fixture
 import numpy as np
-import pys2let
+import s2wav
 
 from pxmcmc.utils import mw_sample_length
 

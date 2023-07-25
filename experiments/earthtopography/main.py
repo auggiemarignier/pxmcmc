@@ -9,8 +9,8 @@ import healpy as hp
 import numpy as np
 import datetime
 import argparse
-import pys2let
-import pyssht
+import s2wav
+import s2fft
 from s2fft import sampling
 
 from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams

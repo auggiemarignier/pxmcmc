@@ -1,4 +1,4 @@
-import pyssht
+import s2fft
 from scipy import sparse
 import numpy as np
 from pytest_cases import parametrize_with_cases

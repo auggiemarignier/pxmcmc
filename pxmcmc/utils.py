@@ -3,7 +3,7 @@ import healpy as hp
 from contextlib import contextmanager
 import os
 import sys
-import pys2let
+import s2wav
 from s2fft import sampling
 from astropy.coordinates import SkyCoord
 

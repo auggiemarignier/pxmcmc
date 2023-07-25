@@ -1,5 +1,5 @@
 import numpy as np
-import pyssht
+import s2fft
 from s2fft import sampling
 
 from pxmcmc.utils import _multires_bandlimits

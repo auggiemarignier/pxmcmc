@@ -3,9 +3,9 @@ import healpy as hp
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import copy
-import pyssht
+import s2fft
 from s2fft import sampling
-import pys2let
+import s2wav
 
 try:
     from cartopy.crs import Mollweide

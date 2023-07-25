@@ -7,7 +7,7 @@ https://doi.org/10.1093/rasti/rzac010
 import numpy as np
 import argparse
 import datetime
-import pyssht
+import s2fft
 from s2wav import sampling
 import healpy as hp
 
