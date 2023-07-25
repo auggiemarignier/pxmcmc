@@ -37,11 +37,11 @@ jobs:
         run: |
           poetry config virtualenvs.in-project true
           poetry install
-          ls -a
       #----------------------------------------------
       #              run test suite   
       #----------------------------------------------
       - name: Run tests
         run: |
           source .venv/bin/activate
+          python -c "import pxmcmc; print(pxmcmc.__version__)"
           pytest tests/

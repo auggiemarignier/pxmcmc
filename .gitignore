@@ -14,9 +14,11 @@ experiments/phasevel/run_synth.sh
 experiments/phasevel/run_realdatainvs.sh
 experiments/weaklensing/read.py
 experiments/weaklensing/run.sh
-experiments/weaklensing/takahasi_4096_000_zs16_kappa.fits
+experiments/weaklensing/*.fits
+experiments/weaklensing/*.dat
 *.npz
 *.npy
+!experiments/phasevel/GDM40_L28.npy
 docs/_build
 docs/_static
 docs/templates
