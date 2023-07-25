@@ -18,6 +18,7 @@ Cartopy = {version = "^0.19.0", optional = true}
 sphinx = {version = "^4", optional = true}
 sphinx-rtd-theme = {version = "^1.0.0", optional = true}
 scipy = "^1.9.2"
+s2wav = {git = "https://github.com/astro-informatics/s2wav.git"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0"
