@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "PxMCMC"
-version = "0.1.5"
+version = "1.0.0"
 authors = ["Auggie Marignier <augustin.marignier.14@ucl.ac.uk>"]
 description = "Proximal Markov Chain Monte Carlo"
 homepage = "https://github.com/auggiemarignier/pxmcmc"
