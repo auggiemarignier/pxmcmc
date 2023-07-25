@@ -5,7 +5,6 @@ import os
 import sys
 import s2wav
 from s2fft import sampling
-from astropy.coordinates import SkyCoord
 
 
 def mw_sample_length(L):
