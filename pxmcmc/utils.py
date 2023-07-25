@@ -4,8 +4,30 @@ from contextlib import contextmanager
 import os
 import sys
 import pys2let
-import pyssht
+from s2fft import sampling
 from astropy.coordinates import SkyCoord
+
+
+def mw_sample_length(L):
+    """
+    Returns the number of samples on the sphere using the MW sampling theorem
+
+    :param L: angular bandlimit
+
+    :return: :math:`L\\times(2 \\times L + 1)
+    """
+    return L * (2 * L - 1)
+
+
+def mw_sample_positions(L):
+    """
+    Returns tuple of sample postions in theta and phi
+
+    :param L: angular bandlimit
+
+    :return: tuple(thetas, phis)
+    """
+    return sampling.thetas(L), sampling.phis_quiang(L)
 
 
 def flatten_mlm(wav_lm, scal_lm):
@@ -233,7 +255,7 @@ def calc_pixel_areas(L, r=1):
 
     :return: array of pixel areas with shape :math:`(L, 2L-1)`
     """
-    thetas, phis = pyssht.sample_positions(L)
+    thetas, phis = mw_sample_positions(L)
     nthetas, nphis = thetas.shape[0], phis.shape[0]
     areas = np.zeros((nthetas, nphis), dtype=float)
     phis = np.append(phis, [2 * np.pi])
@@ -327,14 +349,14 @@ def build_mask(L, size=20):
 
     Mask in MW format
     """
-    mask = np.ones(pyssht.sample_shape(L))
-    thetas, phis = pyssht.sample_positions(L)
+    mask = np.ones(sampling.f_shape(L))
+    thetas, phis = mw_sample_positions(L)
     for i, t in enumerate(thetas):
         for j, p in enumerate(phis):
             if np.abs(90 - np.degrees(t)) < size:
                 mask[i, j] = 0
 
-    thetaarray, phiarray = pyssht.sample_positions(L, Grid=True)
+    thetaarray, phiarray = mw_sample_positions(L, Grid=True)
     thetaarray = np.degrees(thetaarray) - 90
     phiarray = np.degrees(phiarray) - 180
 

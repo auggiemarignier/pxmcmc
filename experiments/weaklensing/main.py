@@ -8,7 +8,7 @@ import numpy as np
 import argparse
 import datetime
 import pyssht
-from pys2let import lm_hp2lm
+from s2wav import sampling
 import healpy as hp
 
 from pxmcmc.measurements import WeakLensing
@@ -34,7 +34,7 @@ def load_gammas(kappa_fits_file: str, L: int, wl: WeakLensing):
     kappa_bl = hp.alm2map(hp.map2alm(kappa, lmax=lmax), nside=nside)
     sigma = np.radians(50 / 60)  # 50 arcmin
     kappa_s = hp.smoothing(kappa_bl, sigma=sigma)
-    kappa_mw = pyssht.inverse(lm_hp2lm(hp.map2alm(kappa_s, lmax), L), L)
+    kappa_mw = pyssht.inverse(sampling.flm_hp_to_2d(hp.map2alm(kappa_s, lmax).flatten(), L), L)
 
     return wl.forward(kappa_mw)
 

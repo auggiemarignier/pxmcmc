@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import copy
 import pyssht
+from s2fft import sampling
 import pys2let
 
 try:
@@ -109,17 +110,17 @@ def plot_wavelet_maps(f, L, B, J_min, dirs=1, spin=0, same_scale=True, **map_arg
     else:
         base_title = ""
     map_args["title"] = f"{base_title} Scaling function"
-    figs.append(plot_map(f_scal.reshape(pyssht.sample_shape(bls[0])), **map_args))
+    figs.append(plot_map(f_scal.reshape(sampling.f_shape(bls[0])), **map_args))
 
     if same_scale:
         map_args["vmax"] = np.max(f_wav).real
 
     scale_start = 0
     for i, bl in enumerate(bls[1:], 1):
-        scale_length = pyssht.sample_length(bl)
+        scale_length = mw_sample_length(bl)
         wav = f_wav[scale_start : scale_start + scale_length]
         map_args["title"] = f"{base_title} Wavelet scale {i}"
-        figs.append(plot_map(wav.reshape(pyssht.sample_shape(bl)), **map_args))
+        figs.append(plot_map(wav.reshape(sampling.f_shape(bl)), **map_args))
         scale_start += scale_length
 
     return figs

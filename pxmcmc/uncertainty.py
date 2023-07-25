@@ -1,5 +1,6 @@
 import numpy as np
 import pyssht
+from s2fft import sampling
 
 from pxmcmc.utils import _multires_bandlimits
 
@@ -31,10 +32,10 @@ def wavelet_credible_interval_range(chain, L, B, J_min, alpha=0.05):
     scale_start = 0
     wav_ci_ranges = []
     for i, bl in enumerate(bls):
-        scale_length = pyssht.sample_length(bl)
+        scale_length = mw_sample_length(bl)
         wav = chain[:, scale_start : scale_start + scale_length]
         wav_ci_ranges.append(
-            credible_interval_range(wav, alpha).reshape(pyssht.sample_shape(bl))
+            credible_interval_range(wav, alpha).reshape(sampling.f_shape(bl))
         )
         scale_start += scale_length
     return wav_ci_ranges

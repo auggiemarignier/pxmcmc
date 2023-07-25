@@ -7,6 +7,8 @@ import h5py
 import numpy as np
 import pys2let
 import pyssht
+from s2fft import sampling
+from s2wav.utils.shapes import j_max
 from scipy import sparse
 
 from pxmcmc import plotting
@@ -46,9 +48,9 @@ def filename(name, ext="png"):
 file = h5py.File(args.datafile, "r")
 params = {attr: file.attrs[attr] for attr in file.attrs.keys()}
 L, B, J_min, setting = params["L"], params["B"], params["J_min"], params["setting"]
-nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
+nscales = j_max(B, L, J_min) - J_min + 1
 wvlttrans = SphericalWaveletTransform(L, B, J_min,)
-mw_shape = pyssht.sample_shape(L, Method="MW")
+mw_shape = sampling.f_shape(L)
 
 # Plot evolution of posterior, likelihood and prior
 logpi = file["logposterior"][()]
@@ -94,7 +96,7 @@ map_wvlt.savefig(filename("MAP_wvlt"))
 
 # Get all samples into image space
 chain_pix = np.zeros(
-    (file.attrs["nsamples"] - args.burn, pyssht.sample_length(L, Method="MW"))
+    (file.attrs["nsamples"] - args.burn, mw_sample_length(L))
 )
 for i, sample in enumerate(file["chain"][args.burn :]):
     if setting == "synthesis":

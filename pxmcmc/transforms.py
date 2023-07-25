@@ -1,6 +1,7 @@
 import pys2let
 import pyssht
 import numpy as np
+from s2wav.utils.shapes import j_max
 
 from pxmcmc.utils import expand_mlm, flatten_mlm
 
@@ -72,7 +73,7 @@ class SphericalWaveletTransform(Transform):
         self.L = L
         self.B = B
         self.J_min = J_min
-        self.J_max = pys2let.pys2let_j_max(self.B, self.L, self.J_min)
+        self.J_max = j_max(self.B, self.L, self.J_min)
         self.nscales = self.J_max - self.J_min + 1
         self.dirs = dirs
         self.spin = spin
@@ -160,7 +161,7 @@ class SphericalWaveletTransform(Transform):
 
         TODO: CHECK THIS FOR HARMONIC
         """
-        f_mw = np.empty(pyssht.sample_length(self.L), dtype=complex)
+        f_mw = np.empty(mw_sample_length(self.L), dtype=complex)
         f_wav, f_scal = pys2let.analysis_px2wav(f_mw, **self.params)
         self.nwav, self.nscal = (f_wav.shape[0], f_scal.shape[0])
         self.ncoefs = self.nwav + self.nscal

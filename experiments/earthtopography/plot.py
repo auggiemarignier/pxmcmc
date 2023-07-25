@@ -7,6 +7,8 @@ import h5py
 import numpy as np
 import pys2let
 import pyssht
+from s2fft import sampling
+from s2wav.utils.shapes import j_max
 import healpy as hp
 
 from pxmcmc import plotting
@@ -49,12 +51,12 @@ try:
     setting = params["setting"]
 except KeyError:
     setting = input("Specify setting:\t")
-nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
+nscales = j_max(B, L, J_min) - J_min + 1
 
 # MCMC samples need to be transformed from wavelet to image space
 # so create helper transform instance
 wvlttrans = SphericalWaveletTransform(L, B, J_min)
-mw_shape = pyssht.sample_shape(L, Method="MW")
+mw_shape = sampling.f_shape(L)
 
 # Plot the evolution of the posterior, likelihood and prior values
 # throughout the MCMC chain
@@ -67,7 +69,7 @@ evo.savefig(filename("evolution"))
 # Load original data, which in this case is also the ground truth
 # we are aiming to recover
 topo = hp.read_map("ETOPO1_Ice_hpx_256.fits", verbose=False, dtype=float,)
-truth = pyssht.inverse(pys2let.lm_hp2lm(map2alm(topo, L - 1), L), L, Reality=True) / 1000
+truth = pyssht.inverse(sampling.lm_hp_to_2d(map2alm(topo, L - 1), L).flatten(), L, Reality=True) / 1000
 truthp = plotting.plot_map(truth, title="Truth")
 truthp.savefig(filename("truth"))
 
@@ -103,7 +105,7 @@ map_wvlt.savefig(filename("MAP_wvlt"))
 # Make sure all the MCMC samples are in image space.
 # Drop the first args.burn samples.
 chain_pix = np.zeros(
-    (file.attrs["nsamples"] - args.burn, pyssht.sample_length(L, Method="MW"))
+    (file.attrs["nsamples"] - args.burn, mw_sample_length(L))
 )
 for i, sample in enumerate(file["chain"][args.burn :]):
     if setting == "synthesis":  # sampled wavelet coeffecients so need to transform

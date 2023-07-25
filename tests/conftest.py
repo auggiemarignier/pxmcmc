@@ -3,7 +3,7 @@ from pytest_cases import parametrize_with_cases, fixture
 import numpy as np
 import pys2let
 
-from pxmcmc.utils import alm2map
+from pxmcmc.utils import mw_sample_length
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def case_sig_d_int():
 
 
 def case_sig_d_array():
-    return np.full(pys2let.mw_size(10), 0.1)
+    return np.full(mw_sample_length(10), 0.1)
 
 
 @fixture

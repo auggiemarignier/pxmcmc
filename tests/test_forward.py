@@ -14,7 +14,7 @@ def case_swtoperator(simpledata, sig_d, L, B, J_min, setting):
 
 
 def case_pathintoperator(simpledata, sig_d, setting, L, B, J_min):
-    pathmatrix = sparse.random(len(simpledata), pyssht.sample_length(L, Method="MW"))
+    pathmatrix = sparse.random(len(simpledata), mw_sample_length(L))
     return PathIntegralOperator(pathmatrix, simpledata, sig_d, setting, L, B, J_min)
 
 

@@ -7,6 +7,8 @@ import h5py
 import numpy as np
 import pys2let
 import pyssht
+from s2fft import sampling
+from s2wav.utils.shapes import j_max
 import healpy as hp
 import warnings
 
@@ -50,9 +52,9 @@ def filename(name, ext="png"):
 file = h5py.File(args.datafile, "r")
 params = {attr: file.attrs[attr] for attr in file.attrs.keys()}
 L, B, J_min, setting = params["L"], params["B"], params["J_min"], params["setting"]
-nscales = pys2let.pys2let_j_max(B, L, J_min) - J_min + 1
+nscales = j_max(B, L, J_min) - J_min + 1
 wvlttrans = SphericalWaveletTransform(L, B, J_min,)
-mw_shape = pyssht.sample_shape(L, Method="MW")
+mw_shape = sampling.f_shape(L)
 oversample = L < 256  # get smoother images by padding spectrum with zeros
 
 # Plot evolution of posterior, likelihood and prior probabilities
@@ -71,15 +73,15 @@ with warnings.catch_warnings():
     kappa_bl = hp.alm2map(hp.map2alm(kappa, lmax=lmax), nside=nside)
     sigma = np.radians(50 / 60)  # 50 arcmin
     kappa_s = hp.smoothing(kappa_bl, sigma=sigma)
-truth = pyssht.inverse(pys2let.lm_hp2lm(hp.map2alm(kappa_s, lmax), L), L)
+truth = pyssht.inverse(sampling.lm_hp_to_2d(hp.map2alm(kappa_s, lmax), L).flatten(), L)
 
 
 # Need 1 mask with the same bandlimit as the results
 # and one at the higher bandlimit that is used for plotting
 if args.no_mask:
-    mask = np.ones(pyssht.sample_shape(L)).astype(bool)
+    mask = np.ones(sampling.f_shape(L)).astype(bool)
     highL_mask = (
-        np.ones(pyssht.sample_shape(256)).astype(bool) if oversample else np.copy(mask)
+        np.ones(sampling.f_shape(256)).astype(bool) if oversample else np.copy(mask)
     )
 else:
     mask = build_mask(L, size=20).astype(bool)
@@ -125,7 +127,7 @@ map_wvlt.savefig(filename("MAP_wvlt"))
 
 # Get everythin in image space
 chain_pix = np.zeros(
-    (file.attrs["nsamples"] - args.burn, pyssht.sample_length(L, Method="MW")),
+    (file.attrs["nsamples"] - args.burn, mw_sample_length(L)),
     dtype=complex,
 )
 for i, sample in enumerate(file["chain"][args.burn :]):

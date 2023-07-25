@@ -1,8 +1,10 @@
 import numpy as np
 import pys2let
 import pyssht
+from s2fft import sampling
+from s2wav.utils.shapes import j_max
 
-from pxmcmc.utils import soft, mw_map_weights, _multires_bandlimits
+from pxmcmc.utils import soft, mw_map_weights, _multires_bandlimits, mw_sample_length
 
 
 class L1:
@@ -69,7 +71,7 @@ class S2_Wavelets_L1(L1):
         self.L = L
         self.B = B
         self.J_min = J_min
-        self.J_max = pys2let.pys2let_j_max(B, L, J_min)
+        self.J_max = j_max(B, L, J_min)
         self.nscales = self.J_max - J_min + 1
         self.dirs = dirs
         self.spin = spin
@@ -121,9 +123,9 @@ class S2_Wavelets_L1_Power_Weights(S2_Wavelets_L1):
         phi_l, _ = pys2let.wavelet_tiling(self.B, self.L, self.dirs, self.J_min, self.spin)
         scaling_power = np.vdot(phi_l, phi_l).real
         effective_L = np.nonzero(phi_l)[0].max() + 1
-        nsamples = pyssht.sample_length(effective_L)
-        weights = np.full(pyssht.sample_shape(effective_L), 2 * np.pi ** 2 / (scaling_power * nsamples))
-        thetas, _ = pyssht.sample_positions(effective_L)
+        nsamples = mw_sample_length(effective_L)
+        weights = np.full(sampling.f_shape(effective_L), 2 * np.pi ** 2 / (scaling_power * nsamples))
+        thetas, _ = sampling.thetas(effective_L)
         weights = (weights.T * np.sin(thetas)).T
         return weights
 
@@ -141,9 +143,9 @@ class S2_Wavelets_L1_Power_Weights(S2_Wavelets_L1):
         )
         all_weights = []
         for effective_L, power, peak_l in zip(bls[1:], wavelet_powers, peak_ls):
-            nsamples = pyssht.sample_length(effective_L)
-            weights = np.full(pyssht.sample_shape(effective_L), (2 * np.pi ** 2) * (peak_l ** self.eta) / (power * nsamples))
-            thetas, _ = pyssht.sample_positions(effective_L)
+            nsamples = mw_sample_length(effective_L)
+            weights = np.full(sampling.f_shape(effective_L), (2 * np.pi ** 2) * (peak_l ** self.eta) / (power * nsamples))
+            thetas, _ = sampling.thetas(effective_L)
             weights = (weights.T * np.sin(thetas)).T
             all_weights.append(weights)
         return np.array(all_weights, dtype=list)

@@ -11,6 +11,7 @@ import datetime
 import argparse
 import pys2let
 import pyssht
+from s2fft import sampling
 
 from pxmcmc.mcmc import MYULA, PxMALA, SKROCK, PxMCMCParams
 from pxmcmc.forward import SphericalWaveletTransformOperator
@@ -79,7 +80,7 @@ setting = args.setting
 if "_hpx_" in args.infile:
     topo = hp.read_map(args.infile, verbose=False)
     topo_d_lm = hp.map2alm(topo, L - 1)
-    topo_d = pys2let.alm2map_mw(pys2let.lm_hp2lm(topo_d_lm, L), L, 0)
+    topo_d = pys2let.alm2map_mw(sampling.lm_hp_to_2d(topo_d_lm, L).flatten(), L, 0)
 elif "_mw_" in args.infile:
     topo = np.load(args.infile)
     topo_d = topo.reshape((L, 2 * L - 1))
@@ -89,15 +90,15 @@ else:
 if args.makenoise:  # Adding noise to data, as noise would be present in real data
     np.random.seed(2)
     areas = calc_pixel_areas(L)
-    sig_d = np.sqrt(sigma ** 2 / areas)
+    sig_d = np.sqrt(sigma**2 / areas)
     if args.scaleafrica:  # Extra noisy in Africa
         thetas = np.deg2rad(np.linspace(60, 120, 100))
         phis = np.deg2rad(np.linspace(-30, 30, 100))
         block = np.zeros((L, 2 * L - 1))
         for theta in thetas:
-            theta_ind = pyssht.theta_to_index(theta, L)
+            theta_ind = int((theta * (2 * L - 1) / np.pi - 1) // 2)
             for phi in phis:
-                phi_ind = pyssht.phi_to_index(phi, L)
+                phi_ind = int(phi * (2 * L - 1) / (2 * np.pi))
                 block[theta_ind, phi_ind] = 1
         sig_d[block == 1] *= args.scaleafrica
     sig_d = sig_d.flatten()  # flatten() by default goes to C ordering like in s2let

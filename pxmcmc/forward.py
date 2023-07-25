@@ -1,9 +1,9 @@
-from pys2let import mw_size
 from scipy import sparse
 import numpy as np
 
 from pxmcmc.measurements import Identity, PathIntegral
 from pxmcmc.transforms import SphericalWaveletTransform
+from pxmcmc.utils import mw_sample_length
 
 
 class ForwardOperator:
@@ -106,10 +106,10 @@ class SphericalWaveletTransformOperator(ForwardOperator):
             dirs=dirs,
             spin=spin,
         )
-        measurement = Identity(len(data), mw_size(L))
+        measurement = Identity(len(data), mw_sample_length(L))
 
         if setting == "analysis":
-            nparams = mw_size(L)
+            nparams = mw_sample_length(L)
         else:
             nparams = transform.ncoefs
 
@@ -148,7 +148,7 @@ class PathIntegralOperator(ForwardOperator):
         measurement = PathIntegral(pathmatrix)
 
         if setting == "analysis":
-            nparams = mw_size(L)
+            nparams = mw_sample_length(L)
         else:
             nparams = transform.ncoefs
 
