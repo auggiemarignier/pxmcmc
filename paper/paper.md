@@ -10,14 +10,10 @@ authors:
   - name: Augustin Marignier
     orcid: 0000-0001-6778-1399
     corresponding: true
-    affiliation: "1, 2, 3" # (Multiple affiliations must be quoted)
+    affiliation: 1 # (Multiple affiliations must be quoted)
 affiliations:
- - name: Mullard Space Science Laboratory, University College London, UK
-   index: 1
- - name: Department of Earth Sciences, University College London, UK
-   index: 2
  - name: Research School of Earth Sciences, Australian National University, Australia
-   index: 3
+   index: 1
 date: 24 April 2023
 bibliography: paper.bib
 ---
@@ -38,12 +34,12 @@ High-dimensional imaging inverse problems arise in many fields, including astrop
 They involve recovering the pixels of an image of, for example, the inside of a human body from attenuated X-rays.
 For applications where the data may be incomplete, as is often the case in geophysical and astrophysical imaging, compressed sensing [@Donoho2006; @Candes2011] has demonstrated that sparsity in a particular basis (typically wavelets) can be used to accurately recover signals from an underdetermined system..
 In a Bayesian setting, sparse priors come in the form of the non-differentiable Laplace distribution, resulting in the need for proximal mappings for optimisation problems [@Moreau1962; @Parikh2014].
-The use of proximal operators in MCMC was first proposed by @Pereyra2016, modifying the gradient-based Langevin MCMC, and has since been used in astrophysical and geophysical applications (e.g. @Cai2018; @Price2019; @Marignier2023).
+The use of proximal operators in MCMC was first proposed by @Pereyra2016, modifying the gradient-based Langevin MCMC, and has since been used in astrophysical and geophysical applications [e.g. @Cai2018; @Price2019; @Marignier2023].
 
 MCMC methods already have popular implementations.
 For example, gradient-based Hamiltonian Monte Carlo is implemented in `STAN` [@Stan], and emcee [@Foreman-Mackey2013] is a Python implementation of the affine-invariant ensemble sampler MCMC [@Goodman2010] popular in the astrophysics community.
-To the author's knowledge, however, there exists no Python implementation of proximal MCMC readily available other than a recent implementation of proximal nested sampling [@Cai2021] who's primary aim is calculating the marginal likelihood.
-PxMCMC is a Python package implementing proximal algorithms from @Pereyra2016 and @Pereyra2020 for efficiently obtaining posterior samples form high-dimensional parameter spaces.
+To the author's knowledge, however, there exists no Python implementation of proximal MCMC readily available other than a recent implementation of proximal nested sampling [@Cai2021] whose primary aim is calculating the marginal likelihood.
+PxMCMC is a Python package implementing proximal algorithms from @Pereyra2016 and @Pereyra2020 for efficiently obtaining posterior samples from high-dimensional parameter spaces.
 The class-based API abstracts out the main components of MCMC into interoperable classes, thereby allowing users to implement their own forward models (physical model) and priors, and even their own MCMC sampler if desired.
 Originally developed to solve inverse imaging problems defined on spherical domains [@Marignier2023; @Marignier2023thesis], the package provides priors to promote sparsity in a spherical wavelet domain using transforms from the `S2LET` package [@Leistedt2013].
 Examples provided in the package include a common problem in global seismic tomography and a full-sky cosmological mass-mapping problem, the details of which can be found in @Marignier2023 and @Marignier2023thesis.
