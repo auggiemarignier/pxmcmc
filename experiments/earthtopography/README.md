@@ -13,7 +13,7 @@ If you just want to get something, run the following from this directory with yo
 
 ```bash
 python main.py --infile ETOPO1_Ice_hpx_256.fits
-python plot.py myula_synethesis_<timestamp>.hdf5 .
+python plot.py myula_synthesis_<timestamp>.hdf5 .
 ```
 
 This will take a minute or so and will not converge, although you will start to see very rough outlines of the continents in the output plots.
