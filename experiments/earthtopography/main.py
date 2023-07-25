@@ -5,7 +5,7 @@ Input: Earth topography
 Output: PxMCMC samples of Earth topography spherical wavelet coefficients
 """
 
-import healpy as hp
+
 import numpy as np
 import datetime
 import argparse

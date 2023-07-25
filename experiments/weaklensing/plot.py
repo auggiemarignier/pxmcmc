@@ -9,7 +9,7 @@ import s2wav
 import s2fft
 from s2fft import sampling
 from s2wav.utils.shapes import j_max
-import healpy as hp
+
 import warnings
 
 from pxmcmc import plotting

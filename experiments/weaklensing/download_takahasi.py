@@ -8,7 +8,7 @@ http://cosmo.phys.hirosaki-u.ac.jp/takahasi/allsky_raytracing/read.py
 import requests
 import os
 import numpy as np
-import healpy as hp
+
 from tqdm import tqdm
 import shutil
 

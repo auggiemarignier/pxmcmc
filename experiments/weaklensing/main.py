@@ -9,7 +9,7 @@ import argparse
 import datetime
 import s2fft
 from s2wav import sampling
-import healpy as hp
+
 
 from pxmcmc.measurements import WeakLensing
 from pxmcmc.transforms import SphericalWaveletTransform

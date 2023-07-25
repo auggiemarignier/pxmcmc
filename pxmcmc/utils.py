@@ -1,5 +1,5 @@
 import numpy as np
-import healpy as hp
+
 from contextlib import contextmanager
 import os
 import sys
