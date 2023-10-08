@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "PxMCMC"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Auggie Marignier <augustin.marignier.14@ucl.ac.uk>"]
 description = "Proximal Markov Chain Monte Carlo"
 homepage = "https://github.com/auggiemarignier/pxmcmc"
@@ -33,7 +33,7 @@ pytest-cases = "^3.6.13"
 
 [build-system]
 requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
 docs = ["sphinx", "sphinx-rtd-theme"]
